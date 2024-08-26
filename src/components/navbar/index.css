@@ -1,0 +1,11 @@
+.menu-item{
+    color: #5D5D5D;
+    border: 1px solid #C8C8C8;
+    border-radius: 10px;
+    padding: 5px 30px;
+}
+
+.menu-item:hover {
+    color: white;
+    background-color: #3754B9;
+}
