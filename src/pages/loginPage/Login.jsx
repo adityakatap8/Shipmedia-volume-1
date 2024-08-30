@@ -23,7 +23,7 @@ function Login() {
             <input type="password" className="form-control custom-placeholder" placeholder="Enter Password" />
           </div>
         
-          <SubmitButton />
+          <SubmitButton lable="Submit" to="/Plans" />
           
           <p className="mt-3 text-left font-normal">
             Forgot Password? <a href="#">Click here to reset</a>

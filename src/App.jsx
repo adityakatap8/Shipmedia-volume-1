@@ -14,6 +14,9 @@ import Navbar1 from './components/navbar1/Navbar1';
 import SetupSourceFolder from './components/setupSourceFolder/SetupSourceFolder';
 import SourceFolderSuccess from './components/sourceFolderSuccess/SourceFolderSuccess';
 import FileUploadSuccess from './components/fileUploadSuccess/FileUploadSuccess';
+import VideoAudioSettings from './components/videoAudioSettings/VideoAudioSettings';
+import SetupDelivery from './components/setupDelivery/SetupDelivery';
+import SetupDeliverySuccess from './components/setupDeliverySuccess/setupDeliverySuccess';
 
 function App() {
   return (
@@ -49,7 +52,7 @@ function TestWithSidebar() {
       <div className="flex">
         <Sidebar />
         <main className="flex-grow">
-          <FileUploadSuccess />
+          <SetupDelivery />
         </main>
       </div>
     </div>

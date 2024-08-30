@@ -1,8 +1,10 @@
 // src/components/Navbar.js
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LOGO from "../../assets/LOGO.png"
 import "./index.css"
+import Submit from '../submit/Submit';
+import Register from '../../pages/registerPage/Register';
 
 
 const Navbar = () => {
@@ -45,6 +47,11 @@ const Navbar = () => {
           <Link to="/about" className="menu-item">About</Link>
           <Link to="/contact" className="menu-item">Contact Us</Link>
         </div>
+        <div className='d-flex'>
+        <Submit lable="Login" to="/login"/>
+        <Submit lable="Register" to="/register"/>
+        </div>
+        
       </div>
     </nav>
   );

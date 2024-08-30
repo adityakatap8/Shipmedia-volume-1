@@ -19,6 +19,7 @@ export default {
           DEFAULT: "#3754B9",
           700: "#3754B9",
         },
+        customOrange:"#EE794E",
       },
     },
   },
