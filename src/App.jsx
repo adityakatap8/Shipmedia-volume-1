@@ -17,6 +17,7 @@ import FileUploadSuccess from './components/fileUploadSuccess/FileUploadSuccess'
 import VideoAudioSettings from './components/videoAudioSettings/VideoAudioSettings';
 import SetupDelivery from './components/setupDelivery/SetupDelivery';
 import SetupDeliverySuccess from './components/setupDeliverySuccess/setupDeliverySuccess';
+import ListingTable from './components/listingTable/ListingTable';
 
 function App() {
   return (
@@ -52,7 +53,7 @@ function TestWithSidebar() {
       <div className="flex">
         <Sidebar />
         <main className="flex-grow">
-          <SetupDelivery />
+          <ListingTable />
         </main>
       </div>
     </div>
