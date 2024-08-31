@@ -18,6 +18,9 @@ import VideoAudioSettings from './components/videoAudioSettings/VideoAudioSettin
 import SetupDelivery from './components/setupDelivery/SetupDelivery';
 import SetupDeliverySuccess from './components/setupDeliverySuccess/setupDeliverySuccess';
 import ListingTable from './components/listingTable/ListingTable';
+import JobQueueTable from './components/jobQueueTable/JobQueueTable';
+import SetupWatchFolder from './components/setupWatchFolder/SetupWatchFolder';
+import PlanCards from './components/planCards/PlanCards';
 
 function App() {
   return (
@@ -53,7 +56,7 @@ function TestWithSidebar() {
       <div className="flex">
         <Sidebar />
         <main className="flex-grow">
-          <ListingTable />
+          <SetupWatchFolder />
         </main>
       </div>
     </div>
