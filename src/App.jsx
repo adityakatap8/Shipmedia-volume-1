@@ -22,6 +22,7 @@ import JobQueueTable from './components/jobQueueTable/JobQueueTable';
 import SetupWatchFolder from './components/setupWatchFolder/SetupWatchFolder';
 import PlanCards from './components/planCards/PlanCards';
 import PaymentSummary from './components/paymentSummary/PaymentSummary';
+import UserProfile from './components/userProfile/UserProfile';
 
 function App() {
   return (
@@ -57,7 +58,7 @@ function TestWithSidebar() {
       <div className="flex">
         <Sidebar />
         <main className="flex-grow">
-          <PaymentSummary />
+          <UserProfile />
         </main>
       </div>
     </div>
