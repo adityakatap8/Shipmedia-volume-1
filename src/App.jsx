@@ -6,6 +6,7 @@ import Home from './pages/homePage/Home';
 import Register from './pages/registerPage/Register';
 import Login from './pages/loginPage/Login';
 import Main from './pages/mainPage/Main';
+import AdminPage from './pages/adminPage/AdminPage';
 
 import { BrowserRouter as Router, Route, Routes, useLocation  } from 'react-router-dom';
 import Navbar from './components/navbar/Navbar';
@@ -23,6 +24,7 @@ import SetupWatchFolder from './components/setupWatchFolder/SetupWatchFolder';
 import PlanCards from './components/planCards/PlanCards';
 import PaymentSummary from './components/paymentSummary/PaymentSummary';
 import UserProfile from './components/userProfile/UserProfile';
+import CodecSettings from './components/codecSettings/CodecSettings';
 
 function App() {
   return (
@@ -33,6 +35,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/main" element={<TestWithSidebar />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </Router>
   );
@@ -58,7 +61,7 @@ function TestWithSidebar() {
       <div className="flex">
         <Sidebar />
         <main className="flex-grow">
-          <UserProfile />
+          <CodecSettings />
         </main>
       </div>
     </div>
