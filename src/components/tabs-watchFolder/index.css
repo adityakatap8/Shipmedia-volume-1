@@ -1,0 +1,105 @@
+/* Container for all tabs */
+.tab-container {
+  display: flex;
+  align-items: center;
+  position: relative; /* Ensure proper positioning context */
+}
+
+/* Common styles for both selected and not-selected tabs */
+.tab {
+  position: relative;
+  width: 300px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #3754B9;
+  border-bottom: 1px solid #3754B9;
+  border-radius: 20px 0 0 20px; /* Rounded left side */
+  font-size: 16px; /* Adjust as needed */
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  z-index: 1; /* Ensure all tabs are above the background */
+}
+
+/* Styles for the selected tab */
+.selected {
+  background-color: #3754B9; /* Blue color */
+  color: white;
+  z-index: 2; /* Ensure the selected tab is on top */
+}
+
+.selected::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: -21px;
+  width: 43px;
+  height: 43px;
+  background-color: #3754B9;
+  transform: rotate(-45deg);
+  clip-path: polygon(100% 0%, 100% 100%, 0 100%);
+}
+
+/* Styles for the not-selected tab */
+.not-selected {
+  background-color: white;
+  color: #3754B9; /* Text color */
+  z-index: 1; /* Ensure these tabs are below the selected tab */
+}
+
+.not-selected::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: -21px;
+  width: 43px;
+  height: 43px;
+  background-color: white; /* Match the background color */
+  transform: rotate(-45deg);
+  clip-path: polygon(100% 0%, 100% 100%, 0 100%);
+  border: 1px solid #3754B9; /* Optional: border to match the top and bottom borders */
+}
+
+
+
+
+/* Styles for the selected tab */
+.selected2 {
+  background-color: red; /* Blue color */
+  color: white;
+  z-index: 2; /* Ensure the selected tab is on top */
+}
+
+.selected2::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: -21px;
+  width: 43px;
+  height: 43px;
+  background-color: #3754B9;
+  transform: rotate(-45deg);
+  clip-path: polygon(100% 0%, 100% 100%, 0 100%);
+}
+
+/* Styles for the not-selected tab */
+.not-selected2 {
+  background-color: white;
+  color: #3754B9; /* Text color */
+  z-index: 1; /* Ensure these tabs are below the selected tab */
+}
+
+.not-selected2::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: -21px;
+  width: 43px;
+  height: 43px;
+  background-color: white; /* Match the background color */
+  transform: rotate(-45deg);
+  clip-path: polygon(100% 0%, 100% 100%, 0 100%);
+  border: 1px solid #3754B9; /* Optional: border to match the top and bottom borders */
+}

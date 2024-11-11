@@ -1,0 +1,73 @@
+.accordion-content.active {
+    max-height: 800px; /* Increased height to fit more content */
+    transition: max-height 0.3s ease-in-out;
+  }
+  
+  ul {
+    padding-left: 20px;
+  }
+  
+  li {
+    margin-bottom: 15px;
+  }
+  
+  /* Add styles for benefits list */
+  .benefits-list {
+    margin-top: 20px;
+    padding-left: 20px;
+  }
+  
+  .benefit-item {
+    margin-bottom: 10px;
+  }
+
+  .services-content-title{
+    color: #3754B9;
+    font-size: 33px;
+    margin: 30px;
+  }
+  .services-content{
+    margin: 30px;
+  }
+  
+ .service-title{
+  font-weight: bold;
+  font-size: 30px;
+  color: #3754B9;
+  margin: 0px;
+ }
+
+ .service-content{
+  margin: 30px;
+ }
+
+
+ .dotted-line-break-blue{
+  width: 70%; /* Set the width to 60% */
+  margin: 20px auto; /* Center the line and add vertical spacing */
+  border-top: 2px dotted #3754B9; 
+  align-content: left;
+}
+/* Style the scrollbar */
+.scrollable-content::-webkit-scrollbar {
+  width: 5px;  /* Set the width of the vertical scrollbar */
+  height: 8px; /* Set the height of the horizontal scrollbar */
+}
+
+/* Style the scrollbar track (background area of the scrollbar) */
+.scrollable-content::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light background for the track */
+  border-radius: 10px;  /* Rounded corners */
+}
+
+/* Style the scrollbar thumb (the draggable part of the scrollbar) */
+.scrollable-content::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the thumb */
+  border-radius: 10px;  /* Rounded corners */
+  border: 2px solid #f1f1f1; /* Border around the thumb */
+}
+
+/* Hover effect for the thumb */
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker color on hover */
+}

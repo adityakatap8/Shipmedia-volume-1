@@ -1,0 +1,21 @@
+.buy-credits{
+    background-color: #ff7f00;
+    border-color: white;
+    border-width: medium;
+    border-radius: 30px;
+    width: 150px;
+    height: 60px;
+    font-size: large;
+    font-weight: bold;
+    color:white;
+}
+
+.cancel {
+    color: #fff;
+    font-weight: 600;
+    font-size: 23px;
+    background-color: #3754B9;
+    padding: 10px 20px;
+    border: 1px solid #0091CA;
+    border-radius: 30px;
+    }

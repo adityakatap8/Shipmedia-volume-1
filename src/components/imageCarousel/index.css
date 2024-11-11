@@ -1,0 +1,63 @@
+.image-carousel-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%; /* Full width */
+  margin: auto;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center; /* Center the image */
+  align-items: center; /* Center the image vertically */
+  height: 100%; /* Set a specific height */
+  width: 100%; /* Full width of parent */
+  margin-top: 15px;
+}
+
+.carousel-image {
+  max-width: auto; /* Ensure it doesn't exceed parent width */
+  max-height: auto; /* Maintain height */
+  object-fit: cover; /* Maintain aspect ratio and fill */
+  object-position: center; /* Center the image */
+}
+
+.button-container {
+  margin-top: 20px;
+  margin-bottom: 40px;
+}
+
+.image-controls {
+  display: flex;
+  justify-content: space-between;
+  width: 300px;
+}
+
+.carouButt {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 30px;
+}
+
+.carouButt:hover {
+  background-color: #0056b3;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1); /* White background with transparency */
+  border-radius: 10px; /* Rounded corners */
+  padding: 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px); /* Blurs the background behind the element */
+  color: white; /* Text color */
+}
+
+.image-container img{
+  border-radius: 10px;
+}
