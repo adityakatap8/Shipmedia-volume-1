@@ -1,82 +1,328 @@
-import React from 'react'
+import React, { useState } from 'react'
 import "./index.css"
 import 'bootstrap/dist/css/bootstrap.min.css';
 import HomeDesign from "../../assets/HomeDesign.png"
-import Arrow from "../../assets/Arrow.png"
+// import Arrow from "../../assets/Arrow.png"
 import aws from "../../assets/aws.png"
 import azure from "../../assets/azure.png"
 import gcp from "../../assets/gcp.png"
 import Submit from '../../components/submit/Submit';
 import ShipmediaLogo2 from '../../assets/ShipmediaLogo2.png'
-import BlueButton from '../../components/BlueButton/BlueButton';
+import BlueButton from '../../components/blueButton/BlueButton';
+import ImageCarousel from '../../components/imageCarousel/imageCarousel';
+import arrowblue from '../../assets/arrowblue.png'
+import Arrow6 from '../../assets/Arrow 6.png';
+import ServicesAccordion from '../../components/servicesAccordion/servicesAccordion';
+import contentOperation from '../../assets/contentOperation.png'
+
+import instagram from "../../assets/instagram.png";
+import linkedin from "../../assets/linkedin.png";
+import youtube from "../../assets/youtube.png";
+
 
 function Home() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [region, setRegion] = useState('');
+  const [phone, setPhone] = useState('');
+  const [selectedService, setSelectedService] = useState('');
+  const [message, setMessage] = useState('');
+
+  const [isSubmitting, setIsSubmitting] = useState(false);  // State to handle loading during form submission
+  const [error, setError] = useState(null);  // To capture errors
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  const handleServiceChange = (event) => {
+    setSelectedService(event.target.value);
+  };
+
+
+  const validate = () => {
+    let isValid = true;
+    let errorMessage = '';
+
+    if (!name) {
+      errorMessage += 'Name is required.\n';
+      isValid = false;
+    }
+    if (!email) {
+      errorMessage += 'Email is required.\n';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errorMessage += 'Email is invalid.\n';
+    }
+    if (!organization) {
+      errorMessage += 'Organization Name is required.\n';
+      isValid = false;
+    }
+    if (!phone) {
+      errorMessage += 'Phone Number is required.\n';
+      isValid = false;
+    } else if (!/^\d+$/.test(phone)) {  // Check if phone number is numeric
+      errorMessage += 'Phone Number must be numeric.\n';
+      isValid = false;
+    }
+    if (!selectedService) {
+      errorMessage += 'Service selection is required.\n';
+      isValid = false;
+    }
+    if (!message) {
+      errorMessage += 'Message is required.\n';
+      isValid = false;
+    }
+
+    if (!isValid) {
+      setError(errorMessage.trim());
+    }
+
+    return isValid;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent form's default behavior (page reload)
+
+    // Validate the form data
+    if (!validate()) return;
+
+    // Set loading state
+    setIsSubmitting(true);
+    setError(null); // Clear previous error
+    setSuccessMessage(null); // Clear success message
+
+    // Collect form data into an object
+    const formData = {
+      name,
+      email,
+      organization,
+      phone,
+      selectedService,
+      message,
+    };
+
+    try {
+      // Make the POST request to your backend API
+      const response = await fetch('http://localhost:3000/api/submitform', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // Set the content type to JSON
+        },
+        body: JSON.stringify(formData), // Convert form data to JSON
+      });
+
+      const data = await response.json(); // Parse response data
+
+      if (response.ok) {
+        // If submission is successful, show success message and reset form
+        setSuccessMessage('Form submitted successfully!');
+        setName('');
+        setEmail('');
+        setOrganization('');
+        setPhone('');
+        setSelectedService('');
+        setMessage('');
+      } else {
+        setError(data.message || 'Error submitting form');
+      }
+    } catch (error) {
+      setError('There was an error submitting the form');
+      console.error('Form submission error:', error);
+    } finally {
+      // Reset loading state after submission
+      setIsSubmitting(false);
+    }
+  };
+
+
   return (
     <div>
       {/* homepage main section */}
-      <div className='section'>
-        <div className='container-fluid home-container'>
+      <div className='section' style={{ marginBottom: '0px' }}>
+        <div className='container home-container'>
           <div className='row'>
-            <div className='col-md-4 pt-12 pl-24'>
-              <img className='home-image img-fluid' src={HomeDesign} alt="Home Design" />
+            <div className='col-md-8  d-flex justify-content-center align-items-center'>
+              {/* Content for the left side */}
+              <ImageCarousel />
             </div>
+            <div className='col-md-4'>
+              {/* Content for the right side */}
+              <div className='d-flex align-items-center justify-content-center h-100'>
+                <div className="contact-right-section flex-grow-1 d-flex">
+                
+                  <form className="form-container glass-effect" style={{ flex: 1 }} onSubmit={handleSubmit}>
+                  <h1 className='align-items-center text-xxl'>Inquiry Form</h1>
+                    {/* Form Fields */}
+                    <div className="form-group pt-1">
+                      <input
+                        type="text"
+                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+                        placeholder="Enter Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group pt-1">
+                      <input
+                        type="email"
+                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+                        placeholder="Enter Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group pt-1">
+                      <input
+                        type="text"
+                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+                        placeholder="Enter Organization Name"
+                        value={organization}
+                        onChange={(e) => setOrganization(e.target.value)}
+                      />
+                    </div>
 
-            <div className='col-md-8 d-flex align-items-center'>
-              <div className='align-items-center'>
-                {/* <img className='img-fluid' src={HomeMainContent} alt="Home Main Content" /> */}
-                <h1 className='text-5xl font-bold text-white text-left'>Ingest</h1>
-                <p className='text-xl font-thin text-white h-8 w-40 pt-4 text-left'>Ingest Or Upload Desired Files</p>
-              </div>
-              <div className='align-items-center'>
-                <img src={Arrow} className='h-8 w-24' alt="" />
+                    <div className="form-group pt-1">
+                      <input
+                        type="tel"
+                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+                        placeholder="Enter Phone Number"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group pt-1">
+                      <select
+                        id="service"
+                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                        style={{
+                          color: selectedService ? 'black' : '#6B7280',
+                          width: '23pc',
+                        }}
+                        value={selectedService}
+                        onChange={handleServiceChange}
+                      >
+                        <option value="" disabled>Select your Service</option>
+                        <option value="delivery">Delivery to OTT Streaming Platforms</option>
+                        <option value="filmFestivals">Delivery to Film Festivals</option>
+                        <option value="censorBoard">Delivery to Censor Board</option>
+                        <option value="dubbing">Dubbing Services</option>
+                        <option value="subtitling">Subtitling Services</option>
+                        <option value="compliance">QC and Compliance Services</option>
+                        <option value="distribution">Distribution Services</option>
+                      </select>
+                    </div>
+                    <div className="form-group mb-4 pt-1">
+                      <textarea
+                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+                        rows="4"
+                        placeholder="Enter your message here"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Error or Success Messages */}
+                    {error && (
+                      <div className="alert alert-danger custom-alert">
+                        <strong></strong> {error}
+                      </div>
+                    )} {/* Display error message */}
+                    {successMessage && (
+                      <div className="alert alert-success custom-alert">
+                        <strong>Success:</strong> {successMessage}
+                      </div>
+                    )}
+                    {/* Submit Button */}
+                    <div className="mb-4 ml-8 flex">
+                      <Submit lable="Submit" />
+                    </div>
+                  </form>
+                </div>
               </div>
 
-              <div className='align-items-center pl-4'>
-                {/* <img className='img-fluid' src={HomeMainContent} alt="Home Main Content" /> */}
-                <h1 className='text-5xl font-bold text-white text-left'>Convert</h1>
-                <p className='text-xl font-thin text-white h-8 w-40 pt-4 text-left'>Choose a Format to Convert</p>
-              </div>
-              <div className='align-items-center pl-4'>
-                <img src={Arrow} className='h-8 w-24' alt="" />
-              </div>
 
-              <div className='align-items-center pl-4'>
-                {/* <img className='img-fluid' src={HomeMainContent} alt="Home Main Content" /> */}
-                <h1 className='text-5xl font-bold text-white text-left'>Deliver</h1>
-                <p className='text-xl font-thin text-white h-8 w-40 pt-4 text-left'>Select your Desired
-                  Location for Delivery</p>
-              </div>
             </div>
           </div>
         </div>
       </div>
+      {/* <div className="sliding-ribbon-container">
+        <div className="sliding-ribbon">
+          <span>• Delivery to OTT Streaming Platforms</span>
+          <span>• Delivery to Film Festivals</span>
+          <span>• Delivery to Censor Board</span>
+          <span>• Dubbing Services</span>
+          <span>• Subtitling Services</span>
+          <span>• QC and Compliance Services</span>
+          <span>• Distribution Services</span>
+          <span>• Delivery to OTT Streaming Platforms</span>
+          <span>• Delivery to Film Festivals</span>
+          <span>• Delivery to Censor Board</span>
+          <span>• Dubbing Services</span>
+          <span>• Subtitling Services</span>
+          <span>• QC and Compliance Services</span>
+          <span>• Distribution Services</span>
+           <span>• Delivery to OTT Streaming Platforms</span>
+          <span>• Delivery to Film Festivals</span>
+          <span>• Delivery to Censor Board</span>
+          <span>• Dubbing Services</span>
+          <span>• Subtitling Services</span>
+          <span>• QC and Compliance Services</span>
+          <span>• Distribution Services</span>
+        </div>
+      </div> */}
+
 
       {/* homepage second section */}
-      <div className='section pt-16'>
-        <div className='container bg-custom-gray-400 p-4 text-white'>
-          <div className='row'>
-            <div className='col-md-6'>
-              <h1 className='text-6xl font-bold text-left text-custom-blue'>Customize your settings as per your need </h1>
-              <p className='text-black text-left pt-5'>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</p>
+      {/* <div className='section pt-16'>
+        <div className='d-flex justify-content-center'>
+          <div className='col-md-8 d-flex align-items-center justify-content-center'>
+
+            <div className='circle-container'>
+              <div className='step-label'>Step 1</div>
+              <div className='align-items-center text-center'>
+                <h1 className='text-4xl font-bold text-white'>Ingest</h1>
+                <p className='text-md font-thin text-white pt-2'>Ingest Or Upload Desired <br />Files</p>
+              </div>
             </div>
-            <div className='col-md-6 d-flex border-box'>
-              <div><img className='aws-box' src={aws} alt="" /></div>
-              <div><img className='gcp-box' src={gcp} alt="" /></div>
-              <div><img className='azure-box' src={azure} alt="" /></div>
+            <div className='align-items-center'>
+              <img src={Arrow6} className='h-8 w-22' alt="" />
             </div>
+
+            <div className='circle-container'>
+              <div className='step-label'>Step 2</div>
+              <div className='align-items-center text-center'>
+                <h1 className='text-4xl font-bold text-white'>Service</h1>
+                <p className='text-md font-thin text-white pt-2'>Choose A Service</p>
+              </div>
+            </div>
+            <div className='align-items-center'>
+              <img src={Arrow6} className='h-8 w-22' alt="" />
+            </div>
+
+            <div className='circle-container'>
+              <div className='step-label'>Step 3</div>
+              <div className='align-items-center text-center'>
+                <h1 className='text-4xl font-bold text-white'>Deliver</h1>
+                <p className='text-md font-thin text-white pt-2'>Select your Desired Location for Delivery</p>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
+      </div> */}
+
+
+
+      <div className='header-title mt-20'><h1>Our Services</h1></div>
+      <div className="dotted-line-break"></div>
 
 
       {/* homepage plans section */}
-      <div className='section pt-48'>
+      {/* <div className='section pt-48'>
         <div className='pb-12'>
           <h3 className='text-custom-blue text-3xl'>We are here to understand and Deliver the Best Plans as per your needs</h3>
         </div>
-        <div className='plans-container'>
-          {/* plans row 1 start */}
-          <div className='row d-flex'>
+        <div className='plans-container'> */}
+      {/* plans row 1 start */}
+      {/* <div className='row d-flex'>
             <div className='col d-flex'>
               <div className='w-64 h-40 box'>
                 <div className='px-auto align-center pt-12'>
@@ -118,7 +364,7 @@ function Home() {
               <div className='w-64 h-40 no-box pt-12'>
                 <div className='px-auto align-center'>
                   <div>
-                  <BlueButton lable="Buy Credits" to="/Register" /> 
+                  <BlueButton lable="Buy Credits" to="/Billing" /> 
                   </div>
                 </div>
               </div>
@@ -128,17 +374,17 @@ function Home() {
               <hr className='line-break' />
             </div>
 
-          </div>
+          </div> */}
 
-          {/* plans row 1 end */}
+      {/* plans row 1 end */}
 
-          {/* plans row 2 start */}
-          <div className='row d-flex pt-8'>
+      {/* plans row 2 start */}
+      {/* <div className='row d-flex pt-8'>
             <div className='col d-flex'>
               <div className='w-64 h-40 box'>
                 <div className='px-auto align-center pt-12'>
-                  <h1 className='text-custom-blue text-4xl'>Core</h1>
-                  <h1 className='text-custom-blue text-2xl'>(on demand)</h1>
+                  <h1 className='text-custom-blue text-4xl'>Standard</h1>
+                  <h1 className='text-custom-blue text-2xl'></h1>
                 </div>
               </div>
             </div>
@@ -186,16 +432,16 @@ function Home() {
               <hr className='line-break' />
             </div>
 
-          </div>
-          {/* plans row 2 end */}
+          </div> */}
+      {/* plans row 2 end */}
 
-          {/* plans row 3 start */}
-          <div className='row d-flex pt-8'>
+      {/* plans row 3 start */}
+      {/* <div className='row d-flex pt-8'>
             <div className='col d-flex'>
               <div className='w-64 h-40 box'>
                 <div className='px-auto align-center pt-12'>
-                  <h1 className='text-custom-blue text-4xl'>Core</h1>
-                  <h1 className='text-custom-blue text-2xl'>(on demand)</h1>
+                  <h1 className='text-custom-blue text-4xl'>Premium</h1>
+                  <h1 className='text-custom-blue text-2xl'></h1>
                 </div>
               </div>
             </div>
@@ -238,69 +484,101 @@ function Home() {
                 </div>
               </div>
             </div>
+          </div> */}
+      {/* plans row 3 end */}
+      {/* </div>
+      </div> */}
+
+
+
+
+      {/* Media section start */}
+
+      {/* <ImageCarousel /> */}
+
+      {/* Media section end */}
+
+
+      {/* Service accordion starts */}
+
+      <ServicesAccordion />
+
+
+      {/* Services accordion ends */}
+
+
+
+      <div className="section pb-10">
+  <div className="dotted-line-break pt-20"></div>
+  <div className='container mx-auto px-4 py-2 flex flex-col items-center'>
+    
+    {/* Logo Section */}
+    <div className="flex justify-center items-center mb-8 ml-12">
+  <img
+    className="contact-logo-image"
+    src={ShipmediaLogo2}
+    alt="Logo"
+    style={{ width: '60%' }}
+  />
+</div>
+    
+ {/* Social Media Icons */}
+<div className="social-media-icons-wrapper">
+  <div className="d-flex justify-content-center align-items-center">
+    <div className="me-3">
+      <img src={instagram} alt="Instagram Logo" className="social-icon" />
+    </div>
+    <div className="me-3">
+      <img src={linkedin} alt="LinkedIn Logo" className="social-icon" />
+    </div>
+    <div className="me-3">
+      <img src={youtube} alt="YouTube Logo" className="social-icon" />
+    </div>
+  </div>
+</div>
+
+    
+    </div>
+</div>
+
+
+  {/* Sliding Ribbon Section */}
+  <div className="sliding-ribbon-container">
+          <div className="sliding-ribbon">
+            <span>• Delivery to OTT Streaming Platforms</span>
+            <span>• Delivery to Film Festivals</span>
+            <span>• Delivery to Censor Board</span>
+            <span>• Dubbing Services</span>
+            <span>• Subtitling Services</span>
+            <span>• QC and Compliance Services</span>
+            <span>• Distribution Services</span>
+            <span>• Delivery to OTT Streaming Platforms</span>
+            <span>• Delivery to Film Festivals</span>
+            <span>• Delivery to Censor Board</span>
+            <span>• Dubbing Services</span>
+            <span>• Subtitling Services</span>
+            <span>• QC and Compliance Services</span>
+            <span>• Distribution Services</span>
+            <span>• Delivery to OTT Streaming Platforms</span>
+            <span>• Delivery to Film Festivals</span>
+            <span>• Delivery to Censor Board</span>
+            <span>• Dubbing Services</span>
+            <span>• Subtitling Services</span>
+            <span>• QC and Compliance Services</span>
+            <span>• Distribution Services</span>
           </div>
-          {/* plans row 3 end */}
-
-
-
         </div>
-      </div>
-
-
-
-
-
-
-
-      {/* Home page contact form section */}
-      <div className='section pt-48 pb-20'>
-        <div className='container'>
-          <div className='row'>
-            <h2 className='mb-5' style={{ textAlign: 'center', fontSize: '40px', fontWeight: '700', color: '#3754B9' }}>Contact Us</h2>
-            <div className='col-md-6'>
-              <div className="contact-right-section flex-grow-1 d-flex">
-                <form className="form-container">
-
-                  <div className="form-group pt-1">
-                    <input type="text" className="form-textarea px-3 py-2 border border-black-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300" placeholder="Enter Name" />
-                  </div>
-                  <div className="form-group pt-1">
-                    <input type="email" className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300" placeholder="Enter Email" />
-                  </div>
-
-                  <div className="form-group mb-4 pt-1">
-                    <textarea
-                      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-                      rows="4"
-                      placeholder="Enter your message here"
-                    />
-                  </div>
-                  <div className="mb-4 flex">
-                    <Submit lable="Submit" />
-                  </div>
-                </form>
-              </div>
-            </div>
-
-            <div className='col-md-6 px-auto flex items-center contact-left-section'>
-              <img className='contact-logo-image mx-auto' src={ShipmediaLogo2} alt="" />
-            </div>
-          </div>
-        </div>
-      </div>
-
+      {/* Home page contact form section end */}
       {/* <!-- Footer --> */}
-      <footer class="bg-custom-blue text-white py-4">
-        <div class="container mx-auto text-center">
-          <p class="text-sm">© 2024 Shipmedia. All rights reserved.</p>
+      <footer className="bg-custom-blue text-white py-4">
+        <div className="container mx-auto text-center">
+          <p className="text-sm">© 2024 Shipmedia. All rights reserved.</p>
           {/* <p class="text-sm">1234 Street Address, City, State, 12345</p>
       <p class="text-sm">Follow us on 
         <a href="#" class="underline">Social Media</a>
       </p> */}
         </div>
       </footer>
-
-
     </div>
   )
 }

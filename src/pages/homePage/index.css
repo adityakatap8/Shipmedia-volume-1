@@ -2,9 +2,10 @@ h1{
     color: green
 }
 .home-container{
-    
+    padding: 0px;
+    margin: 0px;
     background-color: #3754B9;
-    height: 30pc;
+    height: auto;
 }
 .box{
     width: 300px;
@@ -44,30 +45,39 @@ h1{
   .left-section {
     background-color: white;
   }
-  
-  .contact-right-section {
-    background-color: #fff;
+
+  .main-right-section {
+    
     color: white;
     padding: 20px;
     border-top-left-radius: 50px;
     border-bottom-left-radius: 50px;
-    border: 1px solid #3754B9;
-    height: 400px;
+    height: auto;
   }
-
-  .contact-left-section {
-    background-color: #fff;
+  
+  .contact-right-section {
+    
     color: white;
-    border-top-right-radius: 50px;
-    border-bottom-right-radius: 50px;
+    border-top-left-radius: 50px;
+    border-bottom-left-radius: 50px;
     border: 1px solid #3754B9;
-    padding-right: 10px;
-height: 400px;
+    height: auto;
   }
 
-  .contact-left-section img{
-    width: 70%;
+  .header-title{
+    font-weight: 500;
+    color: #3754B9;
+    font-size: 40px;
   }
+
+  /* .contact-left-section {
+   margin: auto;
+   align-items: center;
+  } */
+
+  /* .contact-left-section img{
+    width: 50%;
+  } */
   
   .form-container {
     width: 50%;
@@ -105,11 +115,16 @@ height: 400px;
     font-weight: 500;
   }
   .form-group input{
-    width: 30pc!important;
+    width: 23pc!important;
+
+  }
+  .form-checkbox{
+    width: 27pc;
+    margin-left: 35px;
   }
 
   .form-group textarea{
-    width: 30pc;
+    width: 23pc;
   }
   .form-container{
     padding: 40px;
@@ -155,3 +170,195 @@ border-radius: 30px;
     color: black;
     
   }
+  .arrow {
+    filter: brightness(0) saturate(100%) invert(55%) sepia(100%) saturate(1000%) hue-rotate(210deg) brightness(95%) contrast(100%);
+  }
+  
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1); /* White background with transparency */
+    border-radius: 10px; /* Rounded corners */
+    padding: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px); /* Blurs the background behind the element */
+    color: white; /* Text color */
+    text-align: center; /* Center the text */
+    width: 300px; /* Set width */
+  }
+
+  .dotted-line-break {
+    width: 60%; /* Set the width to 60% */
+    margin: 20px auto; /* Center the line and add vertical spacing */
+    border-top: 1px dotted #000; /* Create a dotted line */
+  }
+
+  .dotted-line-break-blue{
+    width: auto; /* Set the width to 60% */
+    margin: 20px auto; /* Center the line and add vertical spacing */
+    border-top: 1px dotted #3754B9; 
+  }
+
+  
+  .circle-container {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    background-color: #3754B9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    margin-right: 16px;
+    margin-left: 30px;
+  }
+  
+  .step-label {
+    position: absolute;
+    top: -70px; /* Adjust position as needed */
+    left: 50px; /* Adjust position as needed */
+
+    border-radius: 5px; /* Rounded corners */
+    font-weight: 200; /* Bold font for the label */
+    color: #3754B9;
+    font-size: 40px;
+  }
+  
+  .form-textarea{
+    color: black;
+  }
+
+  /* Error and Success Message Styles */
+.custom-alert {
+  border-radius: 8px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  transition: all 0.3s ease-in-out;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+/* Add an icon to make the messages more visually appealing */
+.alert-danger::before {
+  content: '⚠️';
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.alert-success::before {
+  content: '✅';
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+/* Animation for fade-in effect */
+.custom-alert {
+  opacity: 0;
+  animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+/* Container for the sliding ribbon */
+.sliding-ribbon-container {
+  width: 100%;
+  overflow: hidden;
+  background-color: #007BFF; /* Blue background */
+}
+
+/* Sliding ribbon styles */
+.sliding-ribbon {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 10px 0;
+  font-size: 18px;
+  color: white;
+  font-weight: bold;
+  animation: slide 20s linear infinite;
+}
+
+/* Keyframe animation to make the ribbon slide */
+@keyframes slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Style for the bullet points */
+.sliding-ribbon span {
+  margin-right: 5px; /* Reduced margin for tighter spacing */
+  display: inline-block;
+}
+
+/* Remove gap after last child */
+.sliding-ribbon span:last-child {
+  margin-right: 0;
+}
+.sliding-ribbon {
+  font-size: 16px; /* Adjusted font size */
+  line-height: 1.2; /* Slightly increased line height */
+}
+.social-media-icons-wrapper {
+  width: 100%;
+}
+
+.social-media-icons-wrapper img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-right: 15px;
+}
+
+.login-register-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.social-media-icons-wrapper {
+  display: flex;
+  justify-content: center;  /* Center the icons horizontally */
+  align-items: center;      /* Center the icons vertically (if needed) */
+            /* Make the wrapper take full height of the viewport */
+}
+
+.social-icon {
+  width: 40px; /* Adjust the size of the icons */
+
+}
+.home-container .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.home-container .col-8,
+.home-container .col-4 {
+  padding-left: 0;
+  padding-right: 0;
+}
+.col-8, .col-4 {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap; /* Ensure content stays inside */
+}

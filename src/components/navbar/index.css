@@ -9,3 +9,134 @@
     color: white;
     background-color: #3754B9;
 }
+.text-blue-500 {
+    color: #1D4ED8; /* Customize with your brand's primary blue */
+  }
+  .text-black {
+    color: #000000; /* You can also change to a different color if needed */
+  }
+
+  /* Custom CSS class for the "Call or Text" section */
+.call-text-section {
+    background-color: #ff7f00;
+    border-color: white;
+    border-width: medium;
+    border-radius: 30px;
+    width: auto;
+    height: auto;
+    font-size: large;
+    font-weight: bold;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 20px;
+    margin-top: 7pc;
+  }
+  
+  .call-text-section h2 {
+    font-weight: 600;
+  }
+  
+  .call-text-section span {
+    font-size: 20px;
+    color: white;
+  }
+  .contact-logo-image{
+    
+    margin: auto;
+   
+  }
+
+  /* Container for the sliding ribbon */
+.sliding-ribbon-container {
+    width: 100%;
+    overflow: hidden;  /* Hides the content outside the container */
+    background-color: #007BFF;  /* Blue background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;  /* Adjust height based on your content size */
+  }
+  
+  /* The content inside the ribbon */
+  .sliding-ribbon {
+    display: flex;  /* Flexbox to arrange items in a row */
+    white-space: nowrap;  /* Prevents text from wrapping */
+    animation: slide 20s linear infinite;  /* Continuous slide with 20s duration */
+  }
+  
+  /* Keyframe animation to make the ribbon slide seamlessly */
+  @keyframes slide {
+    0% {
+      transform: translateX(0);  /* Start at the original position */
+    }
+    100% {
+      transform: translateX(-50%);  /* Move the content to the left by 50% of the container's width */
+    }
+  }
+  
+  /* Style for each item in the list */
+  .sliding-ribbon span {
+    margin-right: 50px;  /* Space between each item */
+    font-size: 18px;
+    color: white;
+    font-weight: bold;
+    display: inline-block;
+  }
+  .social-media-icons-wrapper {
+    width: 100%;
+  }
+  
+  .social-media-icons-wrapper img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    margin-right: 15px;
+  }
+  
+  .login-register-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+  .social-media-icons-wrapper {
+    width: 100%;
+  }
+  
+ /* Remove padding and margin for the container */
+.full-width-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Optional: If you want to make sure the row also has no padding/margin */
+  .full-width-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .social-icon {
+    width: 30px; /* Adjust icon size */
+    height: 30px; /* Adjust icon size */
+  }
+  
+  .social-media-icons-wrapper {
+    display: flex;
+    align-items: center;
+  }
+  
+  .login-register-buttons {
+    display: flex;
+    gap: 10px; /* Space between Login and Register buttons */
+  }
+  
+  
+  
+
+  
