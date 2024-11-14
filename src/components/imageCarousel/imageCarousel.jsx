@@ -3,13 +3,13 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import './index.css';
 
 const images = [
-  { src: '/src/assets/1.png', alt: 'Poster 2' },
-  { src: '/src/assets/2.png', alt: 'Poster 6' },
-  { src: '/src/assets/3.png', alt: 'Poster 5' },
-  { src: '/src/assets/4.png', alt: 'Poster 5' },
-  { src: '/src/assets/5.png', alt: 'Poster 5' },
-  { src: '/src/assets/6.png', alt: 'Poster 5' },
-  { src: '/src/assets/7.png', alt: 'Poster 5' },
+  { src: '/src/assets/1.svg', alt: 'Poster 2' },
+  { src: '/src/assets/2.svg', alt: 'Poster 6' },
+  { src: '/src/assets/3.svg', alt: 'Poster 5' },
+  { src: '/src/assets/4.svg', alt: 'Poster 5' },
+  { src: '/src/assets/5.svg', alt: 'Poster 5' },
+  { src: '/src/assets/6.svg', alt: 'Poster 5' },
+  { src: '/src/assets/7.svg', alt: 'Poster 5' },
 ];
 
 function ImageCarousel() {

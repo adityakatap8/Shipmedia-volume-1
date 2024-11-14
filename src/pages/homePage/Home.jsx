@@ -7,7 +7,7 @@ import aws from "../../assets/aws.png"
 import azure from "../../assets/azure.png"
 import gcp from "../../assets/gcp.png"
 import Submit from '../../components/submit/Submit';
-import ShipmediaLogo2 from '../../assets/ShipmediaLogo2.png'
+import mediaShippers from '../../assets/mediaShippers.png'
 import BlueButton from '../../components/blueButton/BlueButton';
 import ImageCarousel from '../../components/imageCarousel/imageCarousel';
 import arrowblue from '../../assets/arrowblue.png'
@@ -18,6 +18,8 @@ import contentOperation from '../../assets/contentOperation.png'
 import instagram from "../../assets/instagram.png";
 import linkedin from "../../assets/linkedin.png";
 import youtube from "../../assets/youtube.png";
+
+import axios from 'axios';
 
 
 function Home() {
@@ -32,6 +34,8 @@ function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);  // State to handle loading during form submission
   const [error, setError] = useState(null);  // To capture errors
   const [successMessage, setSuccessMessage] = useState(null);
+
+  
 
   const handleServiceChange = (event) => {
     setSelectedService(event.target.value);
@@ -78,41 +82,98 @@ function Home() {
     return isValid;
   };
 
+  // Create an Axios instance with default configuration
+const apiInstance = axios.create({
+  baseURL: 'http://localhost:3000',
+});
+
+// Function to cancel the request if needed
+function cancelRequest() {
+  apiInstance.cancel('User cancelled the request');
+}
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault(); // Prevent form's default behavior (page reload)
+
+  //   // Validate the form data
+  //   if (!validate()) return;
+
+  //   // Set loading state
+  //   setIsSubmitting(true);
+  //   setError(null); // Clear previous error
+  //   setSuccessMessage(null); // Clear success message
+
+  //   // Collect form data into an object
+  //   const formData = {
+  //     name,
+  //     email,
+  //     organization,
+  //     phone,
+  //     selectedService,
+  //     message,
+  //   };
+
+  //   try {
+  //     // Make the POST request to your backend API
+  //     const response = await fetch('http://localhost:3000/api/submitform', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json', // Set the content type to JSON
+  //       },
+  //       body: JSON.stringify(formData), // Convert form data to JSON
+  //     });
+
+  //     const data = await response.json(); // Parse response data
+
+  //     if (response.ok) {
+  //       // If submission is successful, show success message and reset form
+  //       setSuccessMessage('Form submitted successfully!');
+  //       setName('');
+  //       setEmail('');
+  //       setOrganization('');
+  //       setPhone('');
+  //       setSelectedService('');
+  //       setMessage('');
+  //     } else {
+  //       setError(data.message || 'Error submitting form');
+  //     }
+  //   } catch (error) {
+  //     setError('There was an error submitting the form');
+  //     console.error('Form submission error:', error);
+  //   } finally {
+  //     // Reset loading state after submission
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent form's default behavior (page reload)
-
-    // Validate the form data
+    e.preventDefault(); // Prevent form's default behavior
+  
+    // Validate the form data (with async validation if needed)
     if (!validate()) return;
-
-    // Set loading state
+  
+    // Set loading state and reset error/success states
     setIsSubmitting(true);
-    setError(null); // Clear previous error
-    setSuccessMessage(null); // Clear success message
-
+    setError(null);
+    setSuccessMessage(null);
+  
     // Collect form data into an object
-    const formData = {
-      name,
-      email,
-      organization,
-      phone,
-      selectedService,
-      message,
-    };
-
+    const formData = { name, email, organization, phone, selectedService, message };
+  
     try {
-      // Make the POST request to your backend API
+      // Use the fetch API efficiently
       const response = await fetch('http://localhost:3000/api/submitform', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // Set the content type to JSON
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // Convert form data to JSON
+        body: JSON.stringify(formData), // Send only necessary data
       });
-
-      const data = await response.json(); // Parse response data
-
+  
+      const data = await response.json(); // Parse the JSON response
+  
       if (response.ok) {
-        // If submission is successful, show success message and reset form
+        // Handle success (clear the form)
         setSuccessMessage('Form submitted successfully!');
         setName('');
         setEmail('');
@@ -121,17 +182,18 @@ function Home() {
         setSelectedService('');
         setMessage('');
       } else {
+        // Handle server errors
         setError(data.message || 'Error submitting form');
       }
     } catch (error) {
+      // Handle any other errors
       setError('There was an error submitting the form');
       console.error('Form submission error:', error);
     } finally {
-      // Reset loading state after submission
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Reset loading state
     }
   };
-
+  
 
   return (
     <div>
@@ -145,7 +207,7 @@ function Home() {
             </div>
             <div className='col-md-4'>
               {/* Content for the right side */}
-              <div className='d-flex align-items-center justify-content-center h-100'>
+              <div className='d-flex align-items-center justify-content-center h-auto mt-5'>
                 <div className="contact-right-section flex-grow-1 d-flex">
                 
                   <form className="form-container glass-effect" style={{ flex: 1 }} onSubmit={handleSubmit}>
@@ -231,9 +293,15 @@ function Home() {
                       </div>
                     )}
                     {/* Submit Button */}
-                    <div className="mb-4 ml-8 flex">
-                      <Submit lable="Submit" />
-                    </div>
+      <div className="flex">
+        <button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="submit-btn"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </button>
+      </div>
                   </form>
                 </div>
               </div>
@@ -243,263 +311,8 @@ function Home() {
           </div>
         </div>
       </div>
-      {/* <div className="sliding-ribbon-container">
-        <div className="sliding-ribbon">
-          <span>• Delivery to OTT Streaming Platforms</span>
-          <span>• Delivery to Film Festivals</span>
-          <span>• Delivery to Censor Board</span>
-          <span>• Dubbing Services</span>
-          <span>• Subtitling Services</span>
-          <span>• QC and Compliance Services</span>
-          <span>• Distribution Services</span>
-          <span>• Delivery to OTT Streaming Platforms</span>
-          <span>• Delivery to Film Festivals</span>
-          <span>• Delivery to Censor Board</span>
-          <span>• Dubbing Services</span>
-          <span>• Subtitling Services</span>
-          <span>• QC and Compliance Services</span>
-          <span>• Distribution Services</span>
-           <span>• Delivery to OTT Streaming Platforms</span>
-          <span>• Delivery to Film Festivals</span>
-          <span>• Delivery to Censor Board</span>
-          <span>• Dubbing Services</span>
-          <span>• Subtitling Services</span>
-          <span>• QC and Compliance Services</span>
-          <span>• Distribution Services</span>
-        </div>
-      </div> */}
-
-
-      {/* homepage second section */}
-      {/* <div className='section pt-16'>
-        <div className='d-flex justify-content-center'>
-          <div className='col-md-8 d-flex align-items-center justify-content-center'>
-
-            <div className='circle-container'>
-              <div className='step-label'>Step 1</div>
-              <div className='align-items-center text-center'>
-                <h1 className='text-4xl font-bold text-white'>Ingest</h1>
-                <p className='text-md font-thin text-white pt-2'>Ingest Or Upload Desired <br />Files</p>
-              </div>
-            </div>
-            <div className='align-items-center'>
-              <img src={Arrow6} className='h-8 w-22' alt="" />
-            </div>
-
-            <div className='circle-container'>
-              <div className='step-label'>Step 2</div>
-              <div className='align-items-center text-center'>
-                <h1 className='text-4xl font-bold text-white'>Service</h1>
-                <p className='text-md font-thin text-white pt-2'>Choose A Service</p>
-              </div>
-            </div>
-            <div className='align-items-center'>
-              <img src={Arrow6} className='h-8 w-22' alt="" />
-            </div>
-
-            <div className='circle-container'>
-              <div className='step-label'>Step 3</div>
-              <div className='align-items-center text-center'>
-                <h1 className='text-4xl font-bold text-white'>Deliver</h1>
-                <p className='text-md font-thin text-white pt-2'>Select your Desired Location for Delivery</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div> */}
-
-
-
-      <div className='header-title mt-20'><h1>Our Services</h1></div>
-      <div className="dotted-line-break"></div>
-
-
-      {/* homepage plans section */}
-      {/* <div className='section pt-48'>
-        <div className='pb-12'>
-          <h3 className='text-custom-blue text-3xl'>We are here to understand and Deliver the Best Plans as per your needs</h3>
-        </div>
-        <div className='plans-container'> */}
-      {/* plans row 1 start */}
-      {/* <div className='row d-flex'>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto align-center pt-12'>
-                  <h1 className='text-custom-blue text-4xl'>Core</h1>
-                  <h1 className='text-custom-blue text-2xl'>(on demand)</h1>
-                </div>
-              </div>
-            </div>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto pt-16'>
-                  <h1 className='font-bold text-custom-blue'>Upload Speed</h1>
-                  <h1 className='font-bold text-custom-blue'>100/MBPS</h1>
-                </div>
-              </div>
-            </div>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto align-center pt-10'>
-                  <ul class="list-disc list-inside space-y-2">
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check text-custom-blue mr-2"></i>
-                      Each Credit $2/GB
-                    </li>
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check text-custom-blue mr-2"></i>
-                      Unlimited Conversions
-                    </li>
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check mr-2"></i>
-                      Watchfolder
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className='col d-flex'>
-              <div className='w-64 h-40 no-box pt-12'>
-                <div className='px-auto align-center'>
-                  <div>
-                  <BlueButton lable="Buy Credits" to="/Billing" /> 
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className='flex justify-center pt-12'>
-              <hr className='line-break' />
-            </div>
-
-          </div> */}
-
-      {/* plans row 1 end */}
-
-      {/* plans row 2 start */}
-      {/* <div className='row d-flex pt-8'>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto align-center pt-12'>
-                  <h1 className='text-custom-blue text-4xl'>Standard</h1>
-                  <h1 className='text-custom-blue text-2xl'></h1>
-                </div>
-              </div>
-            </div>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto pt-16'>
-                  <h1 className='font-bold text-custom-blue'>Upload Speed</h1>
-                  <h1 className='font-bold text-custom-blue'>100/MBPS</h1>
-                </div>
-              </div>
-            </div>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto align-center pt-10'>
-                  <ul class="list-disc list-inside space-y-2">
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check text-custom-blue mr-2"></i>
-                      Each Credit $2/GB
-                    </li>
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check text-custom-blue mr-2"></i>
-                      Unlimited Conversions
-                    </li>
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check mr-2"></i>
-                      Watchfolder
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className='col d-flex'>
-              <div className='w-64 h-40 no-box pt-12'>
-                <div className='px-auto align-center'>
-                  <div>
-                    <h1 className='text-custom-blue text-4xl font-bold pb-3'>$199</h1>
-                    <BlueButton lable="Subscribe" to="/Register" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className='flex justify-center pt-12'>
-              <hr className='line-break' />
-            </div>
-
-          </div> */}
-      {/* plans row 2 end */}
-
-      {/* plans row 3 start */}
-      {/* <div className='row d-flex pt-8'>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto align-center pt-12'>
-                  <h1 className='text-custom-blue text-4xl'>Premium</h1>
-                  <h1 className='text-custom-blue text-2xl'></h1>
-                </div>
-              </div>
-            </div>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto pt-16'>
-                  <h1 className='font-bold text-custom-blue'>Upload Speed</h1>
-                  <h1 className='font-bold text-custom-blue'>100/MBPS</h1>
-                </div>
-              </div>
-            </div>
-            <div className='col d-flex'>
-              <div className='w-64 h-40 box'>
-                <div className='px-auto align-center pt-10'>
-                  <ul class="list-disc list-inside space-y-2">
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check text-custom-blue mr-2"></i>
-                      Each Credit $2/GB
-                    </li>
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check text-custom-blue mr-2"></i>
-                      Unlimited Conversions
-                    </li>
-                    <li class="flex items-center text-custom-blue font-bold">
-                      <i class="fas fa-check mr-2"></i>
-                      Watchfolder
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className='col d-flex'>
-              <div className='w-64 h-40 no-box pt-8'>
-                <div className='px-auto align-center'>
-                  <div>
-                    <h1 className='text-custom-blue text-4xl font-bold pb-3'>$399</h1>
-                    <BlueButton lable="Subscribe" to="/Register" /> 
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div> */}
-      {/* plans row 3 end */}
-      {/* </div>
-      </div> */}
-
-
-
-
-      {/* Media section start */}
-
-      {/* <ImageCarousel /> */}
-
-      {/* Media section end */}
-
-
-      {/* Service accordion starts */}
+  
+          {/* Service accordion starts */}
 
       <ServicesAccordion />
 
@@ -509,21 +322,21 @@ function Home() {
 
 
       <div className="section pb-10">
-  <div className="dotted-line-break pt-20"></div>
+      <div className="dotted-line-break-grey"></div>
   <div className='container mx-auto px-4 py-2 flex flex-col items-center'>
     
     {/* Logo Section */}
     <div className="flex justify-center items-center mb-8 ml-12">
   <img
     className="contact-logo-image"
-    src={ShipmediaLogo2}
+    src={mediaShippers}
     alt="Logo"
     style={{ width: '60%' }}
   />
 </div>
     
  {/* Social Media Icons */}
-<div className="social-media-icons-wrapper">
+{/* <div className="social-media-icons-wrapper">
   <div className="d-flex justify-content-center align-items-center">
     <div className="me-3">
       <img src={instagram} alt="Instagram Logo" className="social-icon" />
@@ -535,39 +348,14 @@ function Home() {
       <img src={youtube} alt="YouTube Logo" className="social-icon" />
     </div>
   </div>
-</div>
+</div> */}
 
     
     </div>
 </div>
 
 
-  {/* Sliding Ribbon Section */}
-  <div className="sliding-ribbon-container">
-          <div className="sliding-ribbon">
-            <span>• Delivery to OTT Streaming Platforms</span>
-            <span>• Delivery to Film Festivals</span>
-            <span>• Delivery to Censor Board</span>
-            <span>• Dubbing Services</span>
-            <span>• Subtitling Services</span>
-            <span>• QC and Compliance Services</span>
-            <span>• Distribution Services</span>
-            <span>• Delivery to OTT Streaming Platforms</span>
-            <span>• Delivery to Film Festivals</span>
-            <span>• Delivery to Censor Board</span>
-            <span>• Dubbing Services</span>
-            <span>• Subtitling Services</span>
-            <span>• QC and Compliance Services</span>
-            <span>• Distribution Services</span>
-            <span>• Delivery to OTT Streaming Platforms</span>
-            <span>• Delivery to Film Festivals</span>
-            <span>• Delivery to Censor Board</span>
-            <span>• Dubbing Services</span>
-            <span>• Subtitling Services</span>
-            <span>• QC and Compliance Services</span>
-            <span>• Distribution Services</span>
-          </div>
-        </div>
+  
       {/* Home page contact form section end */}
       {/* <!-- Footer --> */}
       <footer className="bg-custom-blue text-white py-4">

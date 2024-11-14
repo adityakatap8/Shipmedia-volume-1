@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import ShipmediaLogo2 from "../../assets/ShipmediaLogo2.png";
+import mediaShippers from "../../assets/mediaShippers.png";
 import Submit from '../submit/Submit';
 import "./index.css";
 import instagram from "../../assets/instagram.png";
@@ -41,7 +41,7 @@ const Navbar = () => {
           <div className="col-md-4 text-center">
             <img
               className="contact-logo-image"
-              src={ShipmediaLogo2}
+              src={mediaShippers}
               alt="Logo"
               style={{ width: '100%' }}
             />
@@ -50,7 +50,7 @@ const Navbar = () => {
           {/* Social Media Icons and Login/Register Section */}
           <div className="col-md-4 d-flex flex-column align-items-center justify-content-center pt-20">
   {/* Social Media Icons - Top */}
-  <div className="d-flex justify-content-center mb-3">
+  {/* <div className="d-flex justify-content-center mb-3">
     <div className="me-3">
       <img src={instagram} alt="Instagram Logo" className="social-icon" />
     </div>
@@ -60,7 +60,7 @@ const Navbar = () => {
     <div className="me-3">
       <img src={youtube} alt="YouTube Logo" className="social-icon" />
     </div>
-  </div>
+  </div> */}
 
   {/* Login/Register Section - Bottom */}
   <div className="d-flex justify-content-center">

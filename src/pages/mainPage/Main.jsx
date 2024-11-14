@@ -9,6 +9,7 @@ import MainTabsWatchfolder from '../../components/tabs-watchFolder/MainTabs-watc
 import ListingTable from '../../components/listingTable/ListingTable'
 import JobQueueTable from '../../components/jobQueueTable/JobQueueTable'
 import UserProfile from '../../components/userProfile/UserProfile'
+import Catalogue from '../../components/tabs-catalogue/MainTabs-Catalogue';
 
 const orderManagement = () => {
   return <OrderManagement/>;
@@ -30,6 +31,9 @@ const profile = () => {
 
 const mainTabsWatchfolder = () => {
   return <MainTabsWatchfolder/>;
+};
+const catalogue = () => {
+  return <Catalogue/>;
 };
 
 const mainTabsOndemand = () => {
@@ -56,4 +60,4 @@ const userProfile = () => {
 export default { orderManagement, 
   jobQueue, 
   billing, profile, listingTable, jobQueueTable, 
-  mainTabsWatchfolder, mainTabsOndemand, userProfile };
+  mainTabsWatchfolder, mainTabsOndemand, userProfile, catalogue };

@@ -41,7 +41,7 @@ function ServicesAccordion() {
         { id: 8, title: 'MOV PRO RES UHD', container: 'MOV', videocodec: 'Pro-res 422', size: '3840X2160', resolution: 'UHD', framerate: 'Same As Source', scantype: 'Progressive', vbitdepth: '10 bits', chromasubsampling: '422', videobitrate: '300mbps', HDR: 'No', audiocodec: 'PCM', samplerate: '48khz', abitdepth: '24', audiotrack: 'Same As Source' },
         { id: 9, title: 'MOV PRO RES HQ UHD', container: 'MOV', videocodec: 'Pro-res 422 HQ', size: '3840X2160', resolution: 'UHD', framerate: 'Same As Source', scantype: 'Progressive', vbitdepth: '10 bits', chromasubsampling: '422', videobitrate: '300mbps', HDR: 'No', audiocodec: 'PCM', samplerate: '48khz', abitdepth: '24', audiotrack: 'Same As Source' },
         { id: 10, title: 'MOV Pro XQ UHD', container: 'MOV', videocodec: 'Pro-res 422 XQ', size: '3840X2160', resolution: 'UHD', framerate: 'Same As Source', scantype: 'Progressive', vbitdepth: '12 bits', chromasubsampling: '444', videobitrate: '300mbps', HDR: 'Dolby Vision', audiocodec: 'PCM', samplerate: '48khz', abitdepth: '24', audiotrack: 'Same As Source' },
-        { id: 11, title: 'Original', container: 'N/A', videocodec: 'N/A', size: 'N/A', resolution: 'N/A', framerate: 'N/A', scantype: 'N/A', vbitdepth: 'N/A', chromasubsampling: 'N/A', videobitrate: 'N/A', HDR: 'N/A', audiocodec: 'N/A', samplerate: 'N/A', abitdepth: 'N/A', audiotrack: 'N/A' },
+        // { id: 11, title: 'Original', container: 'N/A', videocodec: 'N/A', size: 'N/A', resolution: 'N/A', framerate: 'N/A', scantype: 'N/A', vbitdepth: 'N/A', chromasubsampling: 'N/A', videobitrate: 'N/A', HDR: 'N/A', audiocodec: 'N/A', samplerate: 'N/A', abitdepth: 'N/A', audiotrack: 'N/A' },
     ];
 
     const qualityCheck = [
@@ -124,7 +124,14 @@ function ServicesAccordion() {
 <div className='section pt-16'>
   <div className='container-fluid'>
     <div className='row services-row-one'>
+      
+    <h2 className='service-title'>
+    Our Services
+  </h2>
+  <div className="dotted-line-break-grey"></div>
+      
       <div className='col-md-4 d-flex align-items-center justify-content-center'>
+     
         {/* Left Column Content */}
         <div className='text-center'>
         <h2 className='service-title'>

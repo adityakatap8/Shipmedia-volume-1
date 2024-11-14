@@ -4,7 +4,7 @@
   align-items: center;
   width: 100%;
   max-width: 100%; /* Full width */
-  margin: auto;
+  margin-top: 30px;
 }
 
 .image-container {
