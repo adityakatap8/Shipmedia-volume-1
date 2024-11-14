@@ -16,6 +16,12 @@ function Menu() {
           Order Management
         </Link>
         <Link
+          to="/video-catalogue"
+          className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
+        >
+          Video Catalogue
+        </Link>
+        <Link
           to="/job-queue"
           className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
         >

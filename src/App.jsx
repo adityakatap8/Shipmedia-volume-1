@@ -18,6 +18,7 @@ import Billing from './pages/billing/Billing';
 import OrderManagement from './pages/mainPage/Main';
 import MainTabsOndemand from './components/tabs-onDemand/MainTabs-ondemand';
 import MainTabsWatchfolder from './components/tabs-watchFolder/MainTabs-watchfolder';
+import Catalogue from './components/tabs-catalogue/MainTabs-Catalogue';
 import ListingTable from './components/listingTable/ListingTable';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
 import { AuthProvider } from './utils/AuthContext';
@@ -60,6 +61,10 @@ function App() {
           } />
           <Route path="/tabs-watch-folder" element={<ProtectedRoute>
             <DashboardLayout> <Main.mainTabsWatchfolder /> </DashboardLayout>
+          </ProtectedRoute>
+          } />
+          <Route path="/video-catalogue" element={<ProtectedRoute>
+            <DashboardLayout> <Main.catalogue /> </DashboardLayout>
           </ProtectedRoute>
           } />
           <Route path="/listing-table" element={<ProtectedRoute>

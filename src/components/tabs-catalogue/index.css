@@ -1,0 +1,57 @@
+.catalogue-container {
+    padding: 20px;
+    text-align: center;
+}
+
+.catalogue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    gap: 20px;
+    justify-items: center;
+}
+
+.catalogue-item {
+    position: relative;
+    width: 290px;
+    height: 200px; /* Increased height to accommodate hover info */
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.3s ease; /* Added transition for smooth effect */
+}
+
+.movie-poster {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.movie-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.catalogue-item:hover {
+    transform: translateY(-15px) scale(1.2); /* Slightly more pronounced pop-out effect */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1; /* Ensure hovered item is above adjacent items */
+}
+
+.movie-hover-info {
+    position: absolute;
+    bottom: -100%; /* Start hidden */
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+    color: #fff;
+    padding: 15px;
+    transition: all 0.3s ease; /* Smooth transition for showing/hiding */
+}
+
+.catalogue-item:hover .movie-hover-info {
+    bottom: 0; /* Show info on hover */
+}

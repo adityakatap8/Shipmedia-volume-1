@@ -48,6 +48,12 @@
   border-top: 2px dotted #3754B9; 
   align-content: left;
 }
+ .dotted-line-break-grey{
+  width: 70%; /* Set the width to 60% */
+  margin: 20px auto; /* Center the line and add vertical spacing */
+  border-top: 2px dotted #a5a5a5; 
+  align-content: left;
+}
 /* Style the scrollbar */
 .scrollable-content::-webkit-scrollbar {
   width: 5px;  /* Set the width of the vertical scrollbar */
