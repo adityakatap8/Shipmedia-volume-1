@@ -21,59 +21,68 @@ import MainTabsWatchfolder from './components/tabs-watchFolder/MainTabs-watchfol
 import Catalogue from './components/tabs-catalogue/MainTabs-Catalogue';
 import ListingTable from './components/listingTable/ListingTable';
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
+import Projects from './pages/projects/Projects';
 import { AuthProvider } from './utils/AuthContext';
 import { UserProvider } from './contexts/UserContext';
 
 function App() {
   return (
     <UserProvider>
-    <AuthProvider>
-      <Router>
-        <ConditionalNavbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/plans" element={<Plans />} />
-          <Route path="/login" element={<Login />} />
-          <Route path='' element={<DashboardLayout />} />
-          <Route path="/dashnav" element={<Navbar1 />} />
-          <Route path="/main" element={
-            <ProtectedRoute>
-              <DashboardLayout> <Main.orderManagement /> </DashboardLayout>
+      <AuthProvider>
+        <Router>
+          <ConditionalNavbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/login" element={<Login />} />
+            <Route path='' element={<DashboardLayout />} />
+            <Route path="/dashnav" element={<Navbar1 />} />
+            <Route path="/main" element={
+              <ProtectedRoute>
+                <DashboardLayout> <Main.orderManagement /> </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/job-queue" element={
+              <ProtectedRoute>
+                <DashboardLayout> <Main.jobQueueTable /> </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={<ProtectedRoute>
+              <DashboardLayout> <Main.profile /> </DashboardLayout>
             </ProtectedRoute>
-          } />
-          <Route path="/job-queue" element={
-            <ProtectedRoute>
-              <DashboardLayout> <Main.jobQueueTable /> </DashboardLayout>
+            } />
+            <Route path="/billing" element={<ProtectedRoute>
+              <DashboardLayout> <Main.billing /> </DashboardLayout>
             </ProtectedRoute>
-          } />
-          <Route path="/profile" element={<ProtectedRoute>
-            <DashboardLayout> <Main.profile /> </DashboardLayout>
-          </ProtectedRoute>
-          } />
-          <Route path="/billing" element={<ProtectedRoute>
-            <DashboardLayout> <Main.billing /> </DashboardLayout>
-          </ProtectedRoute>
-          } />
-          <Route path="/tabs-on-demand" element={<ProtectedRoute>
-            <DashboardLayout> <Main.mainTabsOndemand /> </DashboardLayout>
-          </ProtectedRoute>
-          } />
-          <Route path="/tabs-watch-folder" element={<ProtectedRoute>
-            <DashboardLayout> <Main.mainTabsWatchfolder /> </DashboardLayout>
-          </ProtectedRoute>
-          } />
-          <Route path="/video-catalogue" element={<ProtectedRoute>
-            <DashboardLayout> <Main.catalogue /> </DashboardLayout>
-          </ProtectedRoute>
-          } />
-          <Route path="/listing-table" element={<ProtectedRoute>
-            <DashboardLayout> <Main.listingTable /> </DashboardLayout>
-          </ProtectedRoute>
-          } />
-        </Routes>
-      </Router>
-    </AuthProvider>
+            } />
+            <Route path="/tabs-on-demand" element={<ProtectedRoute>
+              <DashboardLayout> <Main.mainTabsOndemand /> </DashboardLayout>
+            </ProtectedRoute>
+            } />
+            <Route path="/tabs-watch-folder" element={<ProtectedRoute>
+              <DashboardLayout> <Main.mainTabsWatchfolder /> </DashboardLayout>
+            </ProtectedRoute>
+            } />
+            <Route path="/video-catalogue" element={<ProtectedRoute>
+              <DashboardLayout> <Main.catalogue /> </DashboardLayout>
+            </ProtectedRoute>
+            } />
+            <Route path="/listing-table" element={<ProtectedRoute>
+              <DashboardLayout> <Main.listingTable /> </DashboardLayout>
+            </ProtectedRoute>
+            } />
+            <Route path="/ordersummary" element={<ProtectedRoute>
+              <DashboardLayout> <Main.orderSummary /> </DashboardLayout>
+            </ProtectedRoute>
+            } />
+              <Route path="/projects" element={<ProtectedRoute>
+              <DashboardLayout> <Main.projects /> </DashboardLayout>
+            </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </UserProvider>
   );
 }

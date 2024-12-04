@@ -380,3 +380,17 @@ border-radius: 30px;
   font-weight: bold;
   color:white;
 }
+
+
+
+
+
+/* Additional Mobile-Specific Styles */
+@media (max-width: 767px) {
+  .submit-btn{
+    margin: auto;
+    justify-content: center;
+  }
+
+  
+}

@@ -1,0 +1,116 @@
+
+.title h2{
+    font-size: 1.8em;
+    color: #3f3f3f;
+    font-weight: 300;
+    margin-bottom: 15px;
+}
+.title p {
+    margin-bottom: 15px;
+}
+
+.upload {
+    background-color: #e9f1fa;
+    border-color: #327ccb;
+    cursor: default;
+    opacity: 1;
+    text-align: left;
+
+    border: 2px solid #d8d8d8;
+    border-radius: 4px;
+   
+    height: auto;
+   
+    padding: 20px;
+    transition: opacity .12s ease-out;
+}
+.upload h4{
+    margin-bottom: 15px;
+}
+.upload label{
+    font-weight: 100;
+}
+
+.form-label input{
+    background-color: #327ccb;
+    border-color: #2c6db2;
+    color: #fff;
+}
+
+.url-section{
+    background-color: #e9f1fa;
+    border-color: #327ccb;
+    cursor: default;
+    opacity: 1;
+    text-align: left;
+    border: 2px solid #d8d8d8;
+    border-radius: 4px;
+    height: auto;
+    padding: 20px;
+    transition: opacity .12s ease-out;
+}
+.url-section h4{
+    margin-bottom: 15px;
+}
+.url-section label{
+    font-weight: 100;
+}
+
+.url-section input{
+    background-color: #fff;
+    border: 1px solid #d8d8d8;
+    color: #3f3f3f;
+    font-size: 14px;
+    width: 100%;
+    height: 40px;
+}
+
+
+
+
+/* Style the hidden file input */
+.choose-file {
+    display: none; /* Hide the default file input button */
+  }
+  
+  /* Custom button style */
+  .file-upload-label {
+    background-color: #327ccb; /* Apply the background color */
+    border: 2px solid #2c6db2; /* Apply the border color */
+    color: #fff; /* Set text color to white */
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  
+  .file-upload-label:hover {
+    background-color: #2c6db2; /* Darker shade on hover */
+    border-color: #1f4d8a; /* Darker border on hover */
+  }
+  
+  /* Style for when a file is selected */
+  .file-upload-label + p {
+    font-size: 14px;
+    color: #327ccb;
+    margin-top: 10px;
+  }
+
+
+  .submit{
+    background-color: #327ccb; /* Apply the background color */
+    border: 2px solid #2c6db2; /* Apply the border color */
+    color: #fff; /* Set text color to white */
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s, border-color 0.3s;
+    margin-top: 30px;
+  }
+  

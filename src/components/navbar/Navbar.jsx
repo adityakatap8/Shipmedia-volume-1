@@ -26,11 +26,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white-800 text-black">
-      <div className="container full-width-container"> {/* Apply the custom class here */}
+      <div className="container-fluid full-width-container"> {/* Apply the custom class here */}
         {/* Row container with Flexbox */}
-        <div className="row d-flex justify-content-between align-items-center full-width-row"> {/* Apply the custom class here */}
+        <div className="row d-flex justify-content-between align-items-center full-width-row">
           {/* Call or Text Section - Left-aligned with custom styling */}
-          <div className="col-md-4 d-flex justify-content-start">
+          <div className="col-md-4 call-text-laptop">
             <div className="call-text-section">
               <h2>Call or Text:</h2>
               <span>(866) 204-7073</span>
@@ -47,10 +47,17 @@ const Navbar = () => {
             />
           </div>
 
+          <div className="col-md-4 call-text-mobile">
+            <div className="call-text-section">
+              <h2>Call or Text:</h2>
+              <span>(866) 204-7073</span>
+            </div>
+          </div>
+
           {/* Social Media Icons and Login/Register Section */}
-          <div className="col-md-4 d-flex flex-column align-items-center justify-content-center pt-20">
-  {/* Social Media Icons - Top */}
-  {/* <div className="d-flex justify-content-center mb-3">
+          <div className="col-md-4 login-button-row">
+            {/* Social Media Icons - Top */}
+            {/* <div className="d-flex justify-content-center mb-3">
     <div className="me-3">
       <img src={instagram} alt="Instagram Logo" className="social-icon" />
     </div>
@@ -62,13 +69,20 @@ const Navbar = () => {
     </div>
   </div> */}
 
-  {/* Login/Register Section - Bottom */}
-  <div className="d-flex justify-content-center">
-    <Submit lable="Login" to="/login" />
-    <Submit lable="Register" to="/register" />
-  </div>
-</div>
-
+            {/* Login/Register Section - Bottom */}
+            <div className="d-flex justify-content-center login-section-laptop">
+              <Submit lable="Login" to="/login" />
+              <Submit lable="Register" to="/register" />
+            </div>
+            <div className="d-flex justify-content-center login-section-mobile">
+              {/* <Submit lable="Login" to="/login" /> */}
+              <a className='btn-call'> <h2>Call or Text:</h2>
+              <span>(866) 204-7073</span></a>
+              <button className='btn-call' to="/register">Register</button>
+              {/* <Submit lable="Register" to="/register" /> */}
+            </div>
+          </div>
+          {/* (866) 204-7073 */}
 
 
         </div>

@@ -6,8 +6,8 @@ export default {
   ],
   theme: {
     extend: {
-      spacing:{
-         '0': '0rem',
+      spacing: {
+        '0': '0rem',
         '1': '0.25rem',   // 4px
         '2': '0.5rem',    // 8px
         '3': '0.75rem',   // 12px
@@ -25,13 +25,13 @@ export default {
         '48': '12rem',    // 192px
         '56': '14rem',    // 224px
         '64': '16rem',    // 256px
-        '72': '18rem'     // 288px
+        '72': '18rem',    // 288px
       },
-      colors:{
+      colors: {
         'custom-gray': '#EBEBEB',
         'custom-blue': '#3754B9',
-        'custom-white':'#ffffff',
-        'customOrange':'#EE794E',
+        'custom-white': '#ffffff',
+        'customOrange': '#EE794E',
         customBlue: {
           DEFAULT: '#1e3a8a',  // This is for 'customBlue'
           700: '#1c2f6f',      // This is for 'customBlue-700'
@@ -44,11 +44,15 @@ export default {
           DEFAULT: "#3754B9",
           700: "#3754B9",
         },
-        lightBlue:{
-          DEFAULT:"#3754B9",
-          300:"#3754B9"
+        lightBlue: {
+          DEFAULT: "#3754B9",
+          300: "#3754B9"
         }
       },
+      height: {
+        '615': '615px',  // Custom height of 615px
+        '600': '600px'
+      }
     },
   },
   plugins: [],

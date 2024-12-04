@@ -10,11 +10,13 @@ import ListingTable from '../../components/listingTable/ListingTable'
 import JobQueueTable from '../../components/jobQueueTable/JobQueueTable'
 import UserProfile from '../../components/userProfile/UserProfile'
 import Catalogue from '../../components/tabs-catalogue/MainTabs-Catalogue';
+import OrderSummary from '../orderSummary/OrderSummary';
+import Projects from '../projects/Projects';
+
 
 const orderManagement = () => {
   return <OrderManagement/>;
 };
-
 
 
 const jobQueue = () => {
@@ -53,11 +55,15 @@ const userProfile = () => {
   return <UserProfile />
 }
 
-
-
+const orderSummary = () => {
+  return <OrderSummary />
+}
+const projects = () => {
+  return <Projects />
+}
 
 
 export default { orderManagement, 
   jobQueue, 
   billing, profile, listingTable, jobQueueTable, 
-  mainTabsWatchfolder, mainTabsOndemand, userProfile, catalogue };
+  mainTabsWatchfolder, mainTabsOndemand, userProfile, catalogue, orderSummary, projects };
