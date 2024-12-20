@@ -1,0 +1,31 @@
+/* Custom styles for tabs */
+.custom-tab-link {
+    color: rgba(25, 28, 31, 0.5); /* Default unselected tab color */
+  }
+  
+  .custom-tab-link:hover {
+    color: black !important; /* Hover effect: text color turns black */
+  }
+  
+  .custom-tab-link.active {
+    color: black !important; /* Active tab (selected) color */
+  }
+  
+  .project-title h1{
+    color: #191c1f;
+    font-weight: 700;
+    font-size: 1.3em;
+    text-align: left;
+    margin-bottom: 30px;
+  }
+
+  /* Remove the default background on the active tab */
+.custom-tab-link.active {
+  background-color: transparent !important; /* Remove background */
+  border-bottom: 2px solid blue; /* Add blue border at the bottom */
+}
+
+/* Optional: You can also add a border to all the nav items if needed */
+.nav-pills .nav-link {
+  border-radius: 0; /* Remove rounded corners from the tabs */
+}

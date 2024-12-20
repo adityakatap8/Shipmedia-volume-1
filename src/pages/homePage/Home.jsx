@@ -257,7 +257,7 @@ const handleSubmit = async (e) => {
     <div>
       {/* homepage main section */}
       <div className='section' style={{ marginBottom: '0px' }}>
-        <div className='container home-container'>
+        <div className='container-fluid home-container'>
           <div className='row'>
             <div className='col-md-8  d-flex justify-content-center align-items-center'>
               {/* Content for the left side */}

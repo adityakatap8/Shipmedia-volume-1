@@ -55,3 +55,29 @@
 .catalogue-item:hover .movie-hover-info {
     bottom: 0; /* Show info on hover */
 }
+/* Styling for the upload button */
+.upload-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.upload-button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for Filestash iframe container */
+.filestash-container {
+    margin-top: 20px;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ccc;
+}
+
+.filestash-container iframe {
+    border-radius: 5px;
+}

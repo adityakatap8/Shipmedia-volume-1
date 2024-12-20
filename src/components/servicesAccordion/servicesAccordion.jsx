@@ -51,7 +51,7 @@ function ServicesAccordion() {
     { id: 4, title: 'Audio Checks', container: 'Kantar BVS Watermark, Audio language detection, Audio level (Min, max, avg), Dialnorm, Level mismatch, Loudness compliance (ITU, EBU, CALM Act, OP59, ARIB) (BS.1770-1, -2,-3), PPM meter, Silence, Crackle, Background noise, Colored noise, High frequency noise, Jitter noise, Line Pattern noise, Transient noise, Overmodulation noise, Echo, Wow & Flutter, Audio Impulsive Noise, Nielsen & Cinavia watermark, Click and pop, Clipping, Audio dropout, EAS tones, Misplaced channels, Phase detection, Stereo pair detection,Test tones, DPLM, Bitdepth upconversion detection, Repetitive pattern detection, Spectral aliasing detection, Audio impulse noise, Teletrax watermark, Basic alignment of speech with captions detection, Reverb, Beep, Multi reel audio click noise, Low Pass Filter' },
     { id: 5, title: 'Data Checks', container: 'Subtitle analysis and language detection, Burnt-in text detection and analysis, Closed Captions, DPI messages. Display Duration, Character Count, Spell check, IMSC1 profile Validation, Character Code Table, Subtitle Position, Caption/Subtitle Alignment, Dropout, Display Duration, 608/708 Specific Checks, XDS Checks' },
     { id: 6, title: 'Content Classification Checks', container: 'Explicit, Health Advisory Products, General Scene Classification, Violence, Keyword Detection, Strong Language Detection' },
-    { id: 7, title: 'Eyeball Checks', container: '' },
+    
 
   ];
   const fileTransfer = [
@@ -230,7 +230,7 @@ function ServicesAccordion() {
             <div className='col-md-8 d-flex align-items-center justify-content-center'>
               {/* Left Column Content */}
               <div>
-                <div className="flex border-2 rounded-3xl border-customGrey-300 p-8 mt-4 mb-8 m-4">
+                <div className="flex border-2 rounded-3xl border-customGrey-300 p-8 mt-4 mb-8 m-4" style={{ maxHeight: '550px' }}>
                   {/* Left side with quality check buttons */}
                   <div className="w-2/3 overflow-y-auto flex quality-check-section">
                     <div className="w-full overflow-y-auto mb-8">
@@ -253,8 +253,10 @@ function ServicesAccordion() {
                     </div>
                   </div>
                   {/* Right side with details */}
-                  <div className="w-1/2 ml-6 bg-white p-6 rounded-3xl shadow text-left overflow-y-auto pr-4 scrollable-content quality-check-desc">
-                    <h2 className="text-xl font-semibold mb-2 text-left">{selectedQc ? qualityCheck.find(q => q.id === selectedQc)?.title : ''}</h2>
+                  <div className="w-1/2 ml-6 bg-white p-6 rounded-3xl shadow text-left overflow-y-auto pr-4 scrollable-content quality-check-desc" style={{ maxHeight: '550px' }}>
+                    <h2 className="text-xl font-semibold mb-2 text-left">
+                      {selectedQc ? qualityCheck.find(q => q.id === selectedQc)?.title : ''}
+                    </h2>
                     <hr className='mb-4' />
                     <h2 className="text-xl font-semibold mb-4 text-left">Quality Check Details</h2>
                     <div>
@@ -265,6 +267,7 @@ function ServicesAccordion() {
                       </ul>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>

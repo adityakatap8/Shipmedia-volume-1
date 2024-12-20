@@ -1,0 +1,23 @@
+/* sidebar.css */
+
+/* Sidebar container */
+.sidebar {
+    height: 100%!important; /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease; /* Smooth transition for width change */
+    background-color: #ffffff; /* Background color for sidebar */
+    color: #000000; /* Text color */
+    border-right: 4px solid #E5E7EB; /* Right border */
+  }
+  
+  /* Sidebar content when collapsed */
+  .sidebar-collapsed {
+    width: 4rem; /* Adjust width when collapsed */
+  }
+  
+  /* Sidebar content when expanded */
+  .sidebar-expanded {
+    width: 16rem; /* Adjust width when expanded */
+  }
+  
