@@ -54,6 +54,7 @@ const DashboardLayout = ({ children }) => {
   return (
     <div className="flex h-screen">
       <ContentWrapper>
+
         <Navbar1 user={userData} isAuthenticated={isAuthenticated} />
         <main className="flex-1 p-4 overflow-hidden">
           <div className="flex flex-col md:flex-row">

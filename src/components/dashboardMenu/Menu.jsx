@@ -15,7 +15,7 @@ function Menu({ isSidebarCollapsed }) {
       </Link>
 
       <Link
-        to="/projects-form"
+        to="/projects"
         className="flex items-center py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
       >
         {!isSidebarCollapsed && <span>Projects</span>}

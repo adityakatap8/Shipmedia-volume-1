@@ -39,10 +39,11 @@ const SpecificationsInfo = ({
     const [value, setValue] = React.useState(null);
 
     const [isStudentProject, setIsStudentProject] = useState(false);
-    const [isFirstTimeFilmmaker, setIsFirstTimeFilmmaker] = useState(false);
+
+
     const [filmColor, setFilmColor] = useState(formData?.specificationsInfo?.filmColor || '');
     const [studentProjectValue, setStudentProjectValue] = useState(formData?.specificationsInfo?.studentProject || '');
-
+    const [isFirstTimeFilmmaker, setIsFirstTimeFilmmaker] = useState(formData?.specificationsInfo?.isFirstTimeFilmmaker || false);
 
     useEffect(() => {
         console.log('Project Type changed:', projectType);
@@ -133,11 +134,11 @@ const SpecificationsInfo = ({
                 language,
                 shootingFormat,
                 aspectRatio,
+                filmColor,
                 studentProject: studentProjectValue === 'yes',
-                filmColor: formData?.specificationsInfo?.filmColor || '',
-                isFirstTimeFilmmaker: formData?.specificationsInfo?.isFirstTimeFilmmaker || false
+                isFirstTimeFilmmaker: isFirstTimeFilmmaker
             });
-        }, [formData, projectType, runtime, inputValue, selectedCountryOfOrigin, selectedCountryOfFilming, language, shootingFormat, aspectRatio, studentProjectValue]);
+        }, [formData, projectType, runtime, inputValue, selectedCountryOfOrigin, selectedCountryOfFilming, language, shootingFormat, aspectRatio, filmColor, studentProjectValue, isFirstTimeFilmmaker]);
     };
 
     // Handle the input change
@@ -198,13 +199,13 @@ const SpecificationsInfo = ({
                         setRuntime(value);
                         break;
                     case 'film_color':
-                        setFilmColor(value);
+                        setFilmColor(event.target.value);
                         break;
                     case 'student_project':
-                        setStudentProjectValue(value === 'yes');
+                        setStudentProjectValue(event.target.value === 'yes');
                         break;
                     case 'first_time_filmmaker':
-                        setIsFirstTimeFilmmaker(value === 'yes');
+                        setIsFirstTimeFilmmaker(event.target.value === 'yes');
                         break;
                 }
         }
@@ -254,7 +255,7 @@ const SpecificationsInfo = ({
         'genres': setGenres,
         'runtime': setTime,
         'film_color': setFilmColor,
-        'student_project': setIsStudentProject,
+        'student_project': setStudentProjectValue,
         'first_time_filmmaker': setIsFirstTimeFilmmaker
     };
 
@@ -297,7 +298,8 @@ const SpecificationsInfo = ({
 
     const handleFormDataUpdate = (updatedData) => {
         setFilmColor(updatedData.filmColor || '');
-        // Update other fields as needed
+        setStudentProjectValue(updatedData.studentProject || '');
+        setIsFirstTimeFilmmaker(updatedData.isFirstTimeFilmmaker || false);
     };
 
 
@@ -716,7 +718,7 @@ const SpecificationsInfo = ({
                         </div>
                         <div className="film-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
                             <select
-                                value={studentProjectValue}
+                                value={formData?.specificationsInfo?.studentProject || studentProjectValue}
                                 onChange={(e) => handleFormDataUpdate({ ...formData.specificationsInfo, studentProject: e.target.value })}
                             >
                                 <option value="">Select Yes or No</option>
@@ -727,26 +729,20 @@ const SpecificationsInfo = ({
                     </div>
 
                     <div className="form-section">
-    <div className="form-label grid-3 span-12-phone">
-        First Time Film-maker
-    </div>
-    <div className="film-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
-        <select
-            value={formData?.specificationsInfo?.isFirstTimeFilmmaker || ''}
-            onChange={(e) => handleFormDataUpdate({ 
-                ...formData,
-                specificationsInfo: {
-                    ...formData.specificationsInfo,
-                    isFirstTimeFilmmaker: e.target.value
-                }
-            })}
-        >
-            <option value="">Select Yes or No</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-        </select>
-    </div>
-</div>
+                        <div className="form-label grid-3 span-12-phone">
+                            First Time Film-maker
+                        </div>
+                        <div className="film-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
+                            <select
+                                value={formData?.specificationsInfo?.isFirstTimeFilmmaker || isFirstTimeFilmmaker}
+                                onChange={(e) => handleFormDataUpdate({ ...formData.specificationsInfo, isFirstTimeFilmmaker: e.target.value })}
+                            >
+                                <option value="">Select Yes or No</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
 
 
                 </div>

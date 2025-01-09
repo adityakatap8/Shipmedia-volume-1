@@ -15,20 +15,22 @@ import { AuthProvider } from './utils/AuthContext';
 import { UserProvider } from './contexts/UserContext';
 
 // Import individual components
-import { 
-  orderManagement, 
-  jobQueue, 
-  billing, 
-  profile, 
-  mainTabsWatchfolder, 
-  catalogue, 
-  mainTabsOndemand, 
-  listingTable, 
-  jobQueueTable, 
-  userProfile, 
-  orderSummary, 
-  projects, 
-  projectsForm 
+import {
+  orderManagement,
+  jobQueue,
+  billing,
+  profile,
+  mainTabsWatchfolder,
+  catalogue,
+  mainTabsOndemand,
+  listingTable,
+  jobQueueTable,
+  userProfile,
+  orderSummary,
+  projects,
+  projectsForm,
+  projectsDashboard,
+  viewAndEditForm
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -95,9 +97,14 @@ function App() {
                 <DashboardLayout> {orderSummary()} </DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path="/projects" element={
+            {/* <Route path="/projects" element={
               <ProtectedRoute>
                 <DashboardLayout> {projects()} </DashboardLayout>
+              </ProtectedRoute>
+            } /> */}
+            <Route path="/projects" element={
+              <ProtectedRoute>
+                <DashboardLayout> {projectsDashboard()} </DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/projects-form" element={
@@ -105,6 +112,21 @@ function App() {
                 <DashboardLayout> {projectsForm()} </DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/view-form" element={
+              <ProtectedRoute>
+                <DashboardLayout> {viewAndEditForm()} </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route
+              path="/view-form/:projectId"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                  {viewAndEditForm()}
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </Router>
       </AuthProvider>

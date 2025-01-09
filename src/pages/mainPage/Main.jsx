@@ -13,6 +13,8 @@ import Catalogue from '../../components/tabs-catalogue/MainTabs-Catalogue';
 import OrderSummary from '../orderSummary/OrderSummary';
 import Projects from '../projects/Projects';
 import ProjectsForm from '../../components/projectsForm/ProjectsForm';
+import ProjectsDashboard from '../../components/projectsDashboard/ProjectsDashboard';
+import ViewAndEditForm from '../../components/projectsForm/ViewAndEditForm';
 
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
@@ -28,3 +30,5 @@ export const userProfile = () => <UserProfile />;
 export const orderSummary = () => <OrderSummary />;
 export const projects = () => <Projects />;
 export const projectsForm = () => <ProjectsForm />;
+export const projectsDashboard = () => <ProjectsDashboard />
+export const viewAndEditForm = () => <ViewAndEditForm />

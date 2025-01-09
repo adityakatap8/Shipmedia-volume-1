@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./index.css";
+import S3Manager from "../s3Manager/s3Manager";
 
 const videoCatalogue = [
     {
@@ -75,9 +76,9 @@ const videoCatalogue = [
         genres: ["Romance", "Comedy"]
     },
 ];
+
 function Catalogue() {
     const [expandedItemIndex, setExpandedItemIndex] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);  // To control the visibility of Filestash
 
     const handleExpand = (index) => {
         if (expandedItemIndex === index) {
@@ -87,53 +88,10 @@ function Catalogue() {
         }
     };
 
-    const handleUploadClick = () => {
-        const token = localStorage.getItem("jwt_token");  // Assuming token is stored in localStorage
-    
-        if (!token) {
-            console.error('No token found!');
-            return;
-        }
-    
-        fetch("http://localhost:3000/filestash", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            },
-        })
-            .then(response => response.text())
-            .then(html => {
-                // Set the iframe HTML received from the server
-                document.getElementById("filestash-iframe").innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Error loading Filestash:', error);
-            });
-    };
-    
-
     return (
         <div className="catalogue-container">
             <h1>Video Catalogue</h1>
-
-            {/* "Click to upload file" button */}
-            <button onClick={handleUploadClick} className="upload-button">
-                Click to Upload File
-            </button>
-
-            {/* Show Filestash interface */}
-            {isUploading && (
-                <div className="filestash-container">
-                    <h2>Upload Files</h2>
-                    <iframe
-                        src="http://localhost:3000/filestash"
-                        width="100%"
-                        height="600px"
-                        frameborder="0"
-                        title="Filestash"
-                    ></iframe>
-                </div>
-            )}
+            <S3Manager />
 
             {/* Display video catalogue */}
             <div className="catalogue-grid">
@@ -145,8 +103,8 @@ function Catalogue() {
                         </div>
                         <div className="movie-hover-info">
                             <h3>{video.title}</h3>
-                            <button 
-                                onClick={() => handleExpand(index)} 
+                            <button
+                                onClick={() => handleExpand(index)}
                                 className="expand circle-button"
                             >
                                 +
