@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';  // Import useSelector t
 import { setAuthToken, setError, setSuccessMessage, clearMessages } from '../../redux/authSlice/authSlice.js';  // Import actions
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./index.css";
-import ShipmediaLogo2 from '../../assets/ShipmediaLogo2.png';
+import mediaShippers from '../../assets/mediaShippers.png';
 import SubmitButton from '../../components/submit/Submit';
 
 function Login() {
@@ -52,7 +52,7 @@ function Login() {
           dispatch(setSuccessMessage('Login successful!'));
   
           // Redirect to main page or perform actions here
-          window.location.href = '/main';
+          window.location.href = '/projects';
         } else {
           console.log('Token is missing in response:', response.data);
         }
@@ -92,7 +92,7 @@ function Login() {
       <div className="row register-container d-flex">
         <div className="col-md-6 left-section flex-grow-1 d-flex justify-content-center align-items-center" style={{ width: "10vw" }}>
           <div className="text-center" style={{ marginBottom: '160px' }}>
-            <img src={ShipmediaLogo2} alt="Logo"/>
+            <img src={mediaShippers} alt="Logo"/>
           </div>
         </div>
         <div className="col-md-2 right-section flex-grow-1 d-flex justify-content-center align-items-center">

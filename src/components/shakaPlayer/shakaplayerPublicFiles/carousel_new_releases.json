@@ -1,0 +1,23 @@
+{
+  "title": "New Releases",
+  "items": [
+    {
+      "id": "movie_2",
+      "title": "Love in the Valley",
+      "thumbnailImage": "/placeholder.svg",
+      "genre": "Romance",
+      "rating": "PG",
+      "releaseYear": 2020,
+      "contentType": "movie"
+    },
+    {
+      "id": "series_2",
+      "title": "Galactic Explorers",
+      "thumbnailImage": "/placeholder.svg",
+      "genre": "Sci-Fi",
+      "rating": "TV-PG",
+      "releaseYear": 2022,
+      "contentType": "series"
+    }
+  ]
+}

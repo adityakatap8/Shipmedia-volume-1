@@ -3,7 +3,7 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./index.css";
 
-import ShipmediaLogo2 from '../../assets/ShipmediaLogo2.png';
+import mediaShippers from '../../assets/mediaShippers.png';
 import SubmitButton from '../../components/submit/Submit';
 
 // Utility functions for validation
@@ -96,7 +96,7 @@ function Register() {
       <div className="row register-container d-flex">
         <div className="col-md-6 left-section flex-grow-1 d-flex justify-content-center align-items-center" style={{ width: "10vw" }}>
           <div className="text-center" style={{ marginBottom: '150px' }}>
-            <img src={ShipmediaLogo2} alt="Logo" />
+            <img src={mediaShippers} alt="Logo" />
           </div>
         </div>
         <div className="col-md-2 right-section flex-grow-1 d-flex justify-content-center align-items-center">
@@ -179,7 +179,7 @@ function Register() {
             </p>
           </form>
         </div>
-      </div>
+      </div> 
     </div>
   )
 }

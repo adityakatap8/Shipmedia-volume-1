@@ -1,0 +1,39 @@
+{
+  "categories": [
+    {
+      "id": "action",
+      "name": "Action",
+      "description": "Thrilling action-packed content",
+      "count": 245,
+      "items": [
+        {
+          "id": "movie_1",
+          "title": "Sky Warriors",
+          "thumbnailImage": "/placeholder.svg",
+          "genre": "Action",
+          "rating": "PG-13",
+          "releaseYear": 2021,
+          "duration": "2h 15m",
+          "type": "movie"
+        }
+      ]
+    },
+    {
+      "id": "drama",
+      "name": "Drama",
+      "description": "Compelling dramatic stories",
+      "count": 327,
+      "items": [
+        {
+          "id": "series_1",
+          "title": "Mystic Falls",
+          "thumbnailImage": "/placeholder.svg",
+          "genre": "Drama",
+          "rating": "TV-14",
+          "releaseYear": 2019,
+          "type": "series"
+        }
+      ]
+    }
+  ]
+}

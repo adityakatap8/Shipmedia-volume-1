@@ -90,14 +90,14 @@ function Catalogue() {
 
     return (
         <div className="catalogue-container">
-            <h1>Video Catalogue</h1>
+            {/* <h1>Video Catalogue</h1> */}
             <S3Manager />
 
             {/* Display video catalogue */}
-            <div className="catalogue-grid">
+            {/* <div className="catalogue-grid">
                 {videoCatalogue.map((video, index) => (
                     <div key={index} className={`catalogue-item ${expandedItemIndex === index ? 'expanded' : ''}`}>
-                        {/* Movie Poster Card */}
+                    
                         <div className="movie-poster">
                             <img src={video.src} alt={video.title} className="movie-image" />
                         </div>
@@ -120,7 +120,7 @@ function Catalogue() {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div> */}
         </div>
     );
 }

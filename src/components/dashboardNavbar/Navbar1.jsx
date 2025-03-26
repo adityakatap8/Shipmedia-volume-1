@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import logo from '../../assets/Logo.png';
 import User1 from '../../assets/User1.jpg';
 import { clearAuthToken } from '../../redux/authSlice/authSlice';  // Use correct action for logout
-
+import './index.css'
 const Navbar1 = () => {
   const dispatch = useDispatch();
   
@@ -97,8 +97,8 @@ const Navbar1 = () => {
   }, [lastActiveTime]);
 
   return (
-    <nav className="bg-white-800 p-2 flex items-center justify-between border-b-4">
-      <div className="flex items-center p-1">
+    <nav className="bg-white-800 p-2 flex items-center justify-between border-b-2 navbar">
+      <div className="flex items-center p-1 main-navbar">
         <img src={logo} alt="Logo" className="h-14 w-auto pl-5" />
       </div>
       
@@ -107,8 +107,8 @@ const Navbar1 = () => {
           <>
             <img src={user.avatar || User1} alt="User Profile" className="h-10 w-10" />
             <span className="text-black">{user.name}</span>
-            <span className="text-gray-600 ml-2">ID: {user.userId ? user.userId : 'N/A'}</span>
-            <span className="text-gray-600 ml-2">Email: {user.email}</span> {/* Display user's email */}
+            <span className="text-gray-600 ml-2 id-class">ID: {user.userId ? user.userId : 'N/A'}</span>
+            <span className="text-gray-600 ml-2 email-class">Email: {user.email}</span> {/* Display user's email */}
             
             {/* Logout button */}
             <button onClick={handleLogout} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">

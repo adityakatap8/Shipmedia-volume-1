@@ -1,0 +1,120 @@
+{
+    "contactInfo": {
+        "mainOffice": {
+            "address": "Tribeca, Manhattan, New York City, NY, USA",
+            "coFounders": [
+                {
+                    "name": "Jane Rosenthal",
+                    "profile": "https://www.linkedin.com/in/jane-rosenthal-b59b2953/"
+                },
+                {
+                    "name": "Craig Hatkoff",
+                    "profile": "https://www.linkedin.com/in/craighatkoff/"
+                }
+            ]
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "General",
+            "criteria": "Certain categories require specific premiere statuses (e.g., World Premiere, North American Premiere).Non-English films must include English subtitles.Submissions must adhere to the festival's rules and regulations."
+            
+        },
+        {
+            "category": "Submission Platforms",
+            "criteria": "Submissions can be made directly through the Tribeca Extranet or via FilmFreeway. Tribeca Games and Audio Storytelling submissions are only accepted through the Tribeca Extranet."
+        }
+    ],
+    "filmDetails": {},
+    "fees": [
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$65 Early Deadline"
+        },
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$85 Official Deadline"
+        },
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$110 Late Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$50 Early Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$60 Official Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$75 Late Deadline"
+        },
+        {
+            "category": "Episodic Content (60 minutes or less)",
+            "feeDetails": "$40 Early Deadline"
+        },
+        {
+            "category": "Episodic Content (60 minutes or less)",
+            "feeDetails": "$60 Official Deadline"
+        },
+        {
+            "category": "Episodic Content (60 minutes or less)",
+            "feeDetails": "$80 Late Deadline"
+        },
+        {
+            "category": "Episodic Content (over 60 minutes)",
+            "feeDetails": "$65 Early Deadline"
+        },
+        {
+            "category": "Episodic Content (over 60 minutes)",
+            "feeDetails": "$85 Official Deadline"
+        },
+        {
+            "category": "Episodic Content (over 60 minutes)",
+            "feeDetails": "$110 Late Deadline"
+        }
+    ],
+    "festivalInfo": {
+        "description": "The Tribeca Film Festival is an annual event founded in 2001 by Robert De Niro, Jane Rosenthal, and Craig Hatkoff to revitalize Lower Manhattan after the September 11 attacks and celebrate the arts. It showcases a diverse range of films, including independent, documentary, and narrative works, as well as immersive storytelling through virtual reality and interactive exhibitions. The festival also features panel discussions, music performances, gaming events, and art installations. Known for championing diverse voices and emerging talent, it includes prestigious awards such as Best Narrative Feature and Audience Awards. Held primarily in Tribeca, New York City, it has become a global platform for innovation in film and storytelling.",
+        "eventDates": {
+            "start": "June 4, 2025",
+            "end": "June 15, 2025"
+        },
+        "name": "Tribeca Film Festival",
+        "website": "https://www.tribecafilm.com/"
+    },
+    "socialMediaAndExternalLinks": {
+        "reviews": [
+            {
+                "author": "Sharrieff B",
+                "date": "January 2024",
+                "content": "Wonderful day had beautiful time, looking forward to seeing more. Will be there again in June of 2025 and hope to have a wonderful time like the last time. Thank you for having me.",
+                "rating": 5
+            },
+            {
+                "author": "Jonathan C.",
+                "date": "June 2021",
+                "content": "It’s been a dream of mine for a while to attend the Tribeca Film Festival, and I’m so happy I finally got the chance to attend a film screening! With the COVID pandemic, the event was held outdoors and audience members were seated in pods. The best thing about Tribeca is that we got to hear the film directors share their vision before the film and all the work they put into telling their story.",
+                "rating": 5
+            },
+            {
+                "author": "Johnson_250",
+                "date": "June 2021",
+                "content": "Tribeca festival pretends to be open and accessible with fans but it's just not true. At least not anymore. They act like elitists and fans are just little peons to them, not worth any time or effort. I did not have a great experience at the festival and it felt like being a fan of RD was this huge no-no. Before I went to the festival this year, I didn't get a response with a few simple questions. I emailed again and the person who answered a week later seemed annoyed. Won't be going again.",
+                "rating": 3
+            }
+        ]
+    },
+    "folderName": "row6Data",
+    "cover_photo": "cover_photo.png",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.webp",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

@@ -1,0 +1,99 @@
+.view-and-edit-project {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.header-numbered {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: white;
+}
+
+.edit-btn {
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.edit-btn:hover {
+  background-color: #0056b3;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 12px;
+  padding: 5px 0;
+  margin: 20px 0px 15px 10px;
+  border-bottom: 1px solid #1E3E62;
+  padding: 9px 0px 20px 0px;
+  color: white;
+}
+
+.info-row strong {
+  width: 200px;
+  font-weight: 600;
+  color: white;
+}
+
+.info-row p,
+.info-row a {
+  flex: 1;
+  word-wrap: break-word;
+  color: white;
+}
+
+
+
+.info-row ul li {
+  margin-bottom: 5px;
+}
+
+.loading,
+.error {
+  text-align: left;
+
+}
+
+.projects-form-container {
+  border: 2px solid #ededed;
+  height: max-content;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.header-numbered span {
+  background-color: #1F51FF;
+  border-radius: 100%;
+  color: #fff;
+  display: inline-block;
+  font-weight: 700;
+  line-height: 1.5em;
+  margin-right: 15px;
+  text-align: center;
+  vertical-align: baseline;
+  width: 1.5em;
+  font-size: 30px;
+}
+
+.header-numbered {
+  font-size: 2.3em;
+  color: white;
+  font-weight: 300;
+  margin-bottom: 15px;
+}

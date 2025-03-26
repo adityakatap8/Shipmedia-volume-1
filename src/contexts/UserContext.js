@@ -7,6 +7,8 @@ export const UserProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const [ projectName, setProjectName ] = useState("")
+
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       console.log('Checking authentication...');
@@ -55,7 +57,7 @@ export const UserProvider = ({ children }) => {
   // Using React.createElement to create the context provider element
   return React.createElement(
     UserContext.Provider,
-    { value: { userData, isLoading, setIsLoading, isAuthenticated } },
+    { value: { userData, isLoading, setIsLoading, isAuthenticated, projectName, setProjectName } },
     children
   );
 };

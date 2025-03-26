@@ -1,0 +1,10 @@
+{
+  "tvepisode": {
+    "ep_1": "https://testmovies-1.s3.amazonaws.com/President_McKinley_taking_the_oath.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=TVNKCAoPVMi23jVXvJVS5oSgltM%3D&Expires=1737021210",
+    "ep_2": "https://testmovies-1.s3.amazonaws.com/May_Irwin_kiss.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=PxB0uSawZyTFpg74TI0ReDpO0C4%3D&Expires=1737020834"
+  },
+  "movie": {
+    "movie_1": "https://testmovies-1.s3.amazonaws.com/Popeye_the_Sailor_Meets_Sindbad_the_Sailor.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=HoqhCzAJgs456Z61IH86h%2BaPrRo%3D&Expires=1737021187",
+    "movie_2": "https://testmovies-1.s3.amazonaws.com/The_House_I_Live_In.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=SKz4O7Dm5lb%2FrXaFPLHn%2FeIc04M%3D&Expires=1737021250"
+  }
+}
