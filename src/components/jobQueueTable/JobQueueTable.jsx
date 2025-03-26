@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './index.css'
 
 const JobQueueTable = () => {
   const [showStartPopup, setShowStartPopup] = useState(false);
@@ -18,7 +19,7 @@ const JobQueueTable = () => {
   };
 
   return (
-    <div className="">
+    <div className="p-8">
 
       {/* Create New Order Button */}
       <div className="mb-4 text-start">
@@ -58,7 +59,7 @@ const JobQueueTable = () => {
       </div>
 
       {/* Apply and Reset Buttons */}
-      <div className="flex space-x-4 mb-4 ml-4">
+      <div className="flex space-x-4 mb-4">
         <button className="bg-customCardBlue text-white rounded-3xl font-bold px-5 py-2">Apply</button>
         <button className="border-2 border-customCardBlue text-customCardBlue rounded-3xl font-bold px-4 py-2">Reset</button>
       </div>
@@ -66,9 +67,9 @@ const JobQueueTable = () => {
       <table className="w-full border-collapse border">
         <thead>
           <tr>
-            <th className="border p-2">
+            {/* <th className="border p-2">
               <input type="checkbox" className="form-checkbox" />
-            </th>
+            </th> */}
             <th className="border p-2">Order Id</th>
             <th className="border p-2">Job Id</th>
             <th className="border p-2">Order Type</th>
@@ -82,12 +83,12 @@ const JobQueueTable = () => {
         </thead>
         <tbody>
           <tr>
-            <td className="border p-2">
+            {/* <td className="border p-2">
               <input
                 type="checkbox"
                 className="form-checkbox"
               />
-            </td>
+            </td> */}
             <td className="border p-2">O-123</td>
             <td className="border p-2">J-123-1</td>
             <td className="border p-2">On-Demand</td>

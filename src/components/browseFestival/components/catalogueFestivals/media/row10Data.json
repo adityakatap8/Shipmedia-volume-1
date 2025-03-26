@@ -1,0 +1,74 @@
+{
+    "contactInfo": {
+        "general": {
+            "address": "70 Lincoln Center Plaza, New York, NY 10023, United States",
+            "website": "https://www.filmlinc.org/nyff/"
+        },
+        "officialContacts": {
+            "edwardDouglas": "https://edwarddouglas.substack.com/p/some-reviews-from-the-62nd-new-york",
+            "dennisLim": "https://www.linkedin.com/in/dennis-lim-3834974/",
+            "mattBolish": "https://www.linkedin.com/in/matt-bolish-b2021942/"
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "Short Film",
+            "criteria": "Films with a running time of 40 minutes or less."
+        },
+        {
+            "category": "Feature Film",
+            "criteria": "Feature-length works curated by the NYFF selection committee."
+        }
+    ],
+    "fees": [
+        {
+            "category": "Short Film",
+            "feeDetails": "$50 per submission"
+        },
+        {
+            "category": "Feature Film",
+            "feeDetails": "Curated by the selection committee, no open submission fees."
+        }
+    ],
+    "festivalInfo": {
+        "description": "The New York Film Festival (NYFF) is one of the most prestigious and long-running film festivals in the world, held annually in New York City. Founded in 1963, it presents a curated selection of films, showcasing both established filmmakers and emerging voices. The festival includes feature films, documentaries, and shorts, with a focus on artistic excellence and innovation in cinema. NYFF is known for its selective programming, attracting filmmakers, critics, and cinephiles alike. It serves as a major platform for films looking to make an impact during awards season.",
+        "eventDates": {
+            "start": "Late September",
+            "end": "Early October"
+        },
+        "name": "New York Film Festival",
+        "website": "https://www.filmlinc.org/nyff/"
+    },
+    "filmDetails": {
+        "shortFilm": {
+            "duration": "40 minutes or less",
+            "conditions": "Films must be New York City premieres and not previously available on home entertainment platforms."
+        },
+        "featureFilm": {
+            "conditions": "Curated by the NYFF selection committee. Must be New York City premieres."
+        }
+    },
+    "submissionDetails": [
+        {
+            "category": "Short Film",
+            "fees": "$50 per submission",
+            "submissionDeadline": "May 6, 2024, 11:59 PM PDT",
+            "entryRequirements": "Films must be New York City premieres."
+        },
+        {
+            "category": "Feature Film",
+            "fees": "No open submission process for feature films.",
+            "submissionDetails": "Films curated by the selection committee."
+        }
+    ],
+    "folderName": "row10Data",
+    "cover_photo": "cover_photo.jpeg",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.png",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

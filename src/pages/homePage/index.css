@@ -107,7 +107,7 @@ h1{
   .left-section img {
     max-width: 100%; 
     height: auto;
-    margin-left: 50px;
+    margin-left: 20px;
   }
 
   .custom-placeholder::placeholder {
@@ -379,4 +379,18 @@ border-radius: 30px;
   font-size: large;
   font-weight: bold;
   color:white;
+}
+
+
+
+
+
+/* Additional Mobile-Specific Styles */
+@media (max-width: 767px) {
+  .submit-btn{
+    margin: auto;
+    justify-content: center;
+  }
+
+  
 }

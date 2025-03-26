@@ -1,0 +1,144 @@
+{
+    "contactInfo": {
+        "mainOffice": {
+            "address": "SXSW, LLC 1400 E. 7th Street Austin, TX 78702 USA",
+            "coFounders": [
+                {
+                    "name": "Jann Baskett",
+                    "profile": "https://www.linkedin.com/in/jann-baskett-a131577/"
+                },
+                {
+                    "name": "Nick Barbaro",
+                    "profile": "https://www.linkedin.com/in/nickbarbaro/"
+                }
+            ]
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "General",
+            "criteria": "Projects must have been completed after January 1, 2023. Preference is given to projects that have not been widely screened or broadcast. Submissions must include English subtitles for non-English films."
+        },
+        {
+            "category": "Submission Platforms",
+            "criteria": "All projects must be submitted via a secure online link (e.g., Vimeo). Physical copies are not accepted."
+            
+        }
+    ],
+    "filmDetails": {},
+    "fees": [
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$65 Early Deadline"
+        },
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$85 Official Deadline"
+        },
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$110 Late Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$50 Early Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$60 Official Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$75 Late Deadline"
+        },
+        {
+            "category": "Student Short Films",
+            "feeDetails": "$35 Flat Rate"
+        },
+        {
+            "category": "Music Videos",
+            "feeDetails": "$50 Flat Rate"
+        },
+        {
+            "category": "Tribeca NOW",
+            "feeDetails": "$40 Early Deadline"
+        },
+        {
+            "category": "Tribeca NOW",
+            "feeDetails": "$60 Official Deadline"
+        },
+        {
+            "category": "Tribeca NOW",
+            "feeDetails": "$80 Late Deadline"
+        },
+        {
+            "category": "Tribeca Games",
+            "feeDetails": "$40 Early Deadline"
+        },
+        {
+            "category": "Tribeca Games",
+            "feeDetails": "$60 Official Deadline"
+        },
+        {
+            "category": "Tribeca Games",
+            "feeDetails": "$80 Late Deadline"
+        },
+        {
+            "category": "Audio Storytelling",
+            "feeDetails": "$20 Early Deadline"
+        },
+        {
+            "category": "Audio Storytelling",
+            "feeDetails": "$30 Official Deadline"
+        },
+        {
+            "category": "Audio Storytelling",
+            "feeDetails": "$40 Late Deadline"
+        },
+        {
+            "category": "Tribeca X Award",
+            "feeDetails": "$425 Early Deadline"
+        },
+        {
+            "category": "Tribeca X Award",
+            "feeDetails": "$525 Official Deadline"
+        },
+        {
+            "category": "Tribeca X Award",
+            "feeDetails": "$575 Late Deadline"
+        },
+        {
+            "category": "Works in Progress",
+            "feeDetails": "$50 Official Deadline"
+        }
+    ],
+    "festivalInfo": {
+        "description": "South by Southwest (SXSW) is an annual festival held in Austin, Texas, celebrating the intersection of film, music, and technology. Founded in 1987, it has grown into a major global event that includes film premieres, live music performances, and interactive technology conferences. SXSW showcases emerging talent and innovations across various industries, attracting a diverse audience of creators, entrepreneurs, and professionals. The festival offers a unique platform for networking, collaboration, and discovering new trends in entertainment and digital culture.",
+        "eventDates": {
+            "start": "March 7, 2025",
+            "end": "March 15, 2025"
+        },
+        "name": "South by Southwest (SXSW)",
+        "website": "https://www.sxsw.com/"
+    },
+    "socialMediaAndExternalLinks": {
+        "reviews": [
+            {
+                "author": "Mason Lane",
+                "date": "2023",
+                "content": "An Honest Review of the SXSW Experience",
+                "link": "https://masonlaneart.com/blog/honest-review-of-sxsw"
+            }
+        ]
+    },
+    "folderName": "row7Data",
+    "cover_photo": "cover_photo.jpg",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.jpg",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

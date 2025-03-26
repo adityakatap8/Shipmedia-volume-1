@@ -1,0 +1,117 @@
+.img{
+    background-color: #f7f7f7;
+    border: 1px solid #d8d8d8;
+    border-radius: 3px;
+    box-sizing: border-box !important;
+    color: #327ccb;
+    font-family: OpenSans, Arial, sans-serif;
+    font-size: .85em;
+    font-weight: 600;
+    height: 100%;
+    line-height: 1.45em;
+    position: absolute;
+    text-align: center;
+    white-space: nowrap;
+    width: 100%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Overall container for the overview */
+.overview-container {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;  /* Ensure it takes full viewport height */
+  }
+  
+  /* Flex container to arrange upload box and content side by side */
+  .upload-and-content-container {
+    display: flex;          /* Use Flexbox to align items side by side */
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 20px;              /* Add space between the image upload box and the content */
+    flex-wrap: wrap;        /* Allow content to wrap if screen size is small */
+    width: 100%;
+  }
+  
+  /* Image upload box with fixed size */
+  .image-upload-box {
+    width: 200px;           /* Fixed width for the upload box */
+    height: 300px;          /* Fixed height for the upload box */
+    border: 2px solid #ccc; /* Light border */
+    border-radius: 8px;     /* Rounded corners */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f4f4;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      /* Make image fill the container while maintaining aspect ratio */
+  }
+  
+  .placeholder-text {
+    color: #aaa;
+    font-size: 16px;
+  }
+  
+  .file-label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .file-input {
+    display: none;          /* Hide default file input */
+  }
+  
+  .file-label:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Darken label on hover */
+  }
+  
+  /* Content section */
+  .content-container {
+    flex-grow: 1;           /* Take up remaining space */
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    max-height: 400px;      /* Max height for content */
+    /* overflow-y: auto;       Enable scrolling if content exceeds max height */
+    text-align: left;
+  }
+  
+  .content-container h2 {
+    margin-bottom: 15px;
+  }
+  
+  .content-container p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  

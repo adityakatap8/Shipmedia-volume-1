@@ -146,60 +146,118 @@ function cancelRequest() {
   //   }
   // };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent form's default behavior
+
+  const services = [
+    'Delivery to OTT Streaming Platforms',
+    'Delivery to Film Festivals',
+    'Delivery to Censor Board',
+    'Dubbing Services',
+    'Subtitling Services',
+    'QC and Compliance Services',
+    'Distribution Services'
+  ];
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault(); // Prevent form's default behavior
   
-    // Validate the form data (with async validation if needed)
-    if (!validate()) return;
+  //   // Validate the form data (with async validation if needed)
+  //   if (!validate()) return;
   
-    // Set loading state and reset error/success states
-    setIsSubmitting(true);
-    setError(null);
-    setSuccessMessage(null);
+  //   // Set loading state and reset error/success states
+  //   setIsSubmitting(true);
+  //   setError(null);
+  //   setSuccessMessage(null);
   
-    // Collect form data into an object
-    const formData = { name, email, organization, phone, selectedService, message };
+  //   // Collect form data into an object
+  //   const formData = { name, email, organization, phone, selectedService, message };
   
-    try {
-      // Use the fetch API efficiently
-      const response = await fetch('http://localhost:3000/api/submitform', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // Send only necessary data
-      });
+  //   try {
+  //     // Use the fetch API efficiently
+  //     const response = await fetch('http://localhost:3000/api/submitform', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(formData), // Send only necessary data
+  //     });
   
-      const data = await response.json(); // Parse the JSON response
+  //     const data = await response.json(); // Parse the JSON response
   
-      if (response.ok) {
-        // Handle success (clear the form)
-        setSuccessMessage('Form submitted successfully!');
-        setName('');
-        setEmail('');
-        setOrganization('');
-        setPhone('');
-        setSelectedService('');
-        setMessage('');
-      } else {
-        // Handle server errors
-        setError(data.message || 'Error submitting form');
-      }
-    } catch (error) {
-      // Handle any other errors
-      setError('There was an error submitting the form');
-      console.error('Form submission error:', error);
-    } finally {
-      setIsSubmitting(false); // Reset loading state
+  //     if (response.ok) {
+  //       // Handle success (clear the form)
+  //       setSuccessMessage('Form submitted successfully!');
+  //       setName('');
+  //       setEmail('');
+  //       setOrganization('');
+  //       setPhone('');
+  //       setSelectedService('');
+  //       setMessage('');
+  //     } else {
+  //       // Handle server errors
+  //       setError(data.message || 'Error submitting form');
+  //     }
+  //   } catch (error) {
+  //     // Handle any other errors
+  //     setError('There was an error submitting the form');
+  //     console.error('Form submission error:', error);
+  //   } finally {
+  //     setIsSubmitting(false); // Reset loading state
+  //   }
+  // };
+  
+
+
+ // Inside your Form component (Frontend)
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validate()) return;
+
+  setIsSubmitting(true);
+  setError(null);
+  setSuccessMessage(null);
+
+  // Normalize the selected service to ensure it matches the expected value
+  const normalizedService = selectedService.trim();
+
+  // Collect form data into an object
+  const formData = { name, email, organization, phone, selectedService: normalizedService, message };
+
+  try {
+    const response = await fetch('http://localhost:3000/api/submitform', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setSuccessMessage('Form submitted successfully!');
+      setName('');
+      setEmail('');
+      setOrganization('');
+      setPhone('');
+      setSelectedService('');
+      setMessage('');
+    } else {
+      setError(data.message || 'Error submitting form');
     }
-  };
-  
+  } catch (error) {
+    setError('There was an error submitting the form');
+    console.error('Form submission error:', error);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div>
       {/* homepage main section */}
       <div className='section' style={{ marginBottom: '0px' }}>
-        <div className='container home-container'>
+        <div className='container-fluid home-container'>
           <div className='row'>
             <div className='col-md-8  d-flex justify-content-center align-items-center'>
               {/* Content for the left side */}
@@ -210,99 +268,99 @@ function cancelRequest() {
               <div className='d-flex align-items-center justify-content-center h-auto mt-5'>
                 <div className="contact-right-section flex-grow-1 d-flex">
                 
-                  <form className="form-container glass-effect" style={{ flex: 1 }} onSubmit={handleSubmit}>
-                  <h1 className='align-items-center text-xxl'>Inquiry Form</h1>
-                    {/* Form Fields */}
-                    <div className="form-group pt-1">
-                      <input
-                        type="text"
-                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-                        placeholder="Enter Name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group pt-1">
-                      <input
-                        type="email"
-                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-                        placeholder="Enter Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group pt-1">
-                      <input
-                        type="text"
-                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-                        placeholder="Enter Organization Name"
-                        value={organization}
-                        onChange={(e) => setOrganization(e.target.value)}
-                      />
-                    </div>
+                <form className="form-container glass-effect" style={{ flex: 1 }} onSubmit={handleSubmit}>
+  <h1 className='align-items-center text-xxl'>Inquiry Form</h1>
+  {/* Form Fields */}
+  <div className="form-group pt-1">
+    <input
+      type="text"
+      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+      placeholder="Enter Name"
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+    />
+  </div>
+  <div className="form-group pt-1">
+    <input
+      type="email"
+      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+      placeholder="Enter Email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+    />
+  </div>
+  <div className="form-group pt-1">
+    <input
+      type="text"
+      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+      placeholder="Enter Organization Name"
+      value={organization}
+      onChange={(e) => setOrganization(e.target.value)}
+    />
+  </div>
 
-                    <div className="form-group pt-1">
-                      <input
-                        type="tel"
-                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-                        placeholder="Enter Phone Number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group pt-1">
-                      <select
-                        id="service"
-                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-                        style={{
-                          color: selectedService ? 'black' : '#6B7280',
-                          width: '23pc',
-                        }}
-                        value={selectedService}
-                        onChange={handleServiceChange}
-                      >
-                        <option value="" disabled>Select your Service</option>
-                        <option value="delivery">Delivery to OTT Streaming Platforms</option>
-                        <option value="filmFestivals">Delivery to Film Festivals</option>
-                        <option value="censorBoard">Delivery to Censor Board</option>
-                        <option value="dubbing">Dubbing Services</option>
-                        <option value="subtitling">Subtitling Services</option>
-                        <option value="compliance">QC and Compliance Services</option>
-                        <option value="distribution">Distribution Services</option>
-                      </select>
-                    </div>
-                    <div className="form-group mb-4 pt-1">
-                      <textarea
-                        className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-                        rows="4"
-                        placeholder="Enter your message here"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                      />
-                    </div>
+  <div className="form-group pt-1">
+    <input
+      type="tel"
+      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+      placeholder="Enter Phone Number"
+      value={phone}
+      onChange={(e) => setPhone(e.target.value)}
+    />
+  </div>
 
-                    {/* Error or Success Messages */}
-                    {error && (
-                      <div className="alert alert-danger custom-alert">
-                        <strong></strong> {error}
-                      </div>
-                    )} {/* Display error message */}
-                    {successMessage && (
-                      <div className="alert alert-success custom-alert">
-                        <strong>Success:</strong> {successMessage}
-                      </div>
-                    )}
-                    {/* Submit Button */}
-      <div className="flex">
-        <button 
-          type="submit" 
-          disabled={isSubmitting} 
-          className="submit-btn"
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit'}
-        </button>
-      </div>
-                  </form>
+  <div className="form-group pt-1">
+    <select
+      id="service"
+      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+      style={{
+        color: selectedService ? 'black' : '#6B7280',
+        width: '23pc',
+      }}
+      value={selectedService}
+      onChange={(e) => setSelectedService(e.target.value)}
+    >
+      <option value="" disabled>Select your Service</option>
+      {services.map((service, index) => (
+        <option key={index} value={service}>{service}</option>
+      ))}
+    </select>
+  </div>
+
+  <div className="form-group mb-4 pt-1">
+    <textarea
+      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
+      rows="4"
+      placeholder="Enter your message here"
+      value={message}
+      onChange={(e) => setMessage(e.target.value)}
+    />
+  </div>
+
+  {/* Error or Success Messages */}
+  {error && (
+    <div className="alert alert-danger custom-alert">
+      <strong></strong> {error}
+    </div>
+  )}
+  {successMessage && (
+    <div className="alert alert-success custom-alert">
+      <strong>Success:</strong> {successMessage}
+    </div>
+  )}
+
+  {/* Submit Button */}
+  <div className="flex">
+    <button 
+      type="submit" 
+      disabled={isSubmitting} 
+      className="submit-btn"
+    >
+      {isSubmitting ? 'Submitting...' : 'Submit'}
+    </button>
+  </div>
+</form>
+
                 </div>
               </div>
 

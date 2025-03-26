@@ -1,0 +1,23 @@
+{
+  "title": "Top Picks for You",
+  "items": [
+    {
+      "id": "movie_1",
+      "title": "Sky Warriors",
+      "thumbnailImage": "/placeholder.svg",
+      "genre": "Action",
+      "rating": "PG-13",
+      "releaseYear": 2021,
+      "contentType": "movie"
+    },
+    {
+      "id": "series_1",
+      "title": "Mystic Falls",
+      "thumbnailImage": "/placeholder.svg",
+      "genre": "Drama",
+      "rating": "TV-14",
+      "releaseYear": 2019,
+      "contentType": "series"
+    }
+  ]
+}

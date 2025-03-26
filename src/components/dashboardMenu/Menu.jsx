@@ -1,48 +1,99 @@
-import React from 'react'
-import LOGO from '../../assets/LOGO.png';
-import user from '../../assets/User1.jpg';
-import Navbar1 from '../dashboardNavbar/Navbar1';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  FaHome,
+  FaProjectDiagram,
+  FaVideo,
+  FaChevronDown,
+  FaChevronUp,
+} from 'react-icons/fa';
 
-function Menu() {
+function Menu({ isSidebarCollapsed }) {
+  const [isFilmProjectsOpen, setFilmProjectsOpen] = useState(false);
+  const [isFilmServicesOpen, setFilmServicesOpen] = useState(false); // State for "Film Services"
+
+  const handleFilmProjectsClick = () => {
+    setFilmProjectsOpen(!isFilmProjectsOpen);
+  };
+
+  const handleFilmServicesClick = () => {
+    setFilmServicesOpen(!isFilmServicesOpen);
+  };
+
   return (
-    <div>
-      <div className="flex flex-col min-h-screen w-64 bg-white-800 text-black border-r-4">
-      <nav className="flex flex-col mt-6 font-medium text-left">
+    <div className="flex flex-col mt-6 font-medium text-left">
+      {/* Film Projects */}
+      <div>
         <Link
-          to="/main"
-          className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
+          to="/projects"
+          className="flex items-center py-2.5 px-4 text-lg"
+          onClick={handleFilmProjectsClick}
         >
-          Order Management
+          {!isSidebarCollapsed && (
+            <>
+              <span>Film Projects</span>
+              {isFilmProjectsOpen ? (
+                <FaChevronUp className="ml-auto" />
+              ) : (
+                <FaChevronDown className="ml-auto" />
+              )}
+            </>
+          )}
+          {isSidebarCollapsed && <FaProjectDiagram className="text-2xl" />}
         </Link>
+
+        {/* Submenu for Film Projects */}
+        {!isSidebarCollapsed && isFilmProjectsOpen && (
+          <div className="ml-6">
+            <Link to="/video-catalogue" className="block py-2.5 px-4 text-lg">
+              Project File Upload
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Film Services */}
+      <div>
         <Link
-          to="/video-catalogue"
-          className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
+        to="/main"
+          className="flex items-center py-2.5 px-4 text-lg"
+          onClick={handleFilmServicesClick}
         >
-          Video Catalogue
+          {!isSidebarCollapsed && (
+            <>
+              <span>Film Services</span>
+              {/* {isFilmServicesOpen ? (
+                <FaChevronUp className="ml-auto" />
+              ) : (
+                <FaChevronDown className="ml-auto" />
+              )} */}
+            </>
+          )}
+          {isSidebarCollapsed && <FaHome className="text-2xl" />}
         </Link>
-        <Link
-          to="/job-queue"
-          className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
-        >
-          Job Queue
-        </Link>
-        <Link
-          to="/billing"
-          className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
-        >
-          Billing
-        </Link>
-        <Link
-          to="/profile"
-          className="py-2.5 px-4 text-lg hover:bg-customCardBlue-700 hover:text-white"
-        >
-          Profile
-        </Link>
-      </nav>
+
+        {/* No submenus for Film Services anymore */}
+      </div>
+
+      {/* Film Showcase */}
+      <Link
+        to="/showcase-projects"
+        className="flex items-center py-2.5 px-4 text-lg"
+      >
+        {!isSidebarCollapsed && <span>Film Showcase</span>}
+        {isSidebarCollapsed && <FaVideo className="text-2xl" />}
+      </Link>
+
+      {/* Profile */}
+      {/* <Link
+        to="/profile"
+        className="flex items-center py-2.5 px-4 text-lg"
+      >
+        {!isSidebarCollapsed && <span>Profile</span>}
+        {isSidebarCollapsed && <FaUserAlt className="text-2xl" />}
+      </Link> */}
     </div>
-    </div>
-  )
+  );
 }
 
-export default Menu
+export default Menu;

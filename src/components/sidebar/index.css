@@ -1,0 +1,31 @@
+/* sidebar.css */
+
+/* Sidebar container */
+.sidebar {
+    height: 100%!important; /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease; /* Smooth transition for width change */
+    background-color: #ffffff; /* Background color for sidebar */
+    color: #fff; /* Text color */
+    /* border-right: 4px solid #E5E7EB;  */
+    width: 17rem;
+    background-color: #0B192C;
+  
+    
+  }
+  
+  /* Sidebar content when collapsed */
+  .sidebar-collapsed {
+    width: 4rem; /* Adjust width when collapsed */
+    border-right: 2px solid white;
+    height: 100%;
+  }
+  
+  /* Sidebar content when expanded */
+  .sidebar-expanded {
+    width: 16rem; /* Adjust width when expanded */
+    border-right: 2px solid white;
+    height: 100%;
+  }
+  

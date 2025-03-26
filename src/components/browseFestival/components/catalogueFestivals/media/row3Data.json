@@ -1,0 +1,103 @@
+{
+    "contactInfo": {
+        "mainOffice": {
+            "address": "Palazzo del Cinema - Lungomare Guglielmo Marconi, 30126 Lido di Venezia, Venice, Italy"
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "Feature Film",
+            "criteria": "Films must have been completed within the 12 months prior to the festival.Duration: Over 70 minutes. Films must be in their original language; if not in English or Italian, English subtitles are required (unless the film is in an official Italian language). Film format: Digital or 35mm; 70mm occasionally accepted for specific sections."
+        },
+        {
+            "category": "Short Film",
+            "criteria": "Films must have been completed within the 12 months prior to the festival. Duration: Under 30 minutes. Films must be in their original language; if not in English or Italian, English subtitles are required (unless the film is in an official Italian language). Film format: Digital or 35mm."
+        }
+    ],
+    "fees": [
+        {
+            "category": "Feature Film",
+            "feeDetails": "€200 For feature films and immersive projects."
+        },
+        {
+            "category": "Feature Film",
+            "feeDetails": "€250 For immersive projects and feature films finalizing the submission after May 1 and June 1, respectively."
+        },
+        {
+            "category": "Short Film",
+            "feeDetails": "€80 For short films."
+        },
+        {
+            "category": "Short Film",
+            "feeDetails": "€100 For short films finalizing the submission after May 1."
+        }
+    ],
+    "festivalInfo": {
+        "description": "The Venice International Film Festival, part of the Venice Biennale, is the world’s oldest and one of the most prestigious film festivals, established in 1932. Held on the Lido di Venezia, it is renowned for its commitment to global and art cinema, showcasing groundbreaking films and supporting emerging filmmakers through initiatives like the Biennale College - Cinema. The festival's top honor, the Golden Lion, is highly coveted, with many films debuting here going on to dominate the awards season. A blend of cinematic excellence, cultural diversity, and red-carpet glamour, it remains a vital platform for filmmakers and cinephiles worldwide.",
+        "eventDates": {
+            "start": "Aug 27, 2025",
+            "end": "Sep 6, 2025"
+        },
+        "name": "Venice Film Festival",
+        "website": "https://www.labiennale.org/en/cinema"
+    },
+    "filmDetails": {},
+    "submissionDetails": [
+        {
+            "category": "Feature Film",
+            "submissionDeadline": "June 13, 2025",
+            "fees": "€200",
+            "description": "For submissions before June 1."
+        },
+        {
+            "category": "Feature Film",
+            "submissionDeadline": "June 13, 2025",
+            "fees": "€250",
+            "description": "For submissions after June 1."
+        },
+        {
+            "category": "Short Film",
+            "submissionDeadline": "May 31, 2025",
+            "fees": "€80",
+            "description": "For submissions before May 1."
+        },
+        {
+            "category": "Short Film",
+            "submissionDeadline": "May 31, 2025",
+            "fees": "€100",
+            "description": "For submissions after May 1."
+        }
+    ],
+    "officialContacts": {
+        "albertoBarbera": "https://www.linkedin.com/in/alberto-barbera-73a6132a2/"
+    },
+    "socialMediaAndExternalLinks": {
+        "reviews": [
+            {
+                "content": "A superb festival to (re)discover. Since 2017 I have attended this superb international film festival every year and I have never been disappointed.",
+                "rating": "5 stars",
+                "user": "Banx83, Hyères, France"
+            },
+            {
+                "content": "Easy to get in, don't need any access to walk around the area. We could easily walk around and also see celebrities.",
+                "rating": "4 stars",
+                "user": "Sol R"
+            },
+            {
+                "content": "A horrible experience for a red carpet of this festival. Italian fans are so stupid, stupid and mean. When it comes to security, they are useless.",
+                "rating": "1 star",
+                "user": "vveenntt"
+            }
+        ]
+    },
+    "folderName": "row3Data",
+    "cover_photo": "cover_photo.jpg",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.jpg",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

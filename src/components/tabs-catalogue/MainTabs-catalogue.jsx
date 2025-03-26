@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./index.css";
+import S3Manager from "../s3Manager/s3Manager";
 
 const videoCatalogue = [
     {
@@ -89,18 +90,21 @@ function Catalogue() {
 
     return (
         <div className="catalogue-container">
-            <h1>Video Catalogue</h1>
-            <div className="catalogue-grid">
+            {/* <h1>Video Catalogue</h1> */}
+            <S3Manager />
+
+            {/* Display video catalogue */}
+            {/* <div className="catalogue-grid">
                 {videoCatalogue.map((video, index) => (
                     <div key={index} className={`catalogue-item ${expandedItemIndex === index ? 'expanded' : ''}`}>
-                        {/* Poster Card */}
+                    
                         <div className="movie-poster">
                             <img src={video.src} alt={video.title} className="movie-image" />
                         </div>
                         <div className="movie-hover-info">
                             <h3>{video.title}</h3>
-                            <button 
-                                onClick={() => handleExpand(index)} 
+                            <button
+                                onClick={() => handleExpand(index)}
                                 className="expand circle-button"
                             >
                                 +
@@ -116,7 +120,7 @@ function Catalogue() {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div> */}
         </div>
     );
 }

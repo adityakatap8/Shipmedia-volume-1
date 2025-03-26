@@ -1,0 +1,44 @@
+{
+  "id": "movie_1",
+  "title": "Sky Warriors",
+  "description": "Elite pilots embark on daring missions in hostile skies.",
+  "genre": "Action",
+  "rating": "PG-13",
+  "releaseYear": 2021,
+  "duration": "2h 15m",
+  "backgroundImage": "/placeholder.svg",
+  "logoImage": "/placeholder.svg",
+  "cast": [
+    {
+      "id": "cast_1",
+      "name": "John Smith",
+      "role": "Captain Mike Rivers",
+      "image": "/placeholder.svg"
+    },
+    {
+      "id": "cast_2",
+      "name": "Sarah Johnson",
+      "role": "Lieutenant Emma Stone",
+      "image": "/placeholder.svg"
+    }
+  ],
+  "crew": [
+    {
+      "id": "crew_1",
+      "name": "David Wilson",
+      "role": "Director",
+      "image": "/placeholder.svg"
+    }
+  ],
+  "relatedContent": [
+    {
+      "id": "movie_2",
+      "title": "Desert Storm",
+      "thumbnailImage": "/placeholder.svg",
+      "genre": "Action",
+      "rating": "PG-13",
+      "releaseYear": 2022,
+      "type": "movie"
+    }
+  ]
+}

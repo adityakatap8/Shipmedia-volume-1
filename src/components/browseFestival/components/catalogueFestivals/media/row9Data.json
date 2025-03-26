@@ -1,0 +1,109 @@
+{
+  "contactInfo": {
+    "general": {
+      "address": "AFI FEST American Film Institute 2021 N. Western Ave. Los Angeles, CA 90027 USA",
+      "email": "fest.programming@AFI.com"
+    },
+    "featureFilm": {
+      "address": "AFI FEST American Film Institute 2021 N. Western Ave. Los Angeles, CA 90027 USA",
+      "emails": [
+        "fest.programming@AFI.com"
+      ]
+    },
+    "shortFilm": {
+      "address": "AFI FEST American Film Institute 2021 N. Western Ave. Los Angeles, CA 90027 USA",
+      "emails": [
+        "fest.programming@AFI.com"
+      ]
+    }
+  },
+  "eligibilityCriteria": [
+    {
+      "category": "Feature Film",
+      "criteria": "Feature films are considered those 41 minutes or longer. All films must have been completed on or after October 1, 2023."
+    },
+    {
+      "category": "Short Film",
+      "criteria": "Short films are considered those under 40 minutes. Priority will be given to films that have not screened previously in the region."
+    },
+    {
+      "category": "Submission Requirements",
+      "criteria": "The submission fee is non-refundable. Rough cuts and works-in-progress are eligible if submitted prior to the final deadline."
+    }
+  ],
+  "fees": [
+    {
+      "category": "Short Film",
+      "feeDetails": "$40 Early Deadline, $50 Official Deadline, $60 Final Deadline"
+    },
+    {
+      "category": "Feature Film",
+      "feeDetails": "$70 Early Deadline, $85 Official Deadline, $100 Final Deadline"
+    }
+  ],
+  "festivalInfo": {
+    "description": "AFI Fest is an annual film festival organized by the American Film Institute, held in Los Angeles, California. It showcases a diverse selection of international and American films, including feature films, documentaries, and short films. The festival emphasizes the celebration of storytelling through cinema and provides a platform for emerging filmmakers and industry professionals.",
+    "eventDates": {
+      "start": "October 23, 2024",
+      "end": "October 27, 2024"
+    },
+    "name": "AFI Fest",
+    "website": "https://www.afi.com/afi-fest/"
+  },
+  "filmDetails": {
+    "shortFilm": {
+      "criteria": "Short films are those under 40 minutes in length and must have been completed after October 1, 2023.",
+      "duration": "Under 40 minutes"
+    },
+    "featureFilm": {
+      "conditions": "Feature films must be at least 41 minutes in length and completed after October 1, 2023.",
+      "duration": "41 minutes or longer"
+    }
+  },
+  "officialContacts": {
+    "abbyAlgar": "https://www.linkedin.com/in/abbie-algar-a553a958/",
+    "toddHitchcock": "https://www.linkedin.com/in/todd-hitchcock-2b098811/"
+  },
+  "socialMediaAndExternalLinks": {
+    "testimonials": [
+      {
+        "user": "Nicholas Stachurski",
+        "content": "Great festival! The screening quality was spot on."
+      },
+      {
+        "user": "Kenzie Sutton",
+        "content": "I'm still reeling that my film got into AFI Fest, let alone won an award! Thank you AFI Fest!"
+      }
+    ]
+  },
+  "submissionDetails": [
+    {
+      "category": "Short Film",
+      "fees": [
+        {
+          "fee": "$40 Early Deadline, $50 Official Deadline, $60 Final Deadline"
+        }
+      ],
+      "submissionDeadline": "March 2025"
+    },
+    {
+      "category": "Feature Film",
+      "fees": [
+        {
+          "fee": "$70 Early Deadline, $85 Official Deadline, $100 Final Deadline"
+        }
+      ],
+      "submissionDeadline": "March 2025"
+    }
+  ],
+  "folderName": "row9Data",
+  "cover_photo": "cover_photo.webp",
+  "overlap_photo": "overlap_photo.png",
+  "photos": {
+      "logo1": "logo1.jpg",
+      "logo2": "logo2.jpg",
+      "logo3": "logo3.jpg",
+      "logo4": "logo4.webp",
+      "logo5": "logo5.webp"
+  }
+}

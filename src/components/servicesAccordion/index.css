@@ -77,3 +77,132 @@
 .scrollable-content::-webkit-scrollbar-thumb:hover {
   background-color: #555; /* Darker color on hover */
 }
+
+.quality-check-mobile{
+  display: none!important;
+}
+.file-transfer-mobile{
+  display: none!important;
+}
+
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 1rem; 
+}
+.quality-check-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 1rem; 
+}
+
+.file-transfer-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 1rem; 
+}
+
+.portrait-grid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.landscape-grid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+
+.preset-section-button{
+  height: 115px;
+  width: 120px;
+  padding: 10px;
+}
+.quality-check-button{
+  height: 115px;
+  width: 110px;
+  padding: 10px;
+}
+
+/* Additional Mobile-Specific Styles */
+@media (max-width: 767px) {
+  .preset-section {
+    width: 100%!important; /* Ensure it takes full width on mobile */
+    height: auto!important;
+  }
+  .codec-section{
+    display: none;
+  }
+  .grid button {
+    font-size: 0.875rem !important;
+    padding: 0.5rem !important;
+  }
+  .grid button h3 {
+    font-size: 0.75rem !important;
+  }
+  .grid button p {
+    font-size: 0.625rem !important;
+  }
+
+  .call-text-section{
+    justify-content: center;
+  }
+
+  .quality-check-section{
+    width: 100%!important;
+  }
+  .quality-check-desc{
+    display: none!important;
+  }
+  .quality-check-laptop{
+    display: none!important;
+  }
+  .quality-check-mobile{
+    display: block!important;
+  }
+
+  .file-transfer-laptop{
+    display: none!important;
+  }
+  .file-transfer-mobile{
+    display: block!important;
+  }
+  .file-transfer-button{
+    width: 100px;
+    margin: 20px;
+    display: block;
+  }
+
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 1rem; 
+}
+  .quality-check-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 1rem; 
+}
+
+.portrait-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+.landscape-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+.file-transfer-button{
+  width: 120px;
+  margin: 0px!important;
+}
+.file-transfer-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 1rem; 
+}
+}
+

@@ -457,166 +457,166 @@ const SetupSourceFolder = ({ goToNextTab }) => {
 
 
 
-//   const handleSave = async () => {
-//     try {
-//         setIsSaving(true); // Set loading state to true when the API call starts
-//         setIsSaveDisabled(true); // Disable button while saving
+    //   const handleSave = async () => {
+    //     try {
+    //         setIsSaving(true); // Set loading state to true when the API call starts
+    //         setIsSaveDisabled(true); // Disable button while saving
 
-//         // Ensure we have a URL or file data (drag-and-drop or URL)
-//         if (!url && (!files || files.length === 0)) {
-//             throw new Error('Please provide a valid file or URL.');
-//         }
+    //         // Ensure we have a URL or file data (drag-and-drop or URL)
+    //         if (!url && (!files || files.length === 0)) {
+    //             throw new Error('Please provide a valid file or URL.');
+    //         }
 
-//         // Prepare the sourceTypeData payload
-//         const sourceTypeData = {
-//             url: url,  // User-provided URL (if any)
-//             awsS3Config: providerSettings,  // AWS S3 settings
-//             fileUploadConfig: {
-//                 fileName: files[0]?.name || '',  // Ensure a file name exists (either from drag-and-drop or URL)
-//                 allowedExtensions: [".mp4", ".avi"], // Example allowed extensions
-//             },
-//         };
+    //         // Prepare the sourceTypeData payload
+    //         const sourceTypeData = {
+    //             url: url,  // User-provided URL (if any)
+    //             awsS3Config: providerSettings,  // AWS S3 settings
+    //             fileUploadConfig: {
+    //                 fileName: files[0]?.name || '',  // Ensure a file name exists (either from drag-and-drop or URL)
+    //                 allowedExtensions: [".mp4", ".avi"], // Example allowed extensions
+    //             },
+    //         };
 
-//         // Prepare metadata if available
-//         const metadataData = {
-//             ...metadata,  // Spread existing metadata object
-//             subtitleClosedCaptions: metadata?.subtitlesCaptionsFile ? [metadata.subtitlesCaptionsFile.name] : [],
-//             auxiliaryFiles: metadata?.auxiliaryFiles ? [metadata.auxiliaryFiles.name] : [],
-//             audio: metadata?.audioFile ? metadata.audioFile.name : '',
-//         };
+    //         // Prepare metadata if available
+    //         const metadataData = {
+    //             ...metadata,  // Spread existing metadata object
+    //             subtitleClosedCaptions: metadata?.subtitlesCaptionsFile ? [metadata.subtitlesCaptionsFile.name] : [],
+    //             auxiliaryFiles: metadata?.auxiliaryFiles ? [metadata.auxiliaryFiles.name] : [],
+    //             audio: metadata?.audioFile ? metadata.audioFile.name : '',
+    //         };
 
-//         console.log('Sending request body:', JSON.stringify({
-//             sourceTypeData,  // Include sourceTypeData at the root level
-//             metadata: metadataData,  // Include metadata at the root level (separate from sourceTypeData)
-//         }, null, 2));
+    //         console.log('Sending request body:', JSON.stringify({
+    //             sourceTypeData,  // Include sourceTypeData at the root level
+    //             metadata: metadataData,  // Include metadata at the root level (separate from sourceTypeData)
+    //         }, null, 2));
 
-//         // Send the data to the API
-//         const response = await fetch('http://localhost:3000/api/sourcetype/', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'Access-Control-Allow-Origin': '*',
-//                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-//                 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-//             },
-//             body: JSON.stringify({
-//                 sourceTypeData,  // Send `sourceTypeData` as root-level object
-//                 metadata: metadataData,  // Send `metadata` as a separate root-level field
-//             }),
-//         });
+    //         // Send the data to the API
+    //         const response = await fetch('http://localhost:3000/api/sourcetype/', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'Access-Control-Allow-Origin': '*',
+    //                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    //                 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    //             },
+    //             body: JSON.stringify({
+    //                 sourceTypeData,  // Send `sourceTypeData` as root-level object
+    //                 metadata: metadataData,  // Send `metadata` as a separate root-level field
+    //             }),
+    //         });
 
-//         console.log('API Call Successful');
-//         console.log('Response status:', response.status);
+    //         console.log('API Call Successful');
+    //         console.log('Response status:', response.status);
 
-//         if (!response.ok) {
-//             const errorData = await response.text();  // Read response body to get more details
-//             throw new Error(`HTTP error! Status: ${response.status}. Response: ${errorData}`);
-//         }
+    //         if (!response.ok) {
+    //             const errorData = await response.text();  // Read response body to get more details
+    //             throw new Error(`HTTP error! Status: ${response.status}. Response: ${errorData}`);
+    //         }
 
-//         const data = await response.json();
-//         console.log('API Response:', data);
+    //         const data = await response.json();
+    //         console.log('API Response:', data);
 
-//         if (data && data.id) {
-//             console.log('Source Type saved successfully. ID:', data.id);
-//             setSaved(true); // Set saved to true on success
-//             setSuccessMessage('Source Type saved successfully.'); // Update success message
-//         } else {
-//             console.error('Unexpected response from server');
-//             setErrorMessage('Failed to save the source type.');
-//         }
-//     } catch (error) {
-//         console.error('Fetch error:', error);
-//         if (error instanceof Error) {
-//             setErrorMessage(error.message);
-//         } else {
-//             setErrorMessage('An unknown error occurred. Please try again.');
-//         }
-//     } finally {
-//         setIsSaving(false); // Set loading state to false after the API call is done
-//         setIsSaveDisabled(false); // Enable button again
-//     }
-// };
+    //         if (data && data.id) {
+    //             console.log('Source Type saved successfully. ID:', data.id);
+    //             setSaved(true); // Set saved to true on success
+    //             setSuccessMessage('Source Type saved successfully.'); // Update success message
+    //         } else {
+    //             console.error('Unexpected response from server');
+    //             setErrorMessage('Failed to save the source type.');
+    //         }
+    //     } catch (error) {
+    //         console.error('Fetch error:', error);
+    //         if (error instanceof Error) {
+    //             setErrorMessage(error.message);
+    //         } else {
+    //             setErrorMessage('An unknown error occurred. Please try again.');
+    //         }
+    //     } finally {
+    //         setIsSaving(false); // Set loading state to false after the API call is done
+    //         setIsSaveDisabled(false); // Enable button again
+    //     }
+    // };
 
 
-const handleSave = async () => {
-    try {
-        setIsSaving(true); // Set loading state to true when the API call starts
-        setIsSaveDisabled(true); // Disable button while saving
+    const handleSave = async () => {
+        try {
+            setIsSaving(true); // Set loading state to true when the API call starts
+            setIsSaveDisabled(true); // Disable button while saving
 
-        // Ensure we have a URL or file data (drag-and-drop or URL)
-        if (!url && (!files || files.length === 0)) {
-            throw new Error('Please provide a valid file or URL.');
+            // Ensure we have a URL or file data (drag-and-drop or URL)
+            if (!url && (!files || files.length === 0)) {
+                throw new Error('Please provide a valid file or URL.');
+            }
+
+            // Prepare the sourceTypeData payload
+            const sourceTypeData = {
+                url: url,  // User-provided URL (if any)
+                awsS3Config: providerSettings,  // AWS S3 settings
+                fileUploadConfig: {
+                    fileName: files[0]?.name || '',  // Ensure a file name exists (either from drag-and-drop or URL)
+                    allowedExtensions: [".mp4", ".avi"], // Example allowed extensions
+                },
+            };
+
+            // Prepare metadata if available
+            const metadataData = {
+                ...metadata,  // Spread existing metadata object
+                subtitleClosedCaptions: metadata?.subtitlesCaptionsFile ? [metadata.subtitlesCaptionsFile.name] : [],
+                auxiliaryFiles: metadata?.auxiliaryFiles ? [metadata.auxiliaryFiles.name] : [],
+                audio: metadata?.audioFile ? metadata.audioFile.name : '',
+            };
+
+            console.log('Sending request body:', JSON.stringify({
+                sourceTypeData,  // Include sourceTypeData at the root level
+                metadata: metadataData,  // Include metadata at the root level (separate from sourceTypeData)
+            }, null, 2));
+
+            // Send the data to the API
+            const response = await fetch('http://localhost:3000/api/sourcetype/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                },
+                body: JSON.stringify({
+                    sourceTypeData,  // Send `sourceTypeData` as root-level object
+                    metadata: metadataData,  // Send `metadata` as a separate root-level field
+                }),
+            });
+
+            console.log('API Call Successful');
+            console.log('Response status:', response.status);
+
+            if (!response.ok) {
+                const errorData = await response.text();  // Read response body to get more details
+                throw new Error(`HTTP error! Status: ${response.status}. Response: ${errorData}`);
+            }
+
+            const data = await response.json();
+            console.log('API Response:', data);
+
+            if (data && data.id) {
+                console.log('Source Type saved successfully. ID:', data.id);
+                setSaved(true); // Set saved to true on success
+                setSuccessMessage('Source Type saved successfully.'); // Update success message
+            } else {
+                console.error('Unexpected response from server');
+                setErrorMessage('Failed to save the source type.');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            if (error instanceof Error) {
+                setErrorMessage(error.message);
+            } else {
+                setErrorMessage('An unknown error occurred. Please try again.');
+            }
+        } finally {
+            setIsSaving(false); // Set loading state to false after the API call is done
+            setIsSaveDisabled(false); // Enable button again
         }
-
-        // Prepare the sourceTypeData payload
-        const sourceTypeData = {
-            url: url,  // User-provided URL (if any)
-            awsS3Config: providerSettings,  // AWS S3 settings
-            fileUploadConfig: {
-                fileName: files[0]?.name || '',  // Ensure a file name exists (either from drag-and-drop or URL)
-                allowedExtensions: [".mp4", ".avi"], // Example allowed extensions
-            },
-        };
-
-        // Prepare metadata if available
-        const metadataData = {
-            ...metadata,  // Spread existing metadata object
-            subtitleClosedCaptions: metadata?.subtitlesCaptionsFile ? [metadata.subtitlesCaptionsFile.name] : [],
-            auxiliaryFiles: metadata?.auxiliaryFiles ? [metadata.auxiliaryFiles.name] : [],
-            audio: metadata?.audioFile ? metadata.audioFile.name : '',
-        };
-
-        console.log('Sending request body:', JSON.stringify({
-            sourceTypeData,  // Include sourceTypeData at the root level
-            metadata: metadataData,  // Include metadata at the root level (separate from sourceTypeData)
-        }, null, 2));
-
-        // Send the data to the API
-        const response = await fetch('http://localhost:3000/api/sourcetype/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            },
-            body: JSON.stringify({
-                sourceTypeData,  // Send `sourceTypeData` as root-level object
-                metadata: metadataData,  // Send `metadata` as a separate root-level field
-            }),
-        });
-
-        console.log('API Call Successful');
-        console.log('Response status:', response.status);
-
-        if (!response.ok) {
-            const errorData = await response.text();  // Read response body to get more details
-            throw new Error(`HTTP error! Status: ${response.status}. Response: ${errorData}`);
-        }
-
-        const data = await response.json();
-        console.log('API Response:', data);
-
-        if (data && data.id) {
-            console.log('Source Type saved successfully. ID:', data.id);
-            setSaved(true); // Set saved to true on success
-            setSuccessMessage('Source Type saved successfully.'); // Update success message
-        } else {
-            console.error('Unexpected response from server');
-            setErrorMessage('Failed to save the source type.');
-        }
-    } catch (error) {
-        console.error('Fetch error:', error);
-        if (error instanceof Error) {
-            setErrorMessage(error.message);
-        } else {
-            setErrorMessage('An unknown error occurred. Please try again.');
-        }
-    } finally {
-        setIsSaving(false); // Set loading state to false after the API call is done
-        setIsSaveDisabled(false); // Enable button again
-    }
-};
+    };
 
     // Function to validate and return subtitle file details
     const validateSubtitleFile = (file) => {
@@ -688,48 +688,48 @@ const handleSave = async () => {
     return (
         // right side drag and drop
         <div>
-        {saved ? (
- <div className="flex flex-col items-center border-2 rounded-3xl border-customGrey-300 p-8 mt-4 mb-4 m-4">
-     <h3 className="font-semibold">Success!</h3>
+            {saved ? (
+                <div className="flex flex-col items-center border-2 rounded-3xl border-customGrey-300 p-8 mt-4 mb-4 m-4">
+                    <h3 className="font-semibold">Success!</h3>
 
-     {/* Display the file/url based on selectedSource */}
-     <p>
-         {selectedSource === 'dragDrop' ? `Uploaded File: ${files[0].name}` : `URL: ${url}`}
-     </p>
+                    {/* Display the file/url based on selectedSource */}
+                    <p>
+                        {selectedSource === 'dragDrop' ? `Uploaded File: ${files[0].name}` : `URL: ${url}`}
+                    </p>
 
-     {/* Display the selected provider if it exists */}
-     {selectedProvider && <p>Provider: {selectedProvider}</p>}
+                    {/* Display the selected provider if it exists */}
+                    {selectedProvider && <p>Provider: {selectedProvider}</p>}
 
-     {/* Display Metadata */}
-     {metadata && Object.keys(metadata).length > 0 && (
-         <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-white">
-             <h3 className="text-lg font-semibold mb-4">Metadata:</h3>
+                    {/* Display Metadata */}
+                    {metadata && Object.keys(metadata).length > 0 && (
+                        <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-white">
+                            <h3 className="text-lg font-semibold mb-4">Metadata:</h3>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 {/* Iterate over the metadata object to show each key and value */}
-                 {Object.entries(metadata).map(([key, value], index) => (
-                     <div key={index} className="border-b border-gray-300 pb-2 mb-2">
-                         {/* Display each key and value */}
-                         <div className="flex justify-between items-center">
-                             <p className="font-semibold text-gray-700">
-                                 {key.charAt(0).toUpperCase() + key.slice(1)}:
-                             </p>
-                             {/* Display value: either array joined by commas, single value, or N/A */}
-                             <pre className="text-sm text-gray-600">
-                                 {Array.isArray(value)
-                                     ? value.length > 0
-                                         ? value.join(', ')  // Join array elements with a comma if it's an array
-                                         : 'No items available'
-                                     : value || 'N/A'}
-                             </pre>
-                         </div>
-                     </div>
-                 ))}
-             </div>
-         </div>
-     )}
- </div>
-) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Iterate over the metadata object to show each key and value */}
+                                {Object.entries(metadata).map(([key, value], index) => (
+                                    <div key={index} className="border-b border-gray-300 pb-2 mb-2">
+                                        {/* Display each key and value */}
+                                        <div className="flex justify-between items-center">
+                                            <p className="font-semibold text-gray-700">
+                                                {key.charAt(0).toUpperCase() + key.slice(1)}:
+                                            </p>
+                                            {/* Display value: either array joined by commas, single value, or N/A */}
+                                            <pre className="text-sm text-gray-600">
+                                                {Array.isArray(value)
+                                                    ? value.length > 0
+                                                        ? value.join(', ')  // Join array elements with a comma if it's an array
+                                                        : 'No items available'
+                                                    : value || 'N/A'}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : (
                 // { left side with drag and drop section  }
                 <div className={`flex flex-col items-center border-2 rounded-3xl border-customGrey-300 p-8 mt-4 mb-4 m-4`}>
                     <h2 className="text-lg font-semibold mb-4 text-center text-customCardBlue">
@@ -747,16 +747,6 @@ const handleSave = async () => {
                                 <p className="mb-2">Drag and Drop your content here</p>
                                 <div className="text-6xl">+</div>
                             </div>
-
-                            {/* <div className="pt-5">
-                            <button
-              className={hasFileSelected ? `${getButtonClass('Cancel')} opacity-50 cursor-not-allowed` : `${getButtonClass('Select')}`}
-              onClick={() => handleToggleSelection('dragDrop')}
-              disabled={warningMessage || activeSection === null}
-            >
-              {hasFileSelected ? 'Cancel' : 'Select'}
-            </button>
-                            </div> */}
 
                             {/* Displaying the uploaded files */}
                             {files.length > 0 && (
@@ -959,117 +949,6 @@ const handleSave = async () => {
 
 
                     </div>
-
-
-                    {/* Metadata Modal */}
-                    {/* {isMetadataModalOpen && (
-                        <Modal
-                            isOpen={isMetadataModalOpen}
-                            onRequestClose={closeMetadataModal}
-                            contentLabel="Metadata Input Modal"
-                            className="absolute bg-white rounded-3xl shadow-lg max-w-2xl p-6"
-                            overlayClassName="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center"
-                        >
-                            <h2 className="text-lg font-semibold mb-4">Add Metadata</h2>
-                            <form onSubmit={closeMetadataModal} className="grid grid-cols-2 gap-4">
-                               
-                                <div className="space-y-4">
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Title</label>
-                                        <input
-                                            type="text"
-                                            name="title"
-                                            placeholder="Enter title"
-                                            className="border border-gray-300 rounded-lg py-2 px-4 w-full"
-                                        />
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Genre</label>
-                                        <select name="genre" className="border border-gray-300 rounded-lg py-2 px-4 w-full">
-                                            <option value="">Select Genre</option>
-                                            <option value="action">Action</option>
-                                            <option value="comedy">Comedy</option>
-                                            <option value="drama">Drama</option>
-                                            <option value="thriller">Thriller</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Auxillary files</label>
-                                        <input
-                                            type="file"
-                                            name="auxiliaryFiles"
-                                            className="border border-gray-300 rounded-lg py-2 px-4 w-full"
-                                        />
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Audio</label>
-                                        <input
-                                            type="file"
-                                            name="audioFile"
-                                            className="border border-gray-300 rounded-lg py-2 px-4 w-full"
-                                        />
-                                    </div>
-                                </div>
-
-                                
-                                <div className="space-y-4">
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Category</label>
-                                        <select name="category" className="border border-gray-300 rounded-lg py-2 px-4 w-full">
-                                            <option value="">Select Category</option>
-                                            <option value="movie">Movie</option>
-                                            <option value="series">Series</option>
-                                            <option value="documentary">Documentary</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Language</label>
-                                        <select name="language" className="border border-gray-300 rounded-lg py-2 px-4 w-full">
-                                            <option value="">Select Language</option>
-                                            <option value="english">English</option>
-                                            <option value="hindi">Hindi</option>
-                                            <option value="spanish">Spanish</option>
-                                            <option value="french">French</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <label className="block mb-2 text-gray-700">Subtitles/Closed captions</label>
-                                        <input
-                                            type="file"
-                                            name="subtitlesCaptionsFile"
-                                            className="border border-gray-300 rounded-lg py-2 px-4 w-full"
-                                            accept=".srt, .vtt, .ttml, .ass, .ssa, .scc, .mcc"
-                                            onChange={handleFileChange}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="col-span-2">
-                                    <button
-                                        type="submit"
-                                        className="mt-4 py-2 px-4 bg-customCardBlue text-white rounded-3xl"
-                                        onClick={closeMetadataModal}
-                                    >
-                                        Save Metadata
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={closeMetaModal}
-                                        className="bg-red-500 hover:bg-red-600 text-white font-semibold ml-4 py-2 px-4 rounded-3xl"
-                                    >
-                                        Close
-                                    </button>
-                                </div>
-                            </form>
-                        </Modal>
-                    )} */}
-
 
                     {isMetadataModalOpen && (
                         <Modal
@@ -1345,23 +1224,15 @@ const handleSave = async () => {
                             {warningMessage}
                         </div>
                     )}
-
-
-
-                
-
-
                 </div>
-
-                
             )}
 
-                {/* Right-Aligned Button */}
-                <div className="flex justify-end w-full">
-                        <button onClick={goToNextTab} className="py-2 px-5 bg-customCardBlue text-white rounded-3xl mr-4">
-                            Next
-                        </button>
-                    </div>
+            {/* Right-Aligned Button */}
+            <div className="flex justify-end w-full">
+                <button onClick={goToNextTab} className="py-2 px-5 bg-customCardBlue text-white rounded-3xl mr-4">
+                    Next
+                </button>
+            </div>
 
         </div>
     )

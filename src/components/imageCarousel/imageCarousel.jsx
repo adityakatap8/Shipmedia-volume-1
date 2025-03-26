@@ -1,27 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import './index.css';
 
 const images = [
+  { src: '/src/assets/video.mp4', alt: 'Intro Video' },
   { src: '/src/assets/1.svg', alt: 'Poster 2' },
   { src: '/src/assets/2.svg', alt: 'Poster 6' },
   { src: '/src/assets/3.svg', alt: 'Poster 5' },
   { src: '/src/assets/4.svg', alt: 'Poster 5' },
   { src: '/src/assets/5.svg', alt: 'Poster 5' },
   { src: '/src/assets/6.svg', alt: 'Poster 5' },
-  { src: '/src/assets/7.svg', alt: 'Poster 5' },
+  { src: '/src/assets/7.svg', alt: 'Poster 5' }
 ];
 
 function ImageCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoStarted, setIsVideoStarted] = useState(false);
+  const videoRef = useRef(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 5000); // Change image every 5 seconds
+    let intervalId;
 
-    return () => clearInterval(interval);
-  }, []);
+    if (images[currentIndex].src.endsWith('.mp4')) {
+      videoRef.current?.play();
+      setIsVideoStarted(true);
+    }
+
+    if (!isVideoPlaying) {
+      intervalId = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+      }, 5000);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+      if (isVideoStarted && !isVideoPlaying) {
+        videoRef.current?.pause();
+      }
+    };
+  }, [currentIndex, isVideoPlaying]);
 
   const nextImage = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -38,6 +56,16 @@ function ImageCarousel() {
     link.click();
   };
 
+  const handleVideoEnd = () => {
+    setIsVideoPlaying(false);
+    nextImage(); // Automatically move to the next image after the video ends
+  };
+
+  const handleVideoPlay = () => {
+    setIsVideoStarted(true);
+    setIsVideoPlaying(true);
+  };
+
   return (
     <div className="image-carousel-container">
       <div className="image-container">
@@ -50,21 +78,36 @@ function ImageCarousel() {
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <TransformComponent>
-              <img
-                src={images[currentIndex].src}
-                alt={images[currentIndex].alt}
-                className="carousel-image"
-                style={{ width: '150%', height: 'auto' }}
-              />
+              {images[currentIndex].src.endsWith('.mp4') ? (
+                <video
+                  ref={videoRef}
+                  className="carousel-video"
+                  controls
+                  muted
+                  onPlay={handleVideoPlay}
+                  onEnded={handleVideoEnd}
+                  style={{ width: '100%', height: 'auto' }}
+                >
+                  <source src={images[currentIndex].src} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <img
+                  src={images[currentIndex].src}
+                  alt={images[currentIndex].alt}
+                  className="carousel-image"
+                  style={{ width: '150%', height: 'auto' }}
+                />
+              )}
             </TransformComponent>
           )}
         </TransformWrapper>
       </div>
       <div className="button-container">
         <div className="image-controls">
-          <button className='carouButt' onClick={prevImage}>Previous</button>
-          <button className='carouButt' onClick={downloadImage}>Download</button>
-          <button className='carouButt' onClick={nextImage}>Next</button>
+          <button className="carouButt" onClick={prevImage}>Previous</button>
+          <button className="carouButt" onClick={downloadImage}>Download</button>
+          <button className="carouButt" onClick={nextImage}>Next</button>
         </div>
       </div>
     </div>
