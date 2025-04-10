@@ -15,7 +15,7 @@ import Projects from '../projects/Projects';
 import ProjectsForm from '../../components/projectsForm/ProjectsForm';
 import ProjectsDashboard from '../../components/projectsDashboard/ProjectsDashboard';
 import ViewAndEditForm from '../../components/projectsForm/ViewAndEditForm';
-
+import BrowseFestival from '../../components/browseFestival/BrowseFestival';
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
@@ -32,3 +32,4 @@ export const projects = () => <Projects />;
 export const projectsForm = () => <ProjectsForm />;
 export const projectsDashboard = () => <ProjectsDashboard />
 export const viewAndEditForm = () => <ViewAndEditForm />
+export const browseFestival = () => <BrowseFestival />

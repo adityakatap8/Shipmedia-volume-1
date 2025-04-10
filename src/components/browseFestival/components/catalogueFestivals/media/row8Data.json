@@ -1,0 +1,91 @@
+{
+    "contactInfo": {
+        "mainOffice": {
+            "address": "Telluride Film Festival 800 Jones Street Berkeley, CA 94710 USA",
+            "coFounders": [
+                {
+                    "name": "Tom Luddy",
+                    "profile": "https://www.linkedin.com/in/tom-luddy-3459126/"
+                },
+                {
+                    "name": "Bill and Tani Austin",
+                    "profile": "https://www.linkedin.com/in/bill-austin-45690738/"
+                }
+            ]
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "General",
+            "criteria": "All films must have been completed after the submission deadline of July 1st, 2024.Feature films (60 minutes or longer) will only be considered if they are to have their first North American screenings at TFF.Short films that have been released online before the festival will not be considered.We do not accept updated versions of films after submission."
+        },
+        {
+            "category": "Submission Platforms",
+            "criteria": "Films must be submitted via a secure URL link and made accessible through August 1st, 2025.All films submitted must be downloadable."
+        }
+    ],
+    "filmDetails": {},
+    "fees": [
+        {
+            "category": "Feature Films (60 mins. or longer)",
+            "feeDetails": "$95"
+        },
+        {
+            "category": "Short Films (40-59 minutes)",
+            "feeDetails": "$85"
+        },
+        {
+            "category": "Short Films (20-39 minutes)",
+            "feeDetails": "$65"
+        },
+        {
+            "category": "Short Films (19 minutes or less)",
+            "feeDetails": "$45"
+        },
+        {
+            "category": "Student Films (all lengths)",
+            "feeDetails": "$35"
+        }
+    ],
+    "festivalInfo": {
+        "description": "The Telluride Film Festival is an annual event held in Telluride, Colorado, known for its intimate and prestigious atmosphere. Founded in 1974, it celebrates cinema through a curated selection of films, including premieres, retrospectives, and tributes to notable filmmakers. The festival focuses on showcasing high-quality, independent, and international films in an environment that encourages conversation and discovery. It is renowned for its secrecy around lineups, which are only revealed shortly before the event, adding an element of surprise. Telluride is a key stop for filmmakers and industry professionals before major awards season.",
+        "eventDates": {
+            "start": "August 29, 2025",
+            "end": "September 1, 2025"
+        },
+        "name": "Telluride Film Festival",
+        "website": "https://www.telluridefilmfestival.org/"
+    },
+    "socialMediaAndExternalLinks": {
+        "reviews": [
+            {
+                "author": "James H.",
+                "date": "September 2024",
+                "content": "An unforgettable festival with an amazing atmosphere. A true celebration of cinema and the art of filmmaking. It’s a must-attend for filmmakers and film lovers alike!",
+                "rating": 5
+            },
+            {
+                "author": "Linda P.",
+                "date": "August 2023",
+                "content": "Telluride is the perfect place to experience films in an intimate setting. You’re able to meet the filmmakers, learn about their process, and truly connect with the cinema.",
+                "rating": 5
+            },
+            {
+                "author": "Charles M.",
+                "date": "September 2022",
+                "content": "While the secrecy around the lineup is fun, it’s also frustrating. But when the films finally start screening, it’s totally worth the wait. A true gem in the festival world.",
+                "rating": 4
+            }
+        ]
+    },
+    "folderName": "row8Data",
+    "cover_photo": "cover_photo.jpg",
+    "overlap_photo": "overlap_photo.png",
+    "photos": {
+        "logo1": "logo1.jpg",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

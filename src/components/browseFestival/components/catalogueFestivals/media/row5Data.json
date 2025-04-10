@@ -1,0 +1,120 @@
+{
+    "contactInfo": {
+        "mainOffice": {
+            "address": "Sundance Institute Headquarters 1500 Kearns Blvd, Suite B200 Park City, UT 84060 USA",
+            "director": {
+                "name": "Eugene Hernandez",
+                "profile": "https://www.linkedin.com/in/eugonline/"
+            }
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "Feature Films (U.S. and International)",
+            "criteria": "Films exhibited outside their country of origin before February 3, 2025, are ineligible. Projects completed before January 1, 2023, are ineligible. Non-English projects must include on-screen English subtitles"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "criteria": "Projects completed before January 1, 2023, are ineligible. Non-English projects must include on-screen English subtitles."
+        },
+        {
+            "category": "Episodic Content",
+            "criteria": "Projects completed before January 1, 2023, are ineligible. Non-English projects must include on-screen English subtitles."
+        }
+    ],
+    "fees": [
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$75 Early Deadline"
+        },
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$95 Official Deadline"
+        },
+        {
+            "category": "Feature Films (U.S. and International)",
+            "feeDetails": "$120 Late Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$50 Early Deadline"
+        },                
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$70 Official Deadline"
+        },
+        {
+            "category": "Short Films (U.S. and International)",
+            "feeDetails": "$90 Late Deadline"
+        },
+        {
+            "category": "Episodic Content (60 minutes or less)",
+            "feeDetails": "$50 Early Deadline"
+        },                
+        {
+            "category": "Episodic Content (60 minutes or less)",
+            "feeDetails": "$70 Official Deadline"
+        },
+        {
+            "category": "Episodic Content (60 minutes or less)",
+            "feeDetails": "$90 Late Deadline"
+        },
+        {
+            "category": "Episodic Content (over 60 minutes)",
+            "feeDetails": "$75 Early Deadline"
+        },                
+        {
+            "category": "Episodic Content (over 60 minutes)",
+            "feeDetails": "$95 Official Deadline"
+        },
+        {
+            "category": "Episodic Content (over 60 minutes)",
+            "feeDetails": "$120 Late Deadline"
+        }
+    ],
+    "festivalInfo": {
+        "description": "The Sundance Film Festival, founded in 1978 by Robert Redford, is a premier platform for independent films. It is held annually in Park City, Utah, in January. Sundance showcases a wide range of films, including features, documentaries, shorts, and experimental projects, often spotlighting diverse and innovative voices. It offers several prestigious awards, such as the Grand Jury Prize and Audience Award. Known for launching filmmakers' careers, Sundance provides industry professionals a chance to discover new talent and features educational programs with a growing online presence through Sundance Now.",
+        "eventDates": {
+            "start": "January 23, 2025",
+            "end": "February 2, 2025"
+        },
+        "name": "Sundance Film Festival",
+        "website": "https://www.sundance.org/festivals/sundance-film-festival"
+    },
+    "filmDetails": {
+        "featureFilm": {
+            "criteria": "Any narrative or non-scripted work of fiction originating from within the United States with a running time of 50 minutes or more.",
+            "duration": "50 minutes or more"
+        },
+        "internationalShortFilm": {
+            "criteria": "Any film or video project originating from outside of the United States with a running time of less than 50 minutes, including credits.",
+            "duration": "50 minutes or less"
+        },
+        "episodicContent (60min or less)": {
+            "criteria": "Any live-action, documentary/nonfiction, or animation project presented in or intended to be presented in a multi-episode format.",
+            "duration": "60 minutes or less"
+        },
+        "episodicContent (60min or more)": {
+            "criteria": "Any live-action, documentary/nonfiction, or animation project presented in or intended to be presented in a multi-episode format.",
+            "duration": "Over 60 minutes"
+        }
+    },
+    "socialMediaAndExternalLinks": {
+        "reviews": [
+            {
+                "title": "2024 Sundance Film Festival Reviews",
+                "link": "https://www.wildaboutfilm.io/p/2024-sundance-film-festival-reviews"
+            }
+        ]
+    },
+    "folderName": "row5Data",
+    "cover_photo": "cover_photo.jpg",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.jpg",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

@@ -1,0 +1,97 @@
+{
+    "contactInfo": {
+        "featureFilm": {
+            "address": "Potsdamer Platz 11, 10785 Berlin, Germany",
+            "emails": ["info@berlinale.de"],
+            "phone": "+49 30 25920-0"
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "Feature Film",
+            "criteria": "Films completed within 12 months before the start of the festival, minimum 60 minutes long, and preferably world premieres."
+        },
+        {
+            "category": "Short Film",
+            "criteria": "Films up to 30 minutes long, completed within the last 12 months, and preferably world premieres."
+        },
+        {
+            "category": "Generation (Short Film)",
+            "criteria": "Films up to 20 minutes long, completed within the last 12 months."
+        },
+        {
+            "category": "Berlinale Classics",
+            "criteria": "Films promoting cinematographic heritage, newly restored copies, or documentaries about cinema."
+        }
+    ],
+    "fees": [
+        {
+            "category": "Feature Film",
+            "feeDetails": "€175 for feature-length films, regardless of the number of sections you apply for."
+        },
+        {
+            "category": "Short Film",
+            "feeDetails": "€75 for short films."
+        }
+    ],
+    "festivalInfo": {
+        "description": "The Berlin International Film Festival (Berlinale) is one of the world's most prestigious film festivals, showcasing international films from big-budget productions to indie gems. It also hosts events that foster creativity and innovation in the global film community.",
+        "eventDates": {
+            "start": "February 13, 2025",
+            "end": "February 23, 2025"
+        },
+        "name": "Berlin International Film Festival (Berlinale)",
+        "website": "https://www.berlinale.de/en/home.html"
+    },
+    "filmDetails": {
+        "featureFilm": {
+            "conditions": "Films completed within the 12 months prior to the festival and a minimum of 60 minutes in duration. World premieres are preferred, but European premieres are accepted for some sections."
+        },
+        "shortFilm": {
+            "conditions": "Films up to 30 minutes long, completed in the last 12 months. World premieres are preferred."
+        },
+        "generationShortFilm": {
+            "conditions": "Films under 20 minutes, completed in the last 12 months, preferably world premieres."
+        }
+    },
+    "officialContacts": {
+        "carloChatrian": "https://www.linkedin.com/in/carlo-chatrian-a6646483/",
+        "marietteRissenbeek": "https://www.linkedin.com/in/mariette-rissenbeek-3b477223/"
+    },
+    "socialMediaAndExternalLinks": {
+        "quoraExperience": [
+            {
+                "content": "Berlinale was a phenomenal experience with amazing premieres, top directors, and a cinephile atmosphere. Highly recommend it!",
+                "user": "Sergio López"
+            }
+        ]
+    },
+    "submissionDetails": [
+        {
+            "category": "Feature Film",
+            "fees": [
+                {
+                    "fee": "€175",
+                    "format": "Feature-length films (regardless of sections)"
+                }
+            ],
+            "preselectionDeadline": "To be announced",
+            "submissionDeadline": "To be announced"
+        },
+        {
+            "category": "Short Film",
+            "fees": "€75",
+            "submissionDeadline": "To be announced"
+        }
+    ],
+    "folderName": "row2Data",
+    "cover_photo": "cover_photo.jpg",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.jpg",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}

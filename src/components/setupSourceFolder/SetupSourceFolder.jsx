@@ -491,7 +491,7 @@ const SetupSourceFolder = ({ goToNextTab }) => {
     //         }, null, 2));
 
     //         // Send the data to the API
-    //         const response = await fetch('http://localhost:3000/api/sourcetype/', {
+    //         const response = await fetch('/api/sourcetype/', {
     //             method: 'POST',
     //             headers: {
     //                 'Content-Type': 'application/json',
@@ -572,7 +572,7 @@ const SetupSourceFolder = ({ goToNextTab }) => {
             }, null, 2));
 
             // Send the data to the API
-            const response = await fetch('http://localhost:3000/api/sourcetype/', {
+            const response = await fetch('/api/sourcetype/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

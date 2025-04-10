@@ -1,151 +1,206 @@
-import React, { useContext, useState } from 'react';
-import BlueButton from '../../components/blueButton/BlueButton';
-import { Link, useNavigate } from 'react-router-dom';
-import { UserContext } from '../../contexts/UserContext';
+import React, { useState, useEffect, useCallback } from 'react';
+import './index.css';
+import axios from 'axios';
+
+// Services list
+const services = [
+  'Dubbing',
+  'Subtitling',
+  'Closed Captioning',
+  'Automated QC',
+  'Lip Sync Check',
+  'Transcoding/Encoding',
+  'Trailers',
+  'Shorts/Reels',
+  'Artwork Automation',
+  'Artwork Localization',
+  'Metadata Generation',
+  'Content Delivery',
+];
+
+// Shuffle function to randomize array order
+const shuffleArray = (array) => {
+  return array.sort(() => Math.random() - 0.5);
+};
 
 function Main() {
-    const { userData, isLoading, setIsLoading, isAuthenticated } = useContext(UserContext);
-    const [successMessage, setSuccessMessage] = useState(null);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+  const [selectedProject, setSelectedProject] = useState(null); // Store selected project
+  const [selectedServices, setSelectedServices] = useState(new Set()); // Store selected services
+  const [projectData, setProjectData] = useState([]); // Store all projects data
+  const [shuffledServices, setShuffledServices] = useState([]); // Store shuffled services
+  const [isSubmitted, setIsSubmitted] = useState(false); // State to track if the form is submitted
 
-    const handleSubmit = async (type) => {
-        const allowedTypes = ['on-demand', 'watch-folder', 'video-catalogue'];
+  // Fetch project data from the backend
+  useEffect(() => {
+    axios
+      .get(`https://www.mediashippers.com/api/projects`) // Replace with your actual API endpoint
+      .then((response) => {
+        setProjectData(response.data); // Store the fetched project data in state
+      })
+      .catch((error) => {
+        console.error('Error fetching project data:', error);
+      });
 
-        if (!isAuthenticated) {
-            console.error('User not authenticated');
-            return;
-        }
+    // Shuffle services on load
+    setShuffledServices(shuffleArray([...services]));
+  }, []);
 
-        setIsLoading(true);
-        setError(null);
-        try {
-            console.log('Sending request body:', {
-                userId: userData.userId,
-                userEmail: userData.email,
-                type: type.toLowerCase()
-            });
+  // Handle toggle service selection
+  const handleToggleServiceSelection = useCallback((service) => {
+    setSelectedServices((prevSelectedServices) => {
+      const newSelectedServices = new Set(prevSelectedServices);
+      if (newSelectedServices.has(service)) {
+        newSelectedServices.delete(service);
+      } else {
+        newSelectedServices.add(service);
+      }
+      return newSelectedServices;
+    });
+  }, []);
 
-            const response = await fetch('http://localhost:3000/api/ordertype/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${window.localStorage.getItem("token")}`
-                },
-                body: JSON.stringify({
-                    userId: userData.userId,
-                    userEmail: userData.email,
-                    type: type.toLowerCase()
-                })
-            });
+  // Handle toggle project selection
+  const handleToggleProjectSelection = (project) => {
+    setSelectedProject((prevSelectedProject) => {
+      if (prevSelectedProject && prevSelectedProject._id === project._id) {
+        return null; // Deselect the project
+      }
+      return project; // Select the new project
+    });
+  };
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-            console.log('Response headers:', response.headers);
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSubmitted(true); // Set submission state to true
+  };
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            }
+  // Handle back button click
+  const handleBack = () => {
+    setIsSubmitted(false); // Go back to the selection page
+  };
 
-            const data = await response.json();
-            console.log('Order submitted successfully:', data);
+  // Handle confirm button click
+  const handleConfirm = () => {
+    // Reset everything back to initial state
+    setIsSubmitted(false);
+    setSelectedProject(null);
+    setSelectedServices(new Set());
+  };
 
-            let navigatePath;
-            if (type === 'video-catalogue') {
-                setSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} created successfully!`);
-                setTimeout(() => {
-                    setSuccessMessage(null);
-                    navigate('/video-catalogue'); // Direct navigation without tabs
-                }, 3000);
-            } else {
-                setSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} created successfully!`);
-                setTimeout(() => {
-                    setSuccessMessage(null);
-                    navigate(`/tabs-${type.toLowerCase()}`);
-                }, 3000);
-            }
-        } catch (err) {
-            console.error('Error submitting order:', err);
-            setError(`Failed to create ${type}. Please try again.`);
-            if (err.message.includes('Invalid type')) {
-                setError(err.message);
-            }
-            setTimeout(() => {
-                setError(null);
-            }, 3000);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="mx-auto">
-            <div className='text-left text-2xl pb-4 mt-2'>
-                <h4>Order Management</h4>
+  return (
+    <div className="mx-auto border-2 rounded-3xl border-customGrey-300 p-10 order-managment-background">
+      {!isSubmitted ? (
+        <>
+          {/* Project Title and Logo Display */}
+          {projectData.length > 0 && (
+            <div className="mt-10">
+              <div className="text-left text-2xl pb-2 mt-2 ml-10 text-white choose-project">
+                <h4>Choose Project</h4>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 ml-4 mb-8">
+                {projectData.map((project) => (
+                  <div
+                    key={project._id}
+                    className="flex flex-col items-center cursor-pointer transition-all duration-300 showcase-card"
+                    onClick={() => handleToggleProjectSelection(project)}
+                  >
+                    <img
+                      src={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${project.projectTitle}/film+stills/logo.jpg`}
+                      alt={project?.projectTitle || 'Project Logo'}
+                      className={`h-40 object-contain mb-4 ${
+                        selectedProject?.projectTitle === project.projectTitle ? 'selected' : ''
+                      }`}
+                    />
+                    <h3 className="text-white text-xl font-semibold mb-2 text-center">
+                      {project?.projectTitle || 'Untitled Project'}
+                    </h3>
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            {successMessage && <p className="text-green-600">{successMessage}</p>}
-            {error && <p className="text-red-600">{error}</p>}
-            <form onSubmit={(e) => handleSubmit('on-demand')}>
-                <div className="border-2 rounded-3xl border-customGrey-300 p-2 mt-4 mb-4 flex">
-                    {/* First Card */}
-                    <div className="w-1/2 p-4 ml-20 mt-3 mb-3 flex flex-col justify-between bg-customCardBlue-700 text-white rounded-3xl w-64 h-[24rem] text-left">
-                        <div>
-                            <h2 className="text-3xl font-semibold mb-2">Create a new order</h2>
-                            <p className="mt-4 text-xl">Add source URL or upload your files directly.</p>
-                        </div>
-                        <Link 
-                            to='/tabs-on-demand'
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleSubmit('on-demand');
-                            }}
-                            className="mt-4 bg-white text-customCardBlue-700 px-4 py-2 rounded-3xl hover:bg-gray-100 text-xl"
-                        >
-                            Create Order
-                        </Link>
-                    </div>
-                    {/* Vertical Dotted Line */}
-                  
-                    {/* Second Card */}
-                    <div className="w-1/2 p-4 ml-40 mt-3 mb-3 flex flex-col justify-between bg-customCardBlue-700 text-white rounded-3xl w-64 h-[24rem] text-left">
-                        <div>
-                            <h2 className="text-3xl font-semibold mb-2">Setup a watch folder</h2>
-                            <p className="mt-4 text-xl">Configure watchfolder on cloud or your local.</p>
-                        </div>
-                        <Link 
-                            to='/tabs-watchfolder'
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleSubmit('watch-folder');
-                            }}
-                            className="mt-4 bg-white text-customCardBlue-700 px-4 py-2 rounded-3xl hover:bg-gray-100 text-xl"
-                        >
-                            Create Watchfolder
-                        </Link>
-                    </div>
-                    {/* Third Card */}
-                    {/* <div className="w-1/3 p-4 ml-20 mt-3 mb-3 flex flex-col justify-between bg-customCardBlue-700 text-white rounded-3xl w-64 h-[24rem] text-left">
-                        <div>
-                            <h2 className="text-3xl font-semibold mb-2">Create Video Catalogue</h2>
-                            <p className="mt-4 text-xl">Set up a video catalogue for easy access and management.</p>
-                        </div>
-                        <Link 
-                            to='/video-catalogue'
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleSubmit('video-catalogue');
-                            }}
-                            className="mt-4 bg-white text-customCardBlue-700 px-4 py-2 rounded-3xl hover:bg-gray-100 text-xl"
-                        >
-                            Create Video Catalogue
-                        </Link>
-                    </div> */}
-                </div>
-            </form>
+          )}
+
+          <div className="text-left text-2xl pb-4 mt-2 ml-10 text-white choose-project">
+            <h4>Choose Services</h4>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            {/* Grid container with 50% width */}
+            <div className="grid grid-cols p-2 mt-4 mb-4 w-full">
+              <div>
+                {shuffledServices.slice(0, 12).map((service) => (
+                  <button
+                    key={service}
+                    className={`w-auto p-3 m-2 text-white border-2 rounded-full transition-all duration-300 ${
+                      selectedServices.has(service)
+                        ? 'bg-blue-500 border-blue-500 selected-service'
+                        : 'border-white bg-transparent hover:bg-blue-500 hover:border-blue-500'
+                    }`}
+                    type="button"
+                    onClick={() => handleToggleServiceSelection(service)} // Toggle service selection
+                  >
+                    {service}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="bg-blue-500 text-white p-3 rounded-full mt-4 transition-all duration-300 hover:bg-blue-600"
+            >
+              Submit
+            </button>
+          </form>
+        </>
+      ) : (
+        <div className="mt-10">
+          {/* Display Selected Project and Services */}
+          <div className="text-center mb-8">
+            <h2 className="text-white text-3xl">You have selected:</h2>
+            <div className="mt-6">
+              {selectedProject ? (
+                <>
+                  <h3 className="text-xl text-white">{selectedProject.projectTitle}</h3>
+                  <img
+                    src={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${selectedProject.projectTitle}/film+stills/logo.jpg`}
+                    alt={selectedProject.projectTitle}
+                    className="w-40 h-40 object-contain mx-auto mb-4"
+                  />
+                </>
+              ) : (
+                <p className="text-white">No project selected</p>
+              )}
+            </div>
+
+            <h4 className="text-white text-2xl mt-4">Selected Services:</h4>
+            <div className="text-white p-4 rounded-lg mt-4">
+              <ul className="text-white text-lg">
+                {Array.from(selectedServices).map((service, index) => (
+                  <li key={index}>{service}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-4 mt-8">
+            <button
+              onClick={handleBack}
+              className="bg-gray-500 text-white p-3 rounded-full transition-all duration-300 hover:bg-gray-600"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleConfirm}
+              className="bg-green-500 text-white p-3 rounded-full transition-all duration-300 hover:bg-green-600"
+            >
+              Confirm
+            </button>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }
 
 export default Main;

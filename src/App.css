@@ -1,4 +1,7 @@
-
+/* Apply font globally to the body */
+body {
+  font-family: 'Roboto Mono', monospace; /* Use Roboto Mono for the entire page */
+}
 
 #root {
   max-width: 1280px;
@@ -13,11 +16,13 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #a2bcc4aa);
 }
 
 @keyframes logo-spin {
@@ -37,8 +42,10 @@
 
 .card {
   padding: 2em;
+  font-family: 'Roboto Mono', monospace; /* Use Roboto Mono for card content */
 }
 
 .read-the-docs {
   color: #888;
+  font-family: 'Roboto Mono', monospace; /* Use Roboto Mono for the "read the docs" section */
 }

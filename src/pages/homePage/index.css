@@ -107,7 +107,7 @@ h1{
   .left-section img {
     max-width: 100%; 
     height: auto;
-    margin-left: 50px;
+    margin-left: 20px;
   }
 
   .custom-placeholder::placeholder {

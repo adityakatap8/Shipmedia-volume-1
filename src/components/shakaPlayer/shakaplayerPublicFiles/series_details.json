@@ -1,0 +1,64 @@
+{
+  "id": "series_1",
+  "title": "Mystic Falls",
+  "description": "A small town shrouded in mystery, where secrets unfold each season.",
+  "genre": "Drama",
+  "rating": "TV-14",
+  "releaseYear": 2019,
+  "backgroundImage": "/placeholder.svg",
+  "logoImage": "/placeholder.svg",
+  "seasons": [
+    {
+      "id": "season_1",
+      "number": 1,
+      "title": "Season 1",
+      "episodes": [
+        {
+          "id": "ep_1",
+          "number": 1,
+          "title": "Welcome to Mystic Falls",
+          "description": "Strange events begin to occur in a small town.",
+          "duration": "45m",
+          "thumbnail": "/placeholder.svg",
+          "url": "https://testmovies-1.s3.amazonaws.com/President_McKinley_taking_the_oath.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=TVNKCAoPVMi23jVXvJVS5oSgltM%3D&Expires=1737021210"
+        },
+        {
+          "id": "ep_2",
+          "number": 2,
+          "title": "The Mystery Deepens",
+          "description": "More secrets come to light as the investigation continues.",
+          "duration": "42m",
+          "thumbnail": "/placeholder.svg",
+          "url": "https://testmovies-1.s3.amazonaws.com/Popeye_the_Sailor_Meets_Sindbad_the_Sailor.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=HoqhCzAJgs456Z61IH86h%2BaPrRo%3D&Expires=1737021187"
+        }
+      ]
+    }
+  ],
+  "cast": [
+    {
+      "id": "cast_1",
+      "name": "Emily Clark",
+      "role": "Detective Sarah Mitchell",
+      "image": "/placeholder.svg"
+    }
+  ],
+  "crew": [
+    {
+      "id": "crew_1",
+      "name": "Michael Brown",
+      "role": "Showrunner",
+      "image": "/placeholder.svg"
+    }
+  ],
+  "relatedContent": [
+    {
+      "id": "series_2",
+      "title": "Dark Secrets",
+      "thumbnailImage": "/placeholder.svg",
+      "genre": "Drama",
+      "rating": "TV-14",
+      "releaseYear": 2020,
+      "type": "series"
+    }
+  ]
+}

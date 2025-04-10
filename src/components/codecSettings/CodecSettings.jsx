@@ -167,7 +167,7 @@ const CodecSettings = ({ goToNextTab, goToPreviousTab }) => {
         console.log("Data to send:", JSON.stringify(dataToSend, null, 2));
 
         try {
-            const response = await fetch('http://localhost:3000/api/services', {
+            const response = await fetch(`/api/services`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

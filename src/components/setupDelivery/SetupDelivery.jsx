@@ -402,7 +402,7 @@ const handleExample = async () => {
           console.log("Data to send:", JSON.stringify(dataToSend));  // Log the prepared data
       
           // Make the POST request to save the destination
-          const response = await fetch('http://localhost:3000/api/destinationtype', {
+          const response = await fetch('/api/destinationtype', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

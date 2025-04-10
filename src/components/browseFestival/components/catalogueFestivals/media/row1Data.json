@@ -1,0 +1,160 @@
+{
+    "contactInfo": {
+        "cannesClassics": {
+            "address": "5, rue Charlot – 75003 Paris – France",
+            "email": "gduchaussoy@festival-cannes.fr"
+        },
+        "featureFilm": {
+            "address": "5, rue Charlot – 75003 Paris – France",
+            "emails": [
+                "bmunoz@festival-cannes.fr",
+                "nfamien@festival-cannes.fr"
+            ],
+            "phone": "+33 (0) 1 53 59 61 70/73/79"
+        },
+        "laCinef": {
+            "address": "5, rue Charlot – 75003 Paris – France",
+            "email": "lacinef@festival-cannes.fr",
+            "phone": "+33 (0) 1 53 59 61 21"
+        },
+        "shortFilm": {
+            "address": "5, rue Charlot – 75003 Paris – France",
+            "emails": [
+                "bmunoz@festival-cannes.fr",
+                "myar@festival-cannes.fr"
+            ],
+            "phone": "+33 (0) 1 53 59 61 71 / 73 / 79"
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "Feature Film",
+            "criteria": "Films produced within the last 12 months, not shown on the internet or released on DVD."
+        },
+        {
+            "category": "Short Film",
+            "criteria": "Films under 15 minutes and produced in the last 12 months, not shown on the internet."
+        },
+        {
+            "category": "La Cinef",
+            "criteria": "Directed by a student, made in the last 18 months, not presented at major international festivals."
+        },
+        {
+            "category": "Cannes Classics",
+            "criteria": "Films promoting cinematographic heritage works, newly restored copies or documentaries about cinema."
+        }
+    ],
+    "fees": [
+        {
+            "category": "Feature Film",
+            "feeDetails": "50 euros for DVD/Blu-ray, 300 euros for DCP, 60 Euros for online submission"
+        },
+        {
+            "category": "Short Film",
+            "feeDetails": "No Fee"
+        },
+        {
+            "category": "La Cinef",
+            "feeDetails": "No Fee"
+        },
+        {
+            "category": "Cannes Classics",
+            "feeDetails": "No Fee"
+        }
+    ],
+    "festivalInfo": {
+        "description": "The Cannes Film Festival, held annually in the French Riviera, continues to be one of the most prestigious and glamorous events in the film industry. Carried by its 77 editions, the international Festival de Cannes is one of the world's most widely publicized events and certainly the most important film festival in terms of worldwide impact The festival showcases the best in global cinema, drawing filmmakers, actors, and cinephiles from around the world. With its iconic red carpet, screenings of cutting-edge films, and a coveted Palme d'Or awarded to the top film, Cannes is a platform where both established and emerging talents shine. Today, it remains a symbol of excellence and a launchpad for cinematic innovation",
+        "eventDates": {
+            "end": "May 24, 2025",
+            "start": "May 13, 2025"
+        },
+        "name": "Cannes Film Festival",
+        "website": "https://www.festival-cannes.com/en/"
+    },
+    "filmDetails": {
+        "cannesClassics": {
+            "criteria": "Films promoting cinematographic heritage, newly restored films, or documentaries about cinema.",
+            "duration": "No duration limit"
+        },
+        "featureFilm": {
+            "conditions": "Films produced during the 12 months preceding the Festival...",
+            "duration": "60 min"
+        },
+        "laCinef": {
+            "conditions": "Film must be directed by a student and not exceed 60 min in running-time."
+        },
+        "shortFilm": {
+            "conditions": "Films produced in the last 12 months and not presented at international festivals.",
+            "duration": "Under 15 min"
+        }
+    },
+    "officialContacts": {
+        "francoisDesrousseaux": "https://www.linkedin.com/in/fran%C3%A7ois-desrousseaux-33a9b858/",
+        "irisKnobloch": "https://www.linkedin.com/in/iris-knobloch-87672b148/"
+    },
+    "socialMediaAndExternalLinks": {
+        "quoraExperience": [
+            {
+                "content": "I've been twice to the Cannes Film Festival and it was just amazing...",
+                "user": "Daniel Rojas"
+            }
+        ],
+        "redditExperience": [
+            {
+                "content": "I'm back in Cannes for the third year in a row! This festival is worth the effort...",
+                "user": "MutatedWizard"
+            },
+            {
+                "content": "I attended the 2011 Cannes Film Festival as press...",
+                "user": "Dan Goodswen"
+            }
+        ]
+    },
+    "submissionDetails": [
+        {
+            "category": "Feature Film",
+            "fees": [
+                {
+                    "fee": "50 euros all taxes included",
+                    "format": "DVD standard or Blu-ray Disc"
+                },
+                {
+                    "fee": "300 euros all taxes included",
+                    "format": "DCP (Digital Cinema Package)"
+                },
+                {
+                    "fee": "60 Euros all taxes included",
+                    "format": "Upload online"
+                }
+            ],
+            "preselectionDeadline": "March 21st, 2025",
+            "submissionDeadline": "March 14th, 2025"
+        },
+        {
+            "category": "Short Film",
+            "fees": "No Fee",
+            "submissionDeadline": "March 3rd, 2025",
+            "uploadDeadline": "March 7th, 2025, midnight"
+        },
+        {
+            "category": "La Cinef",
+            "fees": "No Fee",
+            "submissionDeadline": "February 25th, 2025"
+        },
+        {
+            "category": "Cannes Classics",
+            "fees": "No Fee",
+            "submissionDetails": "Contact Cannes Classics team for registration details."
+        }
+    ],
+    "folderName": "row1Data",
+    "cover_photo": "cover_photo.jpeg",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.jpg",
+        "logo2": "logo2.jpeg",
+        "logo3": "logo3.jpeg",
+        "logo4": "logo4.jpeg",
+        "logo5": "logo5.jpeg"
+    }
+}

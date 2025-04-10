@@ -1,0 +1,26 @@
+{
+  "heroItems": [
+    {
+      "id": "movie_1",
+      "title": "Sky Warriors",
+      "description": "Elite pilots embark on daring missions in hostile skies.",
+      "backgroundImage": "/placeholder.svg",
+      "logoImage": "/placeholder.svg",
+      "genre": "Action",
+      "releaseYear": 2021,
+      "rating": "PG-13",
+      "ctaLink": "/movie/movie_1"
+    },
+    {
+      "id": "series_1",
+      "title": "Mystic Falls",
+      "description": "A small town shrouded in mystery, where secrets unfold each season.",
+      "backgroundImage": "/placeholder.svg",
+      "logoImage": "/placeholder.svg",
+      "genre": "Drama",
+      "releaseYear": 2019,
+      "rating": "TV-14",
+      "ctaLink": "/series/series_1"
+    }
+  ]
+}

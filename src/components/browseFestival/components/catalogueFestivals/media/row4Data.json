@@ -1,0 +1,72 @@
+{
+    "contactInfo": {
+        "mainOffice": {
+            "address": "TIFF Bell Lightbox - 350 King Street West, Toronto, Ontario, M5V 3X5, Canada"
+        }
+    },
+    "eligibilityCriteria": [
+        {
+            "category": "Feature Film",
+            "criteria": "A feature film must typically be over 40 minutes in length.Films not in English or French must be subtitled in English for consideration by the selection committee.Film format: TIFF accepts films in a variety of formats, including Digital (e.g., DCP, ProRes), 35mm, and 70mm (limited cases)."
+        },
+        {
+            "category": "Short Film",
+            "criteria": "Short films must be under 40 minutes, including experimental films, documentaries, and anima. Films not in English or French must be subtitled in English for consideration by the selection commi.Film format: TIFF accepts films in a variety of formats, including Digital (e.g., DCP, ProRes), 35mm, and 70mm (limited cases)."
+        }
+    ],
+    "filmDetails": {},
+    "fees": {
+        "detailsNotAvailable": "Fee details for the 2025 edition are not yet available."
+    },
+    "festivalInfo": {
+        "description": "The Toronto International Film Festival (TIFF), established in 1976, is one of the world's most influential film festivals, held annually in September in Toronto, Canada. Known for its diverse programming, it showcases global cinema across features, documentaries, and shorts. TIFF’s People’s Choice Award is a key predictor of Oscar success, with past winners like La La Land and Nomadland. The festival is a major hub for industry networking and film acquisitions, while its year-round venue, the TIFF Bell Lightbox, hosts screenings and cultural events. Renowned for its inclusivity, audience engagement, and support for emerging filmmakers, TIFF remains a cornerstone of the global film industry.",
+        "eventDates": {
+            "start": "Sep 4, 2025",
+            "end": "Sep 14, 2025"
+        },
+        "name": "Toronto International Film Festival (TIFF)",
+        "website": "https://www.tiff.net/"
+    },
+    "submissionDetails": {
+        "deadlines": "Deadlines for the 2025 edition have not been announced yet."
+    },
+    "sectionsAndPrograms": [
+        "Gala Presentations",
+        "Special Presentations",
+        "Contemporary World Cinema",
+        "TIFF Docs",
+        "Midnight Madness",
+        "Discovery",
+        "Platform",
+        "Short Cuts",
+        "Wavelengths",
+        "Primetime",
+        "TIFF Next Wave",
+        "Industry Selects",
+        "Canadian Content Programs"
+    ],
+    "officialContacts": {
+        "Cameron Bailey (CEO)": "https://www.linkedin.com/in/cameron-bailey-b0022b11/",
+        "Joana Vicente (Executive Director)": "https://www.linkedin.com/in/joana-vicente-72a3965/"
+    },
+    "socialMediaAndExternalLinks": {
+        "updates": "Toronto International Film Festival: Updates, Reviews, and More - https://www.vanityfair.com/live/toronto-international-film-festival-live-updates-reviews?srsltid=AfmBOop5s-gqgSFTNt73TEgytZcL4G41STvAzjh2u9oYY0MTaX7OClwg",
+        "reviews": [
+            {
+                "content": "TIFF Lightbox is a great place to see a film anytime and even better when TIFF is on. Comfortable seating, good selection of snacks, all seats provide good view - I love it!",
+                "rating": "5 stars",
+                "user": "CathyC1957 - 2017"
+            }
+        ]
+    },
+    "folderName": "row4Data",
+    "cover_photo": "cover_photo.png",
+    "overlap_photo": "overlap_photo.jpg",
+    "photos": {
+        "logo1": "logo1.webp",
+        "logo2": "logo2.jpg",
+        "logo3": "logo3.jpg",
+        "logo4": "logo4.jpg",
+        "logo5": "logo5.jpg"
+    }
+}
