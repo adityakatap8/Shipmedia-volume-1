@@ -223,22 +223,16 @@
 
 
 
-
-
-
-
-
-
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { Play } from "lucide-react";
 import { PlayerMenu } from "../components/PlayerMenu.jsx";
 import { useToast } from "../components/ui/use-toast.js";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Button } from "../components/ui/button.jsx"; // Adjust the path accordingly
+import { Button } from "../components/ui/button.jsx";
 import Search from "./Search.jsx";
 import Categories from "./Categories.jsx";
-import { useSelector } from "react-redux"; // Import to access Redux store
+import { useSelector } from "react-redux";
 import defaultPoster from '../../../assets/Logo-holder.png';
 import defaultBanner from '../../../assets/Banner-Holder.png';
 import { UserContext } from '../../../contexts/UserContext.jsx';
@@ -246,81 +240,57 @@ import { UserContext } from '../../../contexts/UserContext.jsx';
 const Showcase = ({ children }) => {
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [projectData, setProjectData] = useState([]); // Store project data fetched from backend
-  const [specificationsData, setSpecificationsData] = useState([]); // Store specifications data for each project
-  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false); // State to handle trailer video play
-  const [trailerUrl, setTrailerUrl] = useState(''); // To store the trailer URL
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false); // Pause carousel when trailer plays
-  const navigate = useNavigate(); // Initialize navigate
-  const { user } = useSelector((state) => state.auth); // Get user data from Redux
-
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // State for sidebar visibility
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed((prevState) => !prevState); // Toggle sidebar visibility
-  };
-
+  const [projectData, setProjectData] = useState([]);
+  const [specificationsData, setSpecificationsData] = useState([]);
+  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
+  const [trailerUrl, setTrailerUrl] = useState('');
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { userData } = useContext(UserContext);
   const orgName = userData ? userData.orgName : '';
 
-  // Fetch project data from the backend
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed((prevState) => !prevState);
+  }, []);
+
+  // Fetch project data
   useEffect(() => {
-    if (user?.userId) {
-      // Ensure that userId is available before making the API call
-      axios
-        .get(`https://www.mediashippers.com/api/projects/${user.userId}`) // Adjusted endpoint to pass userId
-        .then((response) => {
-          setProjectData(response.data); // Store project data in state
-          console.log("Fetched Project Data:", response.data); // Log entire project data
+    if (!user?.userId) return;
 
-          // Fetch specifications data for each project
-          fetchProjectInfoForProjects(response.data);
-        })
-        .catch((err) => {
-          console.error("Error fetching projects:", err);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to fetch projects.",
-          });
+    axios
+      .get(`https://www.mediashippers.com/api/projects/${user.userId}`)
+      .then((response) => {
+        setProjectData(response.data);
+        fetchProjectInfoForProjects(response.data);
+      })
+      .catch((err) => {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch projects.",
         });
-    }
-  }, [user?.userId]); // Trigger this effect when userId changes
+      });
+  }, [user?.userId, toast]);
 
-  // Function to fetch specifications data for each project
   const fetchProjectInfoForProjects = async (projects) => {
     try {
-      const projectInfoPromises = projects.map((project) => {
-        // console.log(`Fetching project info for project ID: ${project._id}`);
-        // console.log(`Fetching poster  info for project ID: ${project.posterFileName}`);
-        // Log each project ID being requested
-        return axios.get(`https://www.mediashippers.com/api/project-info/${project._id}`); // Adjusted API endpoint for project info
-      });
+      const projectInfoResponses = await Promise.all(
+        projects.map((project) =>
+          axios.get(`https://www.mediashippers.com/api/project-info/${project._id}`)
+        )
+      );
 
-      const projectInfoResponses = await Promise.all(projectInfoPromises);
-      const projectInfos = projectInfoResponses.map((response) => {
-        if (response.status === 200) {
-          return {
-            projectId: response.data._id, // Use the correct ID field
-            projectTitle: response.data.projectTitle,
-            projectPoster: response.data.projectPoster,
-            trailerFile: response.data.trailerFile,
-          };
-        } else {
-          return {
-            projectId: null,
-            projectTitle: null,
-            projectPoster: null,
-            trailerFile: null,
-            error: "Failed to fetch project info data.",
-          };
-        }
-      });
+      const projectInfos = projectInfoResponses.map((response) => ({
+        projectId: response.data?._id,
+        projectTitle: response.data?.projectTitle,
+        projectPoster: response.data?.projectPoster,
+        trailerFile: response.data?.trailerFile,
+      }));
 
-      setSpecificationsData(projectInfos); // Store project info data in state (previously specificationsData)
-      console.log("Project Info data fetched:", projectInfos); // Log the fetched project info data
+      setSpecificationsData(projectInfos);
     } catch (error) {
-      console.error("Error fetching project info data:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -329,128 +299,119 @@ const Showcase = ({ children }) => {
     }
   };
 
+  // Memoized HeroCarousel
+  const HeroCarousel = useMemo(() => {
+    return ({ items }) => {
+      useEffect(() => {
+        if (!items || items.length === 0 || isCarouselPaused) return;
 
-  // HeroCarousel component to render project data dynamically
-  const HeroCarousel = ({ items }) => {
-    useEffect(() => {
-      if (!items || items.length === 0 || isCarouselPaused) return;
+        const timer = setInterval(() => {
+          setCurrentIndex((prev) => (prev + 1) % items.length);
+        }, 5000);
 
-      const timer = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % items.length);
-      }, 5000); // Slide every 5 seconds
+        return () => clearInterval(timer);
+      }, [items, isCarouselPaused]);
 
-      return () => clearInterval(timer);
-    }, [items.length, isCarouselPaused]);
-    const currentItem = items[currentIndex];
+      const currentItem = items[currentIndex];
+      const title = currentItem?.projectTitle;
+      const poster = currentItem?.posterFileName;
+      const banner = currentItem?.bannerFileName;
+      const trailer = currentItem?.trailerFileName;
+      const movie = currentItem?.movieFileName;
+      const project = title;
 
-    // Fallback to "default" if any field is missing
-    const title = currentItem?.projectTitle;
-    const poster = currentItem?.posterFileName;
-    const banner = currentItem?.bannerFileName;
-    const trailer = currentItem?.trailerFileName;
-    const movie = currentItem?.movieFileName;
-    const project = currentItem?.projectTitle
+      const backgroundImageURL = banner
+        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner}`
+        : defaultBanner;
 
-    console.log("poster", poster)
+      const logoImageURL = poster
+        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
+        : defaultPoster;
 
-    // Dynamically generate the image and video URLs
-    const backgroundImageURL = banner ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner} ` : defaultBanner;
+      const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
+      const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
 
-    const logoImageURL = poster
-      ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
-      : defaultPoster;
+      const handlePlayTrailer = () => {
+        setIsCarouselPaused(true);
+        setTrailerUrl(trailerVideoURL);
+        setIsTrailerPlaying(true);
+      };
 
-    console.log("poster url", logoImageURL)
+      const handlePlayMovie = () => {
+        setIsCarouselPaused(true);
+        setTrailerUrl(movieVideoURL);
+        setIsTrailerPlaying(true);
+      };
 
-    const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
+      const handleCloseTrailer = () => {
+        setIsCarouselPaused(false);
+        setIsTrailerPlaying(false);
+      };
 
-    const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
-
-
-    const handlePlayTrailer = () => {
-      setIsCarouselPaused(true);
-      setTrailerUrl(trailerVideoURL);
-      setIsTrailerPlaying(true);
-    };
-
-    const handlePlayMovie = () => {
-      setIsCarouselPaused(true);
-      setTrailerUrl(movieVideoURL);
-      setIsTrailerPlaying(true);
-    };
-
-    const handleCloseTrailer = () => {
-      setIsCarouselPaused(false);
-      setIsTrailerPlaying(false);
-    };
-
-    return (
-      <div> <div className="bg-black/50 backdrop-blur-sm rounded-xl px-2 py-2 mb-2 ml-2 max-w-fit">
-      <h2 className="text-white text-xl font-semibold text-left">
-        {title}
-      </h2>
-    </div>
-      <div className="relative h-[70vh] w-full overflow-hidden showcase-main">
-        {/* Image tag to load the background banner */}
-
-
-        <img
-          src={backgroundImageURL}
-          alt={title}
-          className="absolute inset-0 w-full h-full object-cover transition-all duration-700"
-          onError={(e) => {
-            e.target.onerror = null; // Prevent infinite loop
-            e.target.src = defaultBanner;
-          }}
-        />
-
-        {/* Content on top of the banner */}
-        <div className="absolute bottom-0 left-0 pt-40 w-1/2">
-          <img
-            src={logoImageURL}
-            alt={title}
-            className="w-64 mb-6 flex items-start"
-            style={{ height: "250px", objectFit: "contain" }}
-            onError={(e) => {
-              e.target.onerror = null; // Prevent infinite loop
-              e.target.src = defaultPoster;
-            }}
-          />
-         
-
-          <div className="flex gap-4">
-            <Button
-              size="lg"
-              className="bg-white text-black hover:bg-gray-200 ml-10"
-              onClick={() => navigate(`/movie/${currentItem._id}`)}
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Explore Movie
-            </Button>
+      return (
+        <div>
+          <div className="bg-black/50 backdrop-blur-sm rounded-xl px-2 py-2 mb-2 ml-2 max-w-fit">
+            <h2 className="text-white text-xl font-semibold text-left">{title}</h2>
+          </div>
+          <div className="relative h-[70vh] w-full overflow-hidden showcase-main">
+            <img
+              src={backgroundImageURL}
+              alt={title}
+              loading="lazy"
+              width="100%"
+              height="100%"
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-700"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = defaultBanner;
+              }}
+            />
+            <div className="absolute bottom-0 left-0 pt-40 w-1/2">
+              <img
+                src={logoImageURL}
+                alt={title}
+                loading="lazy"
+                width="256"
+                height="250"
+                className="w-64 mb-6 flex items-start"
+                style={{ height: "250px", objectFit: "contain" }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = defaultPoster;
+                }}
+              />
+              <div className="flex gap-4">
+                <Button
+                  size="lg"
+                  className="bg-white text-black hover:bg-gray-200 ml-10"
+                  onClick={() => navigate(`/movie/${currentItem._id}`)}
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  Explore Movie
+                </Button>
+              </div>
+            </div>
+            {isTrailerPlaying && trailerUrl && (
+              <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center">
+                <div className="relative">
+                  <video width="80%" controls autoPlay>
+                    <source src={trailerUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <button
+                    onClick={handleCloseTrailer}
+                    className="absolute top-0 right-0 p-4 text-white text-3xl"
+                  >
+                    X
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Trailer modal */}
-        {isTrailerPlaying && trailerUrl && (
-          <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center">
-            <div className="relative">
-              <video width="80%" controls autoPlay>
-                <source src={trailerUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <button
-                onClick={handleCloseTrailer}
-                className="absolute top-0 right-0 p-4 text-white text-3xl"
-              >
-                X
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-      </div>
-    );
-  };
+      );
+    };
+  }, [currentIndex, isCarouselPaused, isTrailerPlaying, trailerUrl, orgName, navigate]);
 
   return (
     <div className="min-h-screen">
@@ -461,40 +422,39 @@ const Showcase = ({ children }) => {
           <Search />
           <Categories />
         </div>
-
         <div className={`flex-1 p-4 ml-${isSidebarCollapsed ? "16" : "0"}`}>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {projectData.length > 0 &&
-              projectData.map((project) => {
-                const title = project?.projectTitle || "Untitled Project";
-                const poster = project?.posterFileName;
-                const logoImageURL = poster
-                  ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${encodeURIComponent(title)}/film+stills/${poster}`
-                  : defaultPoster;
+            {projectData.map((project) => {
+              const title = project?.projectTitle || "Untitled Project";
+              const poster = project?.posterFileName;
+              const logoImageURL = poster
+                ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${encodeURIComponent(title)}/film+stills/${poster}`
+                : defaultPoster;
 
-
-                return (
-                  <div
-                    key={project._id}
-                    className="flex flex-col items-center cursor-pointer showcase-card transition-all duration-300"
-                    onClick={() => navigate(`/movie/${project._id}`)}
-                  >
-                    <img
-                      src={logoImageURL}
-                      alt={title}
-                      className="w-64 mb-6 flex items-start"
-                      style={{ height: "250px", objectFit: "contain" }}
-                      onError={(e) => {
-                        e.target.onerror = null; // Prevent infinite loop
-                        e.target.src = defaultPoster;
-                      }}
-                    />
-                    <h3 className="text-center mt-2 text-white">{title}</h3>
-                  </div>
-                );
-              })}
+              return (
+                <div
+                  key={project._id}
+                  className="flex flex-col items-center cursor-pointer showcase-card transition-all duration-300"
+                  onClick={() => navigate(`/movie/${project._id}`)}
+                >
+                  <img
+                    src={logoImageURL}
+                    alt={title}
+                    loading="lazy"
+                    width="256"
+                    height="250"
+                    className="w-64 mb-6 flex items-start"
+                    style={{ height: "250px", objectFit: "contain" }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = defaultPoster;
+                    }}
+                  />
+                  <h3 className="text-center mt-2 text-white">{title}</h3>
+                </div>
+              );
+            })}
           </div>
-
         </div>
       </div>
     </div>

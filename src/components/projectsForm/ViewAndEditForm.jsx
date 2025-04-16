@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import './ViewAndEditFormCss.css'; // Ensure you import your CSS for styling
+import Loader from '../loader/Loader';
 
 function ViewAndEditForm() {
   const { projectId } = useParams();
@@ -63,7 +64,7 @@ function ViewAndEditForm() {
     fetchProjectData();
   }, [projectId]);
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <div className="loading"><Loader /></div>;
   if (error) return <div className="error">{error}</div>;
 
   const {

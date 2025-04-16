@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useDropzone } from 'react-dropzone';
 import { UserContext } from '../../contexts/UserContext';
 import './index.css';
+import Loader from '../loader/Loader';
 
 // Redux action to clear the auth token
 const clearAuthToken = () => ({
@@ -395,7 +396,7 @@ function S3Manager() {
     return (
       <div className="folder-list">
         {isLoading ? (
-          <p>Loading...</p>
+          <p><Loader /></p>
         ) : (
           <>
             {/* Render only the folders that match orgName */}

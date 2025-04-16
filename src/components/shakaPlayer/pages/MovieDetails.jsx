@@ -10,6 +10,7 @@ import ShakaPlayer from "./ShakaPlayer"; // Import ShakaPlayer component
 import './index.css';
 import { UserContext } from "../../../contexts/UserContext";
 import zIndex from "@mui/material/styles/zIndex";
+import Loader from "../../loader/Loader";
 
 // Function to generate image URL for crew members (directors, writers, actors, producers)
 const getCrewImageURL = (firstName, lastName, title) => {
@@ -79,7 +80,7 @@ const MovieDetails = () => {
   }, [projectId]);
 
   // Show loading state or error message while waiting for data
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div><Loader /></div>;
   if (error) return <div>{error}</div>; // Show error message if there's an error
   if (!movieData) return <div>No data available.</div>; // If movieData is still null after loading, show message
 

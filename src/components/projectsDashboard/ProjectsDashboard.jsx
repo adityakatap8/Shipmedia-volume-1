@@ -11,6 +11,8 @@ import { setProjectName, setMovieName } from '../../redux/projectInfoSlice/proje
 import { useProjectInfo } from '../../contexts/projectInfoContext';  // Import the custom hook
 import ClipLoader from 'react-spinners/ClipLoader';  // Importing the spinner
 import Cookies from "js-cookie";
+import Loader from '../loader/Loader';
+import Toast from '../toast/Toast';
 
 function ProjectsDashboard() {
   const [projectData, setProjectData] = useState([]);
@@ -22,11 +24,31 @@ function ProjectsDashboard() {
   const [isSuccess, setIsSuccess] = useState(false);  // Track the success state
   const navigate = useNavigate();
 
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState('info');
+
   const dispatch = useDispatch(); // Initialize dispatch
 
   // Access user data from UserContext
   const { userData } = useContext(UserContext);
   const orgName = userData ? userData.orgName : '';
+
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState('');
+
+  useEffect(() => {
+    console.log('User data:', userData); // Check if userData is available in production
+    if (userData && userData.name) {
+      const name = userData.name;
+      setWelcomeMessage(`Welcome, ${name}!`);
+      setShowWelcome(true);
+    }
+  }, [userData]);
+  
+  useEffect(() => {
+    console.log('Toast visibility:', showWelcome); // Check the toast visibility in production
+  }, [showWelcome]);
 
   // Get token and projectFolder from Redux store
   const token = useSelector((state) => state.auth.token);
@@ -88,16 +110,16 @@ function ProjectsDashboard() {
   // Function to fetch project data
   const fetchProjectData = () => {
     console.log("Fetching data...");
-  
+
     // Get user data from cookies
     const storedUserData = Cookies.get("userData");
     const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
-  
+
     console.log("User Data:", parsedUserData);
-  
+
     if (parsedUserData && parsedUserData.userId) {
       setLoading(true);
-  
+
       // Make request with cookies included
       axios
         .get(`https://www.mediashippers.com/api/projects/${parsedUserData.userId}`, {
@@ -116,215 +138,121 @@ function ProjectsDashboard() {
       setLoading(false);
     }
   };
-  
+
 
   // Call the function inside useEffect
   useEffect(() => {
     fetchProjectData();
   }, [userData]);
 
-  // const handleCreateProject = () => {
-  //   if (orgName && projectData.length >= 0 && projectName) {
-  //     // Set project name and movie name to the context
-  //     setProjectName(projectName);  // Save projectName to the context
-  //     setMovieName(movieName);       // Save movieName to the context
-
-  //     // Check if token exists
-  //     if (!token) {
-  //       alert('User is not authenticated. Please log in.');
-  //       return;
-  //     }
-
-  //     setIsCreating(true);  // Start the loading state
-
-  //     // Close the modal right after the user clicks the button
-  //     setShowModal(false);
-
-  //     // Call the backend to create the project folder in S3
-  //     axios
-  //       .post(
-  //         `https://www.mediashippers.com/api/folders/create-project-folder`,
-  //         {
-  //           orgName: orgName,
-  //           projectName: projectName,
-  //         },
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       )
-  //       .then((response) => {
-  //         console.log('Project folder created successfully:', response.data);
-
-  //         // After successfully creating the project folder, create subfolders inside it
-  //         const subFolders = [
-  //           'trailer',
-  //           'film stills',
-  //           'cast and crew details',
-  //           'srt files',
-  //           'info docs',
-  //           'master',
-  //         ];
-
-  //         // Create subfolders inside the project folder
-  //         axios
-  //           .post(
-  //             `/api/folders/create-subfolders`,
-  //             {
-  //               orgName: orgName,
-  //               projectName: projectName,
-  //               subFolders: subFolders,
-  //             },
-  //             {
-  //               headers: {
-  //                 Authorization: `Bearer ${token}`,
-  //               },
-  //             }
-  //           )
-  //           .then((subfolderResponse) => {
-  //             console.log('Subfolders created successfully:', subfolderResponse.data);
-
-  //             // After successfully creating all subfolders, create the project info in the database
-  //             axios
-  //               .post(
-  //                 `https://www.mediashippers.com/api/projectsInfo/createProjectInfo`,
-  //                 {
-  //                   projectName: projectName,
-  //                   projectTitle: movieName,
-  //                   userId: userData.userId,
-  //                 },
-  //                 {
-  //                   headers: {
-  //                     Authorization: `Bearer ${token}`,
-  //                   },
-  //                 }
-  //               )
-  //               .then((projectResponse) => {
-  //                 console.log('Project saved successfully:', projectResponse.data);
-
-  //                 // Show success message and wait before redirecting
-  //                 setIsSuccess(true);  // Show success message
-  //                 setTimeout(() => {
-  //                   navigate(`/projects-form`);
-  //                 }, 2000);  // Delay the redirect by 2 seconds
-
-  //               })
-  //               .catch((error) => {
-  //                 console.error('Error saving project info:', error);
-  //                 alert('Failed to save project info.');
-  //                 setIsCreating(false);
-  //               });
-  //           })
-  //           .catch((subfolderError) => {
-  //             console.error('Error creating subfolders:', subfolderError);
-  //             alert('Failed to create subfolders');
-  //             setIsCreating(false);
-  //           });
-  //       })
-  //       .catch((error) => {
-  //         console.error('Error creating folder:', error);
-  //         alert('Failed to create folder for the project.');
-  //         setIsCreating(false);
-  //       });
-  //   } else {
-  //     alert('Please provide a valid project name.');
-  //   }
-  // };
 
   const handleCreateProject = () => {
-  if (orgName && projectData.length >= 0 && projectName) {
-    // Set project name and movie name to the context
-    setProjectName(projectName);
-    setMovieName(movieName);
+    if (orgName && projectData.length >= 0 && projectName) {
+      setProjectName(projectName);
+      setMovieName(movieName);
 
-    setIsCreating(true); // Start the loading state
-    setShowModal(false); // Close the modal
+      setIsCreating(true); // Start the loading state
+      setShowModal(false); // Close the modal
 
-    // Step 1: Create the project folder in S3
-    axios
-      .post(
-        `https://www.mediashippers.com/api/folders/create-project-folder`,
-        {
-          orgName: orgName,
-          projectName: projectName,
-        },
-        {
-          withCredentials: true, // 🔐 Send cookies
-        }
-      )
-      .then((response) => {
-        console.log('Project folder created successfully:', response.data);
+      // Step 1: Create the project folder in S3
+      axios
+        .post(
+          `https://www.mediashippers.com/api/folders/create-project-folder`,
+          {
+            orgName: orgName,
+            projectName: projectName,
+          },
+          {
+            withCredentials: true, // 🔐 Send cookies
+          }
+        )
+        .then((response) => {
+          console.log('Project folder created successfully:', response.data);
 
-        const subFolders = [
-          'trailer',
-          'film stills',
-          'cast and crew details',
-          'srt files',
-          'info docs',
-          'master',
-        ];
+          const subFolders = [
+            'trailer',
+            'film stills',
+            'cast and crew details',
+            'srt files',
+            'info docs',
+            'master',
+          ];
 
-        // Step 2: Create subfolders
-        axios
-          .post(
-            `https://www.mediashippers.com/api/folders/create-subfolders`,
-            {
-              orgName: orgName,
-              projectName: projectName,
-              subFolders: subFolders,
-            },
-            {
-              withCredentials: true,
-            }
-          )
-          .then((subfolderResponse) => {
-            console.log('Subfolders created successfully:', subfolderResponse.data);
+          // Step 2: Create subfolders
+          axios
+            .post(
+              `https://www.mediashippers.com/api/folders/create-subfolders`,
+              {
+                orgName: orgName,
+                projectName: projectName,
+                subFolders: subFolders,
+              },
+              {
+                withCredentials: true,
+              }
+            )
+            .then((subfolderResponse) => {
+              console.log('Subfolders created successfully:', subfolderResponse.data);
 
-            // Step 3: Create project info in DB
-            axios
-              .post(
-                `https://www.mediashippers.com/api/projectsInfo/createProjectInfo`,
-                {
-                  projectName: projectName,
-                  projectTitle: movieName,
-                  userId: userData.userId,
-                },
-                {
-                  withCredentials: true,
-                }
-              )
-              .then((projectResponse) => {
-                console.log('Project saved successfully:', projectResponse.data);
-                setIsSuccess(true);
-                setTimeout(() => {
-                  navigate(`/projects-form`);
-                }, 2000);
-              })
-              .catch((error) => {
-                console.error('Error saving project info:', error);
-                alert('Failed to save project info.');
-                setIsCreating(false);
-              });
-          })
-          .catch((subfolderError) => {
-            console.error('Error creating subfolders:', subfolderError);
-            alert('Failed to create subfolders');
-            setIsCreating(false);
-          });
-      })
-      .catch((error) => {
-        console.error('Error creating folder:', error);
-        alert('Failed to create folder for the project.');
-        setIsCreating(false);
-      });
-  } else {
-    alert('Please provide a valid project name.');
-  }
-};
+              // Step 3: Create project info in DB
+              axios
+                .post(
+                  `https://www.mediashippers.com/api/projectsInfo/createProjectInfo`,
+                  {
+                    projectName: projectName,
+                    projectTitle: movieName,
+                    userId: userData.userId,
+                  },
+                  {
+                    withCredentials: true,
+                  }
+                )
+                .then((projectResponse) => {
+                  console.log('Project saved successfully:', projectResponse.data);
+                  setIsSuccess(true);
+                  setToastMessage('Project created successfully!');
+                  setToastSeverity('success');
+                  setToastOpen(true);
+                  setTimeout(() => {
+                    navigate(`/projects-form`);
+                  }, 2000);
+                })
+                .catch((error) => {
+                  console.error('Error saving project info:', error);
+                  setToastMessage('Failed to save project info.');
+                  setToastSeverity('error');
+                  setToastOpen(true);
+                  setIsCreating(false);
+                });
+            })
+            .catch((subfolderError) => {
+              console.error('Error creating subfolders:', subfolderError);
+              setToastMessage('Failed to create subfolders');
+              setToastSeverity('error');
+              setToastOpen(true);
+              setIsCreating(false);
+            });
+        })
+        .catch((error) => {
+          console.error('Error creating folder:', error);
+          setToastMessage('Failed to create folder for the project.');
+          setToastSeverity('error');
+          setToastOpen(true);
+          setIsCreating(false);
+        });
+    } else {
+      setToastMessage('Please provide a valid project name.');
+      setToastSeverity('warning');
+      setToastOpen(true);
+    }
+  };
+
+  const handleCloseToast = () => {
+    setToastOpen(false);
+  };
 
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><Loader /></div>;
 
   return (
     <div className="projects-dashboard">
@@ -396,7 +324,8 @@ function ProjectsDashboard() {
 
       {isCreating && (
         <div className="loading-container p-10">
-          <ClipLoader color="#EE794E" loading={isCreating} size={70} />
+          {/* <ClipLoader color="#EE794E" loading={isCreating} size={70} /> */}
+          <Loader />
           <p className='text-white text-xl'>Creating your project... Please wait.</p>
         </div>
       )}
@@ -412,9 +341,18 @@ function ProjectsDashboard() {
         <div className="projects-list">
           {projectData.map((project) => (
             <div key={project._id} className="project-card">
-              <div className="movie-poster">
+              {/* <div className="movie-poster">
                 <img src={movie} alt="Movie Poster" />
+              </div> */}
+              <div className="movie-poster">
+                <img
+                  src={movie}
+                  alt="Movie Poster"
+                  width="400"  // Set your desired width
+                  height="600" // Set your desired height
+                />
               </div>
+
               <div className="project-info">
                 <h3>{project.projectTitle}</h3>
                 <div className="buttons">
@@ -436,7 +374,16 @@ function ProjectsDashboard() {
           <p>"If you build it, they will come." – Field of Dreams</p>
         </div>
       )}
+
+      <Toast
+        message={welcomeMessage}
+        severity="success"
+        open={showWelcome}
+        onClose={() => setShowWelcome(false)}
+      />
     </div>
+
+
   );
 }
 

@@ -107,13 +107,27 @@ const Navbar1 = () => {
   return (
     <nav className="bg-white-800 p-2 flex items-center justify-between border-b-2 navbar">
       <div className="flex items-center p-1 main-navbar">
-        <img src={logo} alt="Logo" className="h-14 w-auto pl-5" />
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-14 w-auto pl-5"
+          width="56" // Explicit width
+          height="56" // Explicit height
+        />
       </div>
 
       <div className="flex items-center space-x-4 pr-10 pt-2">
         {isLoggedIn && user && (
           <>
-            <img src={user.avatar || User1} alt="User Profile" className="h-10 w-10 rounded-full" />
+            {/* Add width and height for profile image to optimize LCP */}
+            <img
+              src={user.avatar || User1}
+              alt="User Profile"
+              className="h-10 w-10 rounded-full"
+              width="40" // Explicit width
+              height="40" // Explicit height
+              loading="lazy" // Lazy load the image
+            />
             <span className="text-black">{user.name}</span>
             <span className="text-gray-600 ml-2 id-class">ID: {user.userId || 'N/A'}</span>
             <span className="text-gray-600 ml-2 email-class">Email: {user.email}</span>
