@@ -66,6 +66,7 @@
     "date-fns": "^3.6.0",
     "date-fns-tz": "^3.2.0",
     "embla-carousel-react": "^8.5.2",
+    "framer-motion": "^12.7.3",
     "global": "^4.4.0",
     "input-otp": "^1.4.2",
     "js-cookie": "^3.0.5",

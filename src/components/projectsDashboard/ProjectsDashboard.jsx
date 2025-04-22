@@ -38,9 +38,12 @@ function ProjectsDashboard() {
   const [welcomeMessage, setWelcomeMessage] = useState('');
 
   useEffect(() => {
-    console.log('User data:', userData); // Check if userData is available in production
     if (userData && userData.name) {
-      const name = userData.name;
+      const { name, role } = userData;
+  
+      console.log('User data:', userData); // Existing
+      console.log('User role:', role);     // ✅ NEW: log the role
+  
       setWelcomeMessage(`Welcome, ${name}!`);
       setShowWelcome(true);
     }
@@ -56,8 +59,6 @@ function ProjectsDashboard() {
   // Access projectName and movieName from the context
   const { setProjectName, setMovieName } = useProjectInfo();
 
-
-  console.log("some data")
 
 
   // Fetch existing projects from the server
@@ -121,10 +122,12 @@ function ProjectsDashboard() {
       setLoading(true);
 
       // Make request with cookies included
-      axios
-        .get(`https://www.mediashippers.com/api/projects/${parsedUserData.userId}`, {
-          withCredentials: true, // this ensures the browser sends cookies
-        })
+      axios.get(`https://www.mediashippers.com/api/projects/${parsedUserData.userId}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+      })
         .then((response) => {
           setProjectData(response.data);
           setLoading(false);

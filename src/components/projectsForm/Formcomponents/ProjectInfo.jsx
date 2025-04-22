@@ -258,40 +258,6 @@ const onDropTrailer = (acceptedFiles) => {
   });
 
 
-// Handle SRT file change
-// Handle SRT file change
-// const handleSrtFileChange = (event) => {
-//   const file = event.target.files[0];
-//   const srtFileName = file ? file.name : ''; // Save the filename
-
-//   console.log('Received SRT file:', srtFileName); // Log the SRT file name to check if it's received
-
-//   setFormData((prevData) => ({
-//     ...prevData,
-//     projectInfo: {
-//       ...prevData.projectInfo,
-//       srtFileName, // Save the file name
-//     },
-//   }));
-// };
-
-
-// Handle Info Document file change
-// Handle Info Document file change
-// const handleInfoDocChange = (event) => {
-//   const file = event.target.files[0];
-//   const infoDocFileName = file ? file.name : ''; // Save the filename
-
-//   console.log('Received Info Document file:', infoDocFileName); // Log the Info Document file name to check if it's received
-
-//   setFormData((prevData) => ({
-//     ...prevData,
-//     projectInfo: {
-//       ...prevData.projectInfo,
-//       infoDocFileName, // Save the file name
-//     },
-//   }));
-// };
 
 
 
@@ -403,14 +369,14 @@ const onDropTrailer = (acceptedFiles) => {
   return (
     <div className="section-One text-left">
       <h1 className="header-numbered">
-        <span>1</span> Project Information
+        <span>1</span> Title Information
       </h1>
 
 
 
       {/* Project Title */}
       <div className="form-section">
-        <div className="form-label grid-3 span-12-phone">Project Title <span className="required">*</span></div>
+        <div className="form-label grid-3 span-12-phone">Title <span className="required">*</span></div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
             <input
@@ -418,7 +384,7 @@ const onDropTrailer = (acceptedFiles) => {
               name="projectTitle"
               value={projectInfo.projectTitle || ''}
               onChange={handleChange}
-              placeholder="Enter project title"
+              placeholder="Enter title"
             />
             {errors.projectTitle && <span className="error-text">{errors.projectTitle}</span>}
           </div>
@@ -427,7 +393,7 @@ const onDropTrailer = (acceptedFiles) => {
 
       {/* Project Name */}
       <div className="form-section">
-        <div className="form-label grid-3 span-12-phone">Project Name <span className="required">*</span></div>
+        <div className="form-label grid-3 span-12-phone">Name <span className="required">*</span></div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
             <input
@@ -435,7 +401,7 @@ const onDropTrailer = (acceptedFiles) => {
               name="projectName"
               value={projectName || ''}  // Set the value to projectName prop
               onChange={handleChange}    // Ensure handleChange function properly updates the projectName
-              placeholder="Enter project name"
+              placeholder="Enter Name"
             />
             {errors.projectName && <span className="error-text">{errors.projectName}</span>}
           </div>
@@ -447,7 +413,7 @@ const onDropTrailer = (acceptedFiles) => {
       {/* Project Poster */}
       <div className="form-section">
         <div className="form-label grid-3 span-12-phone">
-          Project Poster <span className="required">*</span>
+          Poster <span className="required">*</span>
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -531,7 +497,7 @@ const onDropTrailer = (acceptedFiles) => {
               <div>
                 <img
                   src={projectInfo.projectPosterUrl} // Use the dynamically created URL for display
-                  alt="Project Poster"
+                  alt="Poster"
                   style={{ maxWidth: '188px', maxHeight: '266px' }}
                 />
                 <button onClick={resetProjectPoster} className="changeFile-button">Change File</button>
@@ -547,7 +513,7 @@ const onDropTrailer = (acceptedFiles) => {
       {/* Project Banner Section */}
       <div className="form-section">
         <div className="form-label grid-3 span-12-phone">
-          Project Banner <span className="required">*</span>
+          Banner <span className="required">*</span>
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -790,71 +756,7 @@ const onDropTrailer = (acceptedFiles) => {
 
 
 
-      {/* Website URL */}
-      <div className="form-section">
-        <div className="form-label grid-3 span-12-phone">
-          Website <span className="required"></span>
-        </div>
-        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-          <div className="input optional form-field-input">
-            <input
-              type="text"
-              value={projectInfo.website || ''}
-              name="website"
-              onChange={handleChange}
-              placeholder="Enter Website URL"
-              onBlur={validateWebsite}
-            />
-            {errors?.website && <span className="error">{errors.website}</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* Social Media Fields */}
-      <div className="form-section">
-        <div className="form-label grid-3 span-12-phone">Twitter</div>
-        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-          <div className="input optional form-field-input">
-            <input
-              type="text"
-              value={projectInfo.twitter || ''}
-              name="twitter"
-              onChange={handleChange}
-              placeholder="Enter Twitter Handle"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="form-section">
-        <div className="form-label grid-3 span-12-phone">Facebook</div>
-        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-          <div className="input optional form-field-input">
-            <input
-              type="text"
-              value={projectInfo.facebook || ''}
-              name="facebook"
-              onChange={handleChange}
-              placeholder="Enter Facebook URL"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="form-section">
-        <div className="form-label grid-3 span-12-phone">Instagram</div>
-        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-          <div className="input optional form-field-input">
-            <input
-              type="text"
-              value={projectInfo.instagram || ''}
-              name="instagram"
-              onChange={handleChange}
-              placeholder="Enter Instagram Handle"
-            />
-          </div>
-        </div>
-      </div>
+      
 
  
     </div>

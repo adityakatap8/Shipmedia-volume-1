@@ -301,6 +301,9 @@ const Showcase = ({ children }) => {
 
   // Memoized HeroCarousel
   const HeroCarousel = useMemo(() => {
+    const localDefaultBanner = defaultBanner;
+    const localDefaultPoster = defaultPoster;
+
     return ({ items }) => {
       useEffect(() => {
         if (!items || items.length === 0 || isCarouselPaused) return;
@@ -322,11 +325,11 @@ const Showcase = ({ children }) => {
 
       const backgroundImageURL = banner
         ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner}`
-        : defaultBanner;
+        : localDefaultBanner;
 
       const logoImageURL = poster
         ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
-        : defaultPoster;
+        : localDefaultPoster;
 
       const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
       const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
@@ -462,3 +465,4 @@ const Showcase = ({ children }) => {
 };
 
 export default Showcase;
+  

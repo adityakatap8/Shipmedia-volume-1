@@ -54,7 +54,12 @@ const MovieDetails = () => {
     console.log("Fetching data for projectId:", projectId); // Log the projectId to confirm
 
     try {
-      const response = await axios.get(`https://www.mediashippers.com/api/project-form/data/${projectId}`);
+      const response = await axios.get(
+        `https://www.mediashippers.com/api/project-form/data/${projectId}`,
+        {
+          withCredentials: true, // ✅ Send token from cookies
+        }
+      );
       if (response.status === 200) {
         console.log("Fetched data:", response.data); // Log the response data
         setMovieData(response.data); // Store the fetched movie data
@@ -220,7 +225,7 @@ const MovieDetails = () => {
         <div className="mt-2 rounded-lg shadow-lg bg-opacity-50 p-6">
           <div className="">
             <p><strong>Directors:</strong></p>
-            <div className="flex flex-wrap gap-6 mb-4">
+            {/* <div className="flex flex-wrap gap-6 mb-4">
               {creditsInfoData.directors && creditsInfoData.directors.length ? creditsInfoData.directors.map((director, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <img src={director.photo ? director.photo : getCrewImageURL(director.firstName, director.lastName, title)}
@@ -229,9 +234,9 @@ const MovieDetails = () => {
                 </div>
               )) : <img src={placeholder} alt="director" className="w-20 h-20 rounded-full mb-2 object-cover" />}
 
-            </div>
+            </div> */}
 
-            <p><strong>Writers:</strong></p>
+            {/* <p><strong>Writers:</strong></p>
             <div className="flex flex-wrap gap-6 mb-4">
               {creditsInfoData.writers && creditsInfoData.writers.length ? creditsInfoData.writers.map((writer, index) => (
                 <div key={index} className="flex flex-col items-center">
@@ -262,7 +267,7 @@ const MovieDetails = () => {
                   <p>{actor.firstName} {actor.lastName}</p>
                 </div>
               )) : 'No actors available'}
-            </div>
+            </div> */}
           </div>
         </div>
 

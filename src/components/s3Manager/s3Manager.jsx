@@ -63,25 +63,7 @@ function S3Manager() {
     }
   );
 
-  // Fetch folder contents
-  // const fetchFolderContents = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await axiosInstance.get(`/folders/list-folder?folderPath=${currentFolder}`);
-  //     setFolders(response.data.folders || []); // Set folders based on the response
-  //     setFiles(response.data.files || []); // Set files based on the response
-
-  //     // Log the folders to the console
-  //     console.log("Fetched folders:", response.data.folders);
-
-  //   } catch (error) {
-  //     console.error('Error fetching folder contents:', error);
-  //     alert('Error fetching folder contents.');
-  //   }
-  //   setIsLoading(false);
-  // };
-
-
+  
   // Ref to track if the folder contents have been fetched
   const hasFetchedFolders = useRef(false);
   // Fetch folder contents based on orgName
@@ -230,55 +212,7 @@ function S3Manager() {
     }
   };
 
-  // Check and create org folder if it doesn't exist
-  // const createOrgFolderIfNeeded = async () => {
-  //   try {
-  //     const response = await axiosInstance.get(`/folders/list-folder?folderPath=${orgName}`);
-  //     if (!response.data.exists) {
-  //       // If the folder doesn't exist, create it
-  //       await axiosInstance.post('/folders/create-folder', { folderPath: orgName });
-  //       console.log('Org folder created:', orgName);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error checking or creating org folder:', error);
-  //     alert('Error creating org folder.');
-  //   }
-  // };
-
-  // Create the project folder inside orgName
-  // const createProjectFolder = async (folderName) => {
-  //   if (!folderName) return;
-  //   setIsLoading(true);
-
-  //   // Ensure org folder exists before creating the project folder
-  //   await createOrgFolderIfNeeded();
-
-  //   const folderPath = `${orgName}/${folderName}`;
-
-
-  //   try {
-  //     await axiosInstance.post('/folders/create-folder', { folderPath });
-
-  //     // Create subfolders inside the newly created folder after user confirms
-  //     await createSubFolders(folderPath);
-
-  //     setFolders((prevFolders) => [...prevFolders, { name: folderName, type: 'folder' }]);
-
-  //     alert(`Project folder "${folderName}" created successfully.`);
-  //   } catch (error) {
-  //     console.error('Error creating project folder:', error);
-  //     alert(`Error creating project folder "${folderName}".`);
-  //   }
-
-  //   setIsLoading(false);
-  // };
-
-  // Watch for projectFolder from Redux state to trigger folder creation
-  // useEffect(() => {
-  //   if (projectFolder) {
-  //     createProjectFolder(projectFolder);
-  //   }
-  // }, [projectFolder]);
+ 
 
   // Delete an item (folder/file)
   const deleteItem = async () => {

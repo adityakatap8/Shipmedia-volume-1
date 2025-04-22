@@ -597,3 +597,48 @@ input[type="text"] {
 .optionListContainer{
   background: #0B192C!important;
 }
+
+
+
+/* rightts */
+.rights-info {
+  padding-top: 10px;
+}
+
+.dropdown-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between the dropdowns */
+  margin-bottom: 20px; /* Space between rows */
+}
+
+.dropdown-container {
+  width: calc(50% - 10px); /* Make each dropdown take 50% of the row */
+  box-sizing: border-box;
+}
+
+.dropdown-container h3 {
+  margin-bottom: 10px; /* Space between the title and dropdown */
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+}
+
+.selected-item {
+  padding: 8px 12px !important; /* Adjust padding of the selected item */
+}
+
+.selected-item span {
+  padding-bottom: 0 !important; /* Remove any additional padding under the selected item */
+}
+
+
+.price-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
