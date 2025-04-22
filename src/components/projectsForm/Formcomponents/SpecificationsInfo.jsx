@@ -308,7 +308,7 @@ const SpecificationsInfo = ({
             <div className="row submitter-row">
                 <div className="submitter-container">
                     <h1 className="header-numbered">
-                        <span>5</span>
+                        <span>2</span>
                         Specifications
                     </h1>
                 </div>
@@ -319,7 +319,7 @@ const SpecificationsInfo = ({
 
                 <div className="form-section">
                     <div className="form-label grid-3 span-12-phone">
-                        Project Type
+                        Title Type
                     </div>
 
                     <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
@@ -468,7 +468,30 @@ const SpecificationsInfo = ({
                             </div>
                         </div>
                     </div>
+
                     <div className="form-section">
+                        <div className="form-label grid-3 span-12-phone">
+                            Language
+                        </div>
+                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+                            <div className="input optional form-field-input">
+                                <input
+                                    type="text"
+                                    value={language}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter language"
+                                    id="language"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div className="form-sectionThree">
+
+ {/* <div className="form-section">
                         <div className="form-label grid-3 span-12-phone">
                             Run Time
                         </div>
@@ -510,16 +533,13 @@ const SpecificationsInfo = ({
                         </div>
                     </div>
 
-
-
-
                     <div className="form-section">
                         <div className="form-label grid-3 span-12-phone">
                             Completion Date
                         </div>
                         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
                             <div className="calendar-field form-field span-6 span-8-tablet span-12-phone">
-                                {/* Input field */}
+                              
                                 <input
                                     type="text"
                                     value={inputValue}
@@ -529,7 +549,7 @@ const SpecificationsInfo = ({
                                     onClick={() => setIsCalendarOpen(true)}
                                 />
 
-                                {/* Conditionally render the DayPicker calendar */}
+                                
                                 {isCalendarOpen && (
                                     <div className="calendar-container">
                                         <DayPicker
@@ -550,7 +570,7 @@ const SpecificationsInfo = ({
                         </div>
 
                         <div className="currency-form radio-buttons span-6 span-8-tablet span-12-phone">
-                            {/* Input for budget */}
+                          
                             <div className="currency-form-field-input">
                                 <input
                                     type="number"
@@ -564,7 +584,7 @@ const SpecificationsInfo = ({
                                 />
                             </div>
 
-                            {/* Currency Dropdown */}
+                          
                             <div className="currency-form-field-input currency-dropdown">
                                 <select
                                     value={currency}
@@ -583,12 +603,9 @@ const SpecificationsInfo = ({
 
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
-                </div>
-
-                <div className="form-sectionThree">
-                    <div className="form-section">
+                    {/* <div className="form-section">
                         <div className="form-label grid-3 span-12-phone">
                             Country Of Origin
                         </div>
@@ -613,10 +630,10 @@ const SpecificationsInfo = ({
                                 ))}
                             </select>
                         </div>
-                    </div>
+                    </div> */}
 
 
-                    <div className="form-section">
+                    {/* <div className="form-section">
                         <div className="form-label grid-3 span-12-phone">
                             Country Of Filming
                         </div>
@@ -640,110 +657,7 @@ const SpecificationsInfo = ({
                                 ))}
                             </select>
                         </div>
-                    </div>
-
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Language
-                        </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <div className="input optional form-field-input">
-                                <input
-                                    type="text"
-                                    value={language}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter language"
-                                    id="language"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Shooting Format
-                        </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <div className="input optional form-field-input">
-                                <input
-                                    type="text"
-                                    value={shootingFormat}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter shooting format"
-                                    id="shooting-format"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Aspect Ratio
-                        </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <div className="input optional form-field-input">
-                                <input
-                                    type="text"
-                                    value={aspectRatio}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter aspect ratio"
-                                    id="aspect-ratio"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Film Color
-                        </div>
-                        <div className="film-field form-field radio-buttons span-3 span-8-tablet span-12-phone">
-                            <select
-                                value={formData?.specificationsInfo?.filmColor || filmColor}
-                                onChange={(e) => handleFormDataUpdate({ ...formData.specificationsInfo, filmColor: e.target.value })}
-                            >
-                                <option value="">Select Film Color</option>
-                                <option value="color">Color</option>
-                                <option value="black_and_white">Black & White</option>
-                                <option value="color_and_black_and_white">Color, Black & White</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Student Project
-                        </div>
-                        <div className="film-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <select
-                                value={formData?.specificationsInfo?.studentProject || studentProjectValue}
-                                onChange={(e) => handleFormDataUpdate({ ...formData.specificationsInfo, studentProject: e.target.value })}
-                            >
-                                <option value="">Select Yes or No</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            First Time Film-maker
-                        </div>
-                        <div className="film-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <select
-                                value={formData?.specificationsInfo?.isFirstTimeFilmmaker || isFirstTimeFilmmaker}
-                                onChange={(e) => handleFormDataUpdate({ ...formData.specificationsInfo, isFirstTimeFilmmaker: e.target.value })}
-                            >
-                                <option value="">Select Yes or No</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                        </div>
-                    </div>
-
+                    </div> */}
 
                 </div>
             </div>

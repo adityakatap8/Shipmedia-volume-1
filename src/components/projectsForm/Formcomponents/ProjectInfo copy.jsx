@@ -14,10 +14,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   const [accessKey, setAccessKey] = useState(''); // To store S3 access key
   const [secretKey, setSecretKey] = useState('');
 
-
-
-
-  const [trailerUploadUrl, setTrailerUploadUrl] = useState(''); 
+  const [trailerUploadUrl, setTrailerUploadUrl] = useState('');
 
   useEffect(() => {
     console.log("recieved from projectForm:", projectName);
@@ -44,18 +41,6 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     console.log('User ID received in ProjectInfo:', userId);
   }, [userId]);
 
-  // useEffect(() => {
-  //   if (projectName) {
-  //     // Set the projectName as a cookie whenever it changes
-  //     document.cookie = `projectName=${projectName}; path=/;`;
-  //     console.log('Project Name cookie set:', projectName);
-  //   }
-  // }, [projectName]); // This will run whenever projectName changes in context
-
-  // useEffect(() => {
-  //   console.log('Project Name:', projectName);
-  //   console.log('Movie Name:', movieName);
-  // }, [projectName, movieName]);
 
 
   const { userData } = useContext(UserContext);
@@ -98,7 +83,6 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
       }
     }
   };
-
 
 
 
@@ -149,36 +133,24 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     validateProjectInfo();
   }, [projectInfo]);
 
-// // On drop poster image
-// const onDropPoster = (acceptedFiles) => {
-//   if (acceptedFiles.length > 0) {
-//     const file = acceptedFiles[0];
-    
-//     // Save the file name for poster
-//     onInputChange({ posterFileName: file.name });
-    
-//     // Create object URL for the image (for rendering)
-//     const imageUrl = URL.createObjectURL(file);
-    
-//     // Save the URL for rendering
-//     onInputChange({ projectPosterUrl: imageUrl });
-//   }
-// };
 
 
-// Handle the file drop for the poster image
+  // Handle the file drop for the poster image
 const onDropPoster = (acceptedFiles) => {
   if (acceptedFiles.length > 0) {
     const file = acceptedFiles[0]; // Get the first file from accepted files
     const posterFileName = file.name;  // Get the file name
 
-    // Save the poster file name (store the file name instead of URL when uploading)
-    onInputChange({ projectPoster: posterFileName }); // Store only the file name
+    // Save the poster file object and the file name (if needed)
+    onInputChange({
+      projectPoster: file, // Store the actual file object
+      projectPosterName: posterFileName // Store the file name if needed
+    });
+
     const posterUrl = URL.createObjectURL(file); // Create an object URL for local rendering
     onInputChange({ projectPosterUrl: posterUrl }); // Store the URL for displaying the uploaded poster
   }
 };
-
 
 // Handle input changes for the URL input field (when URL option is selected)
 const handlePosterUrlChange = (e) => {
@@ -190,13 +162,16 @@ const handlePosterUrlChange = (e) => {
 const onDropBanner = (acceptedFiles) => {
   if (acceptedFiles.length > 0) {
     const file = acceptedFiles[0];
-    
-    // Save the file name for banner
-    onInputChange({ bannerFileName: file.name });
-    
+
+    // Save the banner file object and the file name
+    onInputChange({
+      bannerFile: file, // Store the actual file object
+      bannerFileName: file.name // Store the file name if needed
+    });
+
     // Create object URL for the banner image (for rendering)
     const bannerUrl = URL.createObjectURL(file);
-    
+
     // Save the URL for rendering
     onInputChange({ projectBannerUrl: bannerUrl });
   }
@@ -208,8 +183,11 @@ const onDropTrailer = (acceptedFiles) => {
     const file = acceptedFiles[0]; // Get the first file from accepted files
     const trailerFileName = file.name;  // Get the file name
 
-    // Set the trailer file name in the project info
-    onInputChange({ trailerFile: trailerFileName });
+    // Set the trailer file object and name in the project info
+    onInputChange({
+      trailerFile: file, // Store the actual file object
+      trailerFileName: trailerFileName // Store the file name if needed
+    });
 
     // Generate the S3 URL dynamically
     const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '_');  // Sanitize project title
@@ -229,8 +207,8 @@ const onDropTrailer = (acceptedFiles) => {
 
 
 
-   // Adjusted code for Movie File
-   const onDropMovie = (acceptedFiles) => {
+  // Adjusted code for Movie File
+  const onDropMovie = (acceptedFiles) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       onInputChange({ movieFile: file.name });      // Store only the file name
@@ -251,17 +229,9 @@ const onDropTrailer = (acceptedFiles) => {
     }
   };
 
-  useEffect( () => {
+  useEffect(() => {
     console.log(trailerUrl);
-  },[trailerUrl])
-
-  
-
-
- 
-
-
-
+  }, [trailerUrl])
 
   const { getRootProps: getRootPropsPoster, getInputProps: getInputPropsPoster } = useDropzone({
     onDrop: onDropPoster,
@@ -281,13 +251,48 @@ const onDropTrailer = (acceptedFiles) => {
     multiple: false
   });
 
-
-
   const { getRootProps: getRootPropsBanner, getInputProps: getInputPropsBanner } = useDropzone({
     onDrop: onDropBanner,
     accept: 'image/*',
     multiple: false
   });
+
+
+// Handle SRT file change
+// Handle SRT file change
+// const handleSrtFileChange = (event) => {
+//   const file = event.target.files[0];
+//   const srtFileName = file ? file.name : ''; // Save the filename
+
+//   console.log('Received SRT file:', srtFileName); // Log the SRT file name to check if it's received
+
+//   setFormData((prevData) => ({
+//     ...prevData,
+//     projectInfo: {
+//       ...prevData.projectInfo,
+//       srtFileName, // Save the file name
+//     },
+//   }));
+// };
+
+
+// Handle Info Document file change
+// Handle Info Document file change
+// const handleInfoDocChange = (event) => {
+//   const file = event.target.files[0];
+//   const infoDocFileName = file ? file.name : ''; // Save the filename
+
+//   console.log('Received Info Document file:', infoDocFileName); // Log the Info Document file name to check if it's received
+
+//   setFormData((prevData) => ({
+//     ...prevData,
+//     projectInfo: {
+//       ...prevData.projectInfo,
+//       infoDocFileName, // Save the file name
+//     },
+//   }));
+// };
+
 
 
   // Handle the trailer file upload
@@ -362,10 +367,11 @@ const onDropTrailer = (acceptedFiles) => {
       // Create base URL for trailers and movies (assuming you want these to be stored separately)
       let trailerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/`;
       let movieUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/movies/`;
-
+ 
       // Append the poster URL if it exists
       if (projectInfo.projectPoster) {
-        posterUrl += projectInfo.projectPoster;
+        posterUrl += projectInfo.projectPoster.name;
+
         console.log('Project Poster URL:', posterUrl);  // Log poster URL
       }
 
@@ -440,100 +446,100 @@ const onDropTrailer = (acceptedFiles) => {
 
       {/* Project Poster */}
       <div className="form-section">
-  <div className="form-label grid-3 span-12-phone">
-    Project Poster <span className="required">*</span>
-  </div>
-  <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-    <div className="input optional form-field-input">
-      <div className="upload-or-url-option d-flex text-white">
-        {/* Option for file upload */}
-        <div>
-          <input
-            type="radio"
-            id="uploadPoster"
-            name="posterOption"
-            value="upload"
-            checked={projectInfo.posterOption === 'upload'}
-            onChange={() => onInputChange({ posterOption: 'upload' })}  // On change select upload
-          />
-          <label htmlFor="uploadPoster">Upload Poster</label>
+        <div className="form-label grid-3 span-12-phone">
+          Project Poster <span className="required">*</span>
         </div>
+        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+          <div className="input optional form-field-input">
+            <div className="upload-or-url-option d-flex text-white">
+              {/* Option for file upload */}
+              <div>
+                <input
+                  type="radio"
+                  id="uploadPoster"
+                  name="posterOption"
+                  value="upload"
+                  checked={projectInfo.posterOption === 'upload'}
+                  onChange={() => onInputChange({ posterOption: 'upload' })}  // On change select upload
+                />
+                <label htmlFor="uploadPoster">Upload Poster</label>
+              </div>
 
-        {/* Option for S3 URL input */}
-        <div>
-          <input
-            type="radio"
-            id="urlPoster"
-            name="posterOption"
-            value="url"
-            checked={projectInfo.posterOption === 'url'}
-            onChange={() => onInputChange({ posterOption: 'url' })}  // On change select URL
-          />
-          <label htmlFor="urlPoster">Provide S3 URL</label>
+              {/* Option for S3 URL input */}
+              <div>
+                <input
+                  type="radio"
+                  id="urlPoster"
+                  name="posterOption"
+                  value="url"
+                  checked={projectInfo.posterOption === 'url'}
+                  onChange={() => onInputChange({ posterOption: 'url' })}  // On change select URL
+                />
+                <label htmlFor="urlPoster">Provide S3 URL</label>
+              </div>
+            </div>
+
+            {/* If user chooses 'Upload Poster' option */}
+            {projectInfo.posterOption === 'upload' && !projectInfo.projectPosterUrl && (
+              <div
+                className="input optional form-field-input dropzone"
+                {...getRootPropsPoster()}
+                style={{
+                  border: '2px dashed #ccc',
+                  padding: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '188px',
+                  height: '265px',
+                  cursor: 'pointer',
+                }}
+              >
+                <input {...getInputPropsPoster()} />
+                <p>Drag & Drop or Click to Upload Poster</p>
+              </div>
+            )}
+
+            {/* If user chooses 'Provide S3 URL' option */}
+
+
+            {projectInfo.posterOption === 'url' && (
+              <div className="input optional form-field-input">
+                <input
+                  type="text"
+                  name="s3SourcePosterUrl"
+                  value={projectInfo.s3SourcePosterUrl || ''}
+                  onChange={handleChange}  // Update the poster URL when changed
+                  placeholder="Enter S3 Source URL for Poster"
+                />
+                {errors.s3SourcePosterUrl && <div className="error">{errors.s3SourcePosterUrl}</div>}
+
+                {projectInfo.s3SourcePosterUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleClearField('s3SourcePosterUrl')}  // Function to clear the URL
+                    className="btn btn-primary mt-2"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Display the uploaded poster if available */}
+            {projectInfo.projectPosterUrl && projectInfo.posterOption === 'upload' && (
+              <div>
+                <img
+                  src={projectInfo.projectPosterUrl} // Use the dynamically created URL for display
+                  alt="Project Poster"
+                  style={{ maxWidth: '188px', maxHeight: '266px' }}
+                />
+                <button onClick={resetProjectPoster} className="changeFile-button">Change File</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* If user chooses 'Upload Poster' option */}
-      {projectInfo.posterOption === 'upload' && !projectInfo.projectPosterUrl && (
-        <div
-          className="input optional form-field-input dropzone"
-          {...getRootPropsPoster()}
-          style={{
-            border: '2px dashed #ccc',
-            padding: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '188px',
-            height: '265px',
-            cursor: 'pointer',
-          }}
-        >
-          <input {...getInputPropsPoster()} />
-          <p>Drag & Drop or Click to Upload Poster</p>
-        </div>
-      )}
-
-      {/* If user chooses 'Provide S3 URL' option */}
-
-
-      {projectInfo.posterOption === 'url' && (
-        <div className="input optional form-field-input">
-          <input
-            type="text"
-            name="s3SourcePosterUrl"
-            value={projectInfo.s3SourcePosterUrl || ''}
-            onChange={handleChange}  // Update the poster URL when changed
-            placeholder="Enter S3 Source URL for Poster"
-          />
-          {errors.s3SourcePosterUrl && <div className="error">{errors.s3SourcePosterUrl}</div>}
-
-          {projectInfo.s3SourcePosterUrl && (
-            <button
-              type="button"
-              onClick={() => handleClearField('s3SourcePosterUrl')}  // Function to clear the URL
-              className="btn btn-primary mt-2"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Display the uploaded poster if available */}
-      {projectInfo.projectPosterUrl && projectInfo.posterOption === 'upload' && (
-        <div>
-          <img
-            src={projectInfo.projectPosterUrl} // Use the dynamically created URL for display
-            alt="Project Poster"
-            style={{ maxWidth: '188px', maxHeight: '266px' }}
-          />
-          <button onClick={resetProjectPoster} className="changeFile-button">Change File</button>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
 
 
 
@@ -599,21 +605,7 @@ const onDropTrailer = (acceptedFiles) => {
             {/* If user chooses 'Provide S3 URL' option */}
             {projectInfo.bannerOption === 'url' && (
               <div className="input optional form-field-input">
-                {/* Input for Access Key and Secret Key when providing S3 URL */}
-                {/* <input
-                  type="text"
-                  name="accessKey"
-                  value={accessKey || ''}
-                  onChange={handleAccessKeyChange}
-                  placeholder="Enter S3 Access Key"
-                />
-                <input
-                  type="password"
-                  name="secretKey"
-                  value={secretKey || ''}
-                  onChange={handleSecretKeyChange}
-                  placeholder="Enter S3 Secret Key"
-                /> */}
+
                 <input
                   type="text"
                   name="s3SourceBannerUrl"  // Unique name for the S3 URL
@@ -624,13 +616,13 @@ const onDropTrailer = (acceptedFiles) => {
                 {errors.s3SourceBannerUrl && <div className="error">{errors.s3SourceBannerUrl}</div>}
 
 
-                  {/* Clear button for S3 URL */}
-                  {projectInfo.s3SourceBannerUrl && (
+                {/* Clear button for S3 URL */}
+                {projectInfo.s3SourceBannerUrl && (
                   <button
                     type="button"
-                   
+
                     onClick={() => handleClearField('s3SourceBannerUrl')}
-                    
+
                     className="btn btn-primary mt-2"
                   >
                     Clear
@@ -657,106 +649,106 @@ const onDropTrailer = (acceptedFiles) => {
       </div>
 
 
-   
+
       {/* Trailer File Upload */}
-    <div className="form-section">
-      <div className="form-label grid-3 span-12-phone">
-        Trailer/Video File <span className="required">*</span>
-      </div>
-      <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-left">
-        <div className="input optional form-field-input">
-          {/* Option for uploading a file or providing S3 URL */}
-          <div className="upload-or-url-option d-flex text-white">
-            {/* Option for file upload */}
-            <div>
-              <input
-                type="radio"
-                id="uploadTrailer"
-                name="trailerOption"
-                value="upload"
-                checked={projectInfo.trailerOption === 'upload'}
-                onChange={() => onInputChange({ trailerOption: 'upload' })}
-              />
-              <label htmlFor="uploadTrailer">Upload Trailer</label>
+      <div className="form-section">
+        <div className="form-label grid-3 span-12-phone">
+          Trailer/Video File <span className="required">*</span>
+        </div>
+        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-left">
+          <div className="input optional form-field-input">
+            {/* Option for uploading a file or providing S3 URL */}
+            <div className="upload-or-url-option d-flex text-white">
+              {/* Option for file upload */}
+              <div>
+                <input
+                  type="radio"
+                  id="uploadTrailer"
+                  name="trailerOption"
+                  value="upload"
+                  checked={projectInfo.trailerOption === 'upload'}
+                  onChange={() => onInputChange({ trailerOption: 'upload' })}
+                />
+                <label htmlFor="uploadTrailer">Upload Trailer</label>
+              </div>
+
+              {/* Option for S3 URL input */}
+              <div>
+                <input
+                  type="radio"
+                  id="urlTrailer"
+                  name="trailerOption"
+                  value="url"
+                  checked={projectInfo.trailerOption === 'url'}
+                  onChange={() => onInputChange({ trailerOption: 'url' })}
+                />
+                <label htmlFor="urlTrailer">Provide S3 URL</label>
+              </div>
             </div>
 
-            {/* Option for S3 URL input */}
-            <div>
-              <input
-                type="radio"
-                id="urlTrailer"
-                name="trailerOption"
-                value="url"
-                checked={projectInfo.trailerOption === 'url'}
-                onChange={() => onInputChange({ trailerOption: 'url' })}
-              />
-              <label htmlFor="urlTrailer">Provide S3 URL</label>
-            </div>
-          </div>
+            {/* If user chooses 'Upload Trailer' option */}
+            {projectInfo.trailerOption === 'upload' && !projectInfo.trailerFile && (
+              <div
+                className="input optional form-field-input dropzone"
+                {...getRootPropsTrailer()}
+                style={{
+                  border: '2px dashed #ccc',
+                  padding: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '645px',
+                  height: '365px',
+                  cursor: 'pointer',
+                  borderRadius: '20px',
+                }}
+              >
+                <input {...getInputPropsTrailer()} />
+                <p>Drag & Drop or Click to Upload Trailer</p>
+              </div>
+            )}
 
-          {/* If user chooses 'Upload Trailer' option */}
-          {projectInfo.trailerOption === 'upload' && !projectInfo.trailerFile && (
-            <div
-              className="input optional form-field-input dropzone"
-              {...getRootPropsTrailer()}
-              style={{
-                border: '2px dashed #ccc',
-                padding: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '645px',
-                height: '365px',
-                cursor: 'pointer',
-                borderRadius: '20px',
-              }}
-            >
-              <input {...getInputPropsTrailer()} />
-              <p>Drag & Drop or Click to Upload Trailer</p>
-            </div>
-          )}
+            {/* If user chooses 'Provide S3 URL' option */}
+            {projectInfo.trailerOption === 'url' && (
+              <div className="input optional form-field-input">
+                <input
+                  type="text"
+                  name="s3SourceTrailerUrl"
+                  value={projectInfo.s3SourceTrailerUrl || ''}
+                  onChange={handleChange}
+                  placeholder="Enter S3 Source URL for Trailer"
+                />
+                {errors.s3SourceTrailerUrl && <div className="error">{errors.s3SourceTrailerUrl}</div>}
 
-          {/* If user chooses 'Provide S3 URL' option */}
-          {projectInfo.trailerOption === 'url' && (
-            <div className="input optional form-field-input">
-              <input
-                type="text"
-                name="s3SourceTrailerUrl"
-                value={projectInfo.s3SourceTrailerUrl || ''}
-                onChange={handleChange}
-                placeholder="Enter S3 Source URL for Trailer"
-              />
-              {errors.s3SourceTrailerUrl && <div className="error">{errors.s3SourceTrailerUrl}</div>}
+                {projectInfo.s3SourceTrailerUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleClearField('s3SourceTrailerUrl')}
+                    className="btn btn-primary mt-2"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            )}
 
-              {projectInfo.s3SourceTrailerUrl && (
-                <button
-                  type="button"
-                  onClick={() => handleClearField('s3SourceTrailerUrl')}
-                  className="btn btn-primary mt-2"
-                >
-                  Clear
+            {/* Display the uploaded trailer if available */}
+            {projectInfo.trailerFile && projectInfo.trailerOption === 'upload' && trailerUrl && (
+              <div>
+                <ShakaPlayer
+                  width="100%"
+                  height="100%"
+                  url={trailerUrl}  // Use the dynamically created trailer URL
+                  style={{ width: '100%', height: '100%' }}
+                />
+                <button onClick={resetTrailerFile} className="changeFile-button">
+                  Change File
                 </button>
-              )}
-            </div>
-          )}
-
-          {/* Display the uploaded trailer if available */}
-          {projectInfo.trailerFile && projectInfo.trailerOption === 'upload' && trailerUrl && (
-            <div>
-              <ShakaPlayer
-                width="100%"
-                height="100%"
-                url={trailerUrl}  // Use the dynamically created trailer URL
-                style={{ width: '100%', height: '100%' }}
-              />
-              <button onClick={resetTrailerFile} className="changeFile-button">
-                Change File
-              </button>
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
 
 
       {/* Movie File Upload */}
@@ -768,69 +760,10 @@ const onDropTrailer = (acceptedFiles) => {
           <div className="input optional form-field-input">
             {/* Option for uploading a file or providing S3 URL */}
             <div className="upload-or-url-option d-flex text-white">
-              {/* Option for file upload */}
-              {/* <div>
-          <input
-            type="radio"
-            id="uploadMovie"
-            name="movieOption"
-            value="upload"
-            checked={projectInfo.movieOption === 'upload'}
-            onChange={() => onInputChange({ movieOption: 'upload' })}
-          />
-          <label htmlFor="uploadMovie">Upload Movie</label>
-        </div>
 
-        {/* Option for S3 URL input */}
-              {/* <div>
-          <input
-            type="radio"
-            id="urlMovie"
-            name="movieOption"
-            value="url"
-            checked={projectInfo.movieOption === 'url'}
-            onChange={() => onInputChange({ movieOption: 'url' })}
-          />
-          <label htmlFor="urlMovie">Provide S3 URL</label>
-        </div> */}
 
             </div>
 
-            {/* If user chooses 'Upload Movie' option */}
-            {/* {projectInfo.movieOption === 'upload' && !projectInfo.movieFile && (
-        <div
-          className="input optional form-field-input dropzone"
-          {...getRootPropsMovie()}
-          style={{
-            border: '2px dashed #ccc',
-            padding: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '645px',
-            height: '365px',
-            cursor: 'pointer',
-            borderRadius: '20px',
-          }}
-        >
-          <input {...getInputPropsMovie()} />
-          <p>Drag & Drop or Click to Upload Movie</p>
-        </div>
-      )} */}
-
-            {/* If user chooses 'Provide S3 URL' option */}
-            {/* {projectInfo.movieOption === 'url' && (
-        <div className="input optional form-field-input">
-          <input
-            type="text"
-            name="s3SourceMovieUrl"  // Unique name for the S3 URL
-            value={projectInfo.s3SourceMovieUrl || ''}
-            onChange={handleChange}
-            placeholder="Enter S3 Source URL for Movie"
-          />
-          {errors.s3SourceMovieUrl && <div className="error">{errors.s3SourceMovieUrl}</div>}
-        </div>
-      )} */}
 
             {/* New field to store the movie file name */}
             <div className="input optional form-field-input">
@@ -851,20 +784,6 @@ const onDropTrailer = (acceptedFiles) => {
               </div>
             )}
 
-            {/* Display the uploaded movie if available */}
-            {/* {projectInfo.movieFile && projectInfo.movieOption === 'upload' && movieUrl && (
-        <div>
-          <ShakaPlayer
-            width="100%"
-            height="100%"
-            url={movieUrl}  // Make sure movieUrl is set correctly here
-            style={{ width: '100%', height: '100%' }}
-          />
-          <button onClick={resetMovieFile} className="changeFile-button">
-            Change File
-          </button>
-        </div>
-      )} */}
           </div>
         </div>
       </div>
@@ -872,7 +791,7 @@ const onDropTrailer = (acceptedFiles) => {
 
 
       {/* Website URL */}
-      <div className="form-section">
+      {/* <div className="form-section">
         <div className="form-label grid-3 span-12-phone">
           Website <span className="required"></span>
         </div>
@@ -889,10 +808,10 @@ const onDropTrailer = (acceptedFiles) => {
             {errors?.website && <span className="error">{errors.website}</span>}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Social Media Fields */}
-      <div className="form-section">
+      {/* <div className="form-section">
         <div className="form-label grid-3 span-12-phone">Twitter</div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -905,9 +824,9 @@ const onDropTrailer = (acceptedFiles) => {
             />
           </div>
         </div>
-      </div>
+      </div> */}
 
-      <div className="form-section">
+      {/* <div className="form-section">
         <div className="form-label grid-3 span-12-phone">Facebook</div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -920,9 +839,9 @@ const onDropTrailer = (acceptedFiles) => {
             />
           </div>
         </div>
-      </div>
+      </div> */}
 
-      <div className="form-section">
+      {/* <div className="form-section">
         <div className="form-label grid-3 span-12-phone">Instagram</div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -935,11 +854,11 @@ const onDropTrailer = (acceptedFiles) => {
             />
           </div>
         </div>
-      </div>
+      </div> */}
 
-      <SrtFileUpload />
+ 
     </div>
-    
+
   );
 };
 

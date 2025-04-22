@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import MUIDataTable from 'mui-datatables';
 import './index.css';
 import Loader from "../../../components/loader/Loader";
+import AccountInfo from '../accountInfo/AccountInfo';
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -27,6 +28,11 @@ function UserManagement() {
       setLoading(false); // Stop loading
     }
   };
+
+  const handleOpen = () => {
+    console.log("showForm", showForm)
+    setShowForm(true)
+  }
 
   useEffect(() => {
     fetchUsers();
@@ -62,6 +68,15 @@ function UserManagement() {
       },
     },
     {
+      name: 'role', // ✅ NEW COLUMN
+      label: 'Role',
+      options: {
+        filter: true,
+        sort: true,
+        filterType: 'dropdown',
+      },
+    },
+    {
       name: 'actions',
       label: 'Actions',
       options: {
@@ -87,65 +102,59 @@ function UserManagement() {
   // Define MUI DataTable options
   const options = {
     filterType: 'dropdown',
+    rowsPerPage: 10,
+    rowsPerPageOptions: [5, 10, 15, 25, 50, 100],
     onRowClick: (rowData, rowMeta) => {
-      console.log(rowData, rowMeta); // Optional: Handle row click event here
+      console.log(rowData, rowMeta);
     },
+   
   };
 
   return (
     <div className='container py-4'>
-      <div className='d-flex justify-content-between align-items-center mb-3'>
-        <h2 className='text-white'>User Management</h2>
-        <div>
-          <button className='btn btn-secondary me-2' onClick={fetchUsers}>
-            Refresh
-          </button>
-          <button className='btn btn-primary' onClick={() => setShowForm(true)}>
-            Create New User
-          </button>
-        </div>
-      </div>
 
-      {/* Modal for CreateUserForm */}
-      {showForm && (
-        <div className="modal d-block" tabIndex="-1" role="dialog" onClick={() => setShowForm(false)}>
-          <div className="modal-dialog modal-dialog-centered" role="document" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Register New User</h5>
-                <button type="button" className="close" onClick={() => setShowForm(false)}>
-                  <span>&times;</span>
-                </button>
-              </div>
-              <div className="modal-body">
-                <CreateUserForm
-                  onSuccess={() => {
-                    fetchUsers(); // Re-fetch the user list after successful registration
-                    setShowForm(false);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MUI DataTable */}
-      {loading ? (
-        <div className="text-white">Loading... <br /> <Loader /> </div> // Show "Loading..." while data is being fetched
-      ) : (
-        <MUIDataTable
-          title={"User List"}
-          data={users.filter((user) =>
-            (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (user.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (user.orgName || '').toLowerCase().includes(searchQuery.toLowerCase())
-          )}
-          columns={columns}
-          options={options}
-        />
-      )}
+    {/* Full-width Account Info Form */}
+    <div className='mb-2'>
+      <AccountInfo />
     </div>
+  
+    {/* User Management Heading + Buttons */}
+    <div className='d-flex justify-content-between align-items-center flex-wrap'>
+      <h2 className='text-white mb-2'>User Management</h2>
+      <div className='mb-2'>
+        <button className='btn btn-secondary me-2' onClick={fetchUsers}>
+          Refresh
+        </button>
+        <button className='btn btn-primary' onClick={handleOpen}>
+          Create New User
+        </button>
+      </div>
+    </div>
+  
+    {/* Modal for CreateUserForm */}
+    {showForm && (
+      <CreateUserForm showForm={showForm} setShowForm={setShowForm} />
+    )}
+  
+    {/* MUI DataTable */}
+    {loading ? (
+      <div className="text-white">
+        Loading... <br /> <Loader />
+      </div>
+    ) : (
+      <MUIDataTable
+        title={"User List"}
+        data={users.filter((user) =>
+          (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (user.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (user.orgName || '').toLowerCase().includes(searchQuery.toLowerCase())
+        )}
+        columns={columns}
+        options={options}
+      />
+    )}
+  </div>
+  
   );
 }
 

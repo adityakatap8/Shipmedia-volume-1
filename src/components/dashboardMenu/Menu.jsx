@@ -85,10 +85,10 @@ function Menu({ isSidebarCollapsed }) {
       </Link>
 
       <Link
-        to="/usermanagement"
+        to="/user-management"
         className="flex items-center py-2.5 px-4 text-lg"
       >
-        {!isSidebarCollapsed && <span>User Management</span>}
+        {!isSidebarCollapsed && <span>Account Management</span>}
         {isSidebarCollapsed && <FaVideo className="text-2xl" />}
       </Link>
 
