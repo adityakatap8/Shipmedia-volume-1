@@ -81,9 +81,9 @@ function ProjectsDashboard() {
 
           axios
             .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
-              credentials: 'include', // Ensure cookies are sent with the request
               headers: {
-                Authorization: `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
               },
             })
             .then((response) => {
@@ -150,13 +150,13 @@ function ProjectsDashboard() {
 
 
   const handleCreateProject = () => {
-    if (orgName && projectData.length >= 0 && projectName) {
+    if (orgName && projectName) {
       setProjectName(projectName);
       setMovieName(movieName);
 
       setIsCreating(true); // Start the loading state
       setShowModal(false); // Close the modal
-
+      
       // Step 1: Create the project folder in S3
       axios
         .post(

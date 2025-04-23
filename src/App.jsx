@@ -7,7 +7,6 @@ import 'bootstrap/dist/js/bootstrap.bundle.min';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Register from "./pages/registerPage/Register";
 import Plans from './pages/plans/Plans';
-import Navbar1 from './components/dashboardNavbar/Navbar1';
 import Login from './pages/loginPage/Login';
 import Sidebar from './components/sidebar/Sidebar';
 import DashboardLayout from './components/dashboardLayout/DashboardLayout';
@@ -47,6 +46,7 @@ import { Toaster as Sonner } from "../src/components/shakaPlayer/components/ui/s
 import { PlayerMenu } from "../src/components/shakaPlayer/components/PlayerMenu";
 import UserManagement from './components/userManagement/managementPanel/userManagement';
 import ForgotPassword from './pages/forgotPasswordPage/forgotPassword';
+import { Navebar1 } from './components/dashboardNavbar/Navbar1';
 
 const queryClient = new QueryClient();
 
@@ -85,7 +85,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/login" element={<Login />} />
-            <Route path='/dashnav' element={<Navbar1 />} />
+            <Route path='/dashnav' element={<Navebar1 />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Protected Routes */}

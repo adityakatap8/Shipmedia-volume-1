@@ -21,6 +21,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "./index.css";
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../utils/AuthContext';
+import { setAuthToken } from "../../redux/authSlice/authSlice";
+import Cookies from 'js-cookie';
 
 
 const LoginPaper = styled(Paper)(({ theme }) => ({
@@ -152,28 +154,33 @@ const Login = () => {
         password
       }, {
         withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.status === 200 && response.data.success) {
-        const { userId, token } = response.data;
+        const { userId, user, token } = response.data;
+        console.log("Login successful, token received:", token);
+
+        // Store token in both cookies and sessionStorage
+        Cookies.set('token', token, { expires: 1 }); // Expires in 1 day
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('userData', JSON.stringify({ userId, email }));
 
         dispatch(setAuthToken({
           token,
-          user: { userId, email },
+          user: { userId, email, user },
         }));
 
-        sessionStorage.setItem('userData', JSON.stringify({ userId, email }));
-
-
         showToast('Login successful!', 'success');
-        // showToast(`Token: ${token}`, 'info');
-
         await refreshUser();
-        navigate('/projects');
+        navigate('/showcase-projects');
       } else {
         showToast('Failed to login, please try again.', 'error');
       }
     } catch (err) {
+      console.error('Login error:', err);
       if (err.response?.status === 404) {
         showToast('User not found', 'error');
       } else if (err.response?.status === 401) {

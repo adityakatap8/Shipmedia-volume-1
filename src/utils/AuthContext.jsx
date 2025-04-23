@@ -18,21 +18,32 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    axios.defaults.headers.Authorization = `Bearer ${token}`;
-
     try {
       const response = await axios.get('https://www.mediashippers.com/api/auth/user', {
-        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
       });
 
       if (response.status === 200) {
         setUser(response.data);
         setIsLoggedIn(true);
+        // Ensure token is stored in both places for consistency
+        sessionStorage.setItem('token', token);
       } else {
         setIsLoggedIn(false);
+        // Clear invalid token
+        Cookies.remove('token');
+        sessionStorage.removeItem('token');
       }
     } catch (error) {
+      console.error('Auth check failed:', error);
       setIsLoggedIn(false);
+      // Clear invalid token
+      Cookies.remove('token');
+      sessionStorage.removeItem('token');
     } finally {
       setIsLoading(false);
     }

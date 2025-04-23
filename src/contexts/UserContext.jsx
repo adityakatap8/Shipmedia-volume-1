@@ -1,5 +1,7 @@
 // src/contexts/UserContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
+import axios from 'axios'
 
 export const UserContext = createContext();
 
@@ -12,28 +14,19 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       console.log('Checking authentication: inside userContext...');
-
+      const token = Cookies.get('token');
       try {
-        const response = await fetch('https://www.mediashippers.com/api/auth/user', {
-          method: 'GET',
-          credentials: 'include', // 🔑 Needed to send cookies with cross-origin request
+        const response = await axios.get('https://www.mediashippers.com/api/auth/user', {
           headers: {
-            'Content-Type': 'application/json',
-            
-            // DO NOT manually add Authorization header for HttpOnly cookies
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
+          withCredentials: true
         });
 
-        console.log('Response status:', response.status);
+        console.log('Response status:', response);
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            console.warn('Unauthorized - no valid session or cookie expired.');
-          }
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await response.data;
         console.log('User data received:', data);
 
         setUserData(data);
