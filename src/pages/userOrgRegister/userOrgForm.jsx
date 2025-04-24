@@ -1,0 +1,374 @@
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Card, CardContent, CardHeader, Typography, Tabs, Tab, Box, Button, CircularProgress } from "@mui/material"
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import PrimaryContactDetails from "./components/PrimaryContactDetails"
+import UserDetails from "./components/UserDetails"
+import DocumentUpload from "./components/DocumentUpload"
+import OrganizationDetails from "./components/OrganizationDetails"
+
+const formSchema = z
+    .object({
+        // Organization details
+        orgName: z.string().min(2, { message: "Organization name is required" }),
+        orgAddress: z.string().min(5, { message: "Organization address is required" }),
+        orgCorpRegNo: z.string().min(1, { message: "Corporate registration number is required" }),
+        orgGstNo: z.string().min(1, { message: "GST number is required" }),
+
+        // Primary contact details
+        primaryName: z.string().min(2, { message: "Primary contact name is required" }),
+        primaryEmail: z.string().email({ message: "Invalid email address" }),
+        primaryNo: z.string().min(10, { message: "Valid phone number is required" }),
+
+        // User details
+        userName: z.string().min(2, { message: "User name is required" }),
+        userEmail: z.string().email({ message: "Invalid email address" }),
+        role: z.string().min(1, { message: "Role is required" }),
+        password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+        confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    })
+
+function UserOrgManagement() {
+    const [activeTab, setActiveTab] = useState(0)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isSuccess, setIsSuccess] = useState(false)
+    const [files, setFiles] = useState({
+        orgCorpPdf: null,
+        orgGstPdf: null,
+        orgAgreementPdf: null,
+    })
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors, isValid },
+        watch,
+    } = useForm({
+        resolver: zodResolver(formSchema),
+        mode: "onChange",
+        defaultValues: {
+            orgName: "",
+            orgAddress: "",
+            orgCorpRegNo: "",
+            orgGstNo: "",
+            primaryName: "",
+            primaryEmail: "",
+            primaryNo: "",
+            userName: "",
+            userEmail: "",
+            role: "",
+            password: "",
+            confirmPassword: "",
+        },
+    })
+
+    // Watch all form values for debugging
+    const formValues = watch()
+    console.log("Current form values:", formValues)
+
+    const onSubmit = async (values) => {
+        setIsSubmitting(true)
+        try {
+            // Log form values for debugging
+            console.log("Form values:", values)
+            
+            // Check for validation errors
+            if (Object.keys(errors).length > 0) {
+                console.error("Form validation errors:", errors)
+                return
+            }
+
+            // Create FormData to handle file uploads
+            const formData = new FormData()
+
+            // Add all form values
+            Object.entries(values).forEach(([key, value]) => {
+                formData.append(key, value)
+            })
+
+            // Add files
+            Object.entries(files).forEach(([key, file]) => {
+                if (file) {
+                    formData.append(key, file)
+                }
+            })
+
+            console.log("FormData entries:")
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value)
+            }
+
+            // Submit the form data to your API
+            // In a real application, you would use fetch or axios here
+            // Simulating API call with timeout
+            await new Promise((resolve) => setTimeout(resolve, 1500))
+
+            setIsSuccess(true)
+        } catch (error) {
+            console.error("Registration error:", error)
+            // You might want to show an error message to the user here
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleFileChange = (name, file) => {
+        setFiles((prev) => ({
+            ...prev,
+            [name]: file,
+        }))
+    }
+
+    const handleTabChange = (event, newValue) => {
+        setActiveTab(newValue)
+    }
+
+    const nextStep = (e) => {
+        e?.preventDefault();
+        if (activeTab < 3) {
+            setActiveTab((prevTab) => prevTab + 1)
+        }
+    }
+
+    const prevStep = (e) => {
+        e?.preventDefault();
+        if (activeTab > 0) {
+            setActiveTab((prevTab) => prevTab - 1)
+        }
+    }
+
+    if (isSuccess) {
+        return (
+            <Card
+                style={{
+                    width: "100%",
+                    maxWidth: "64rem",
+                    backgroundColor: "#1e1e1e",
+                    color: "white",
+                    border: "1px solid #333",
+                }}
+            >
+                <CardHeader
+                    title={
+                        <Typography
+                            variant="h4"
+                            style={{
+                                fontWeight: "bold",
+                                color: "#F26430",
+                                textAlign: "center",
+                            }}
+                        >
+                            Registration Successful!
+                        </Typography>
+                    }
+                    subheader={
+                        <Typography
+                            variant="subtitle1"
+                            style={{
+                                color: "#aaa",
+                                textAlign: "center",
+                                marginTop: "8px",
+                            }}
+                        >
+                            Your organization and user have been registered successfully.
+                        </Typography>
+                    }
+                />
+                <CardContent
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "40px 16px",
+                    }}
+                >
+                    <div
+                        style={{
+                            borderRadius: "50%",
+                            backgroundColor: "rgba(242, 100, 48, 0.2)",
+                            padding: "24px",
+                            marginBottom: "24px",
+                        }}
+                    >
+                        <CheckCircleIcon
+                            style={{
+                                height: "80px",
+                                width: "80px",
+                                color: "#F26430",
+                            }}
+                        />
+                    </div>
+                    <Typography
+                        style={{
+                            textAlign: "center",
+                            color: "#aaa",
+                            maxWidth: "400px",
+                        }}
+                    >
+                        A verification email has been sent to your email address. Please check your inbox and follow the
+                        instructions to verify your account.
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        style={{
+                            marginTop: "24px",
+                            borderColor: "#F26430",
+                            color: "#F26430",
+                            "&:hover": {
+                                backgroundColor: "rgba(242, 100, 48, 0.1)",
+                            },
+                        }}
+                    >
+                        Go to Login
+                    </Button>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    return (
+        <Card
+            style={{
+                width: "100%",
+                color: "white",
+                backgroundColor: "transparent",
+            }}
+        >
+            <CardContent sx={{padding: '16px'}}>
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (activeTab === 3) {
+                        handleSubmit(onSubmit)(e);
+                    }
+                }}>
+                    <Box
+                        sx={{
+                            borderBottom: 1,
+                            borderColor: "divider",
+                            marginBottom: "24px",
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: "80%", // 👈 reduce width as per your need (e.g., 60%, 500px, etc.)
+                                maxWidth: "800px",
+                            }}
+                        >
+                            <Tabs
+                                value={activeTab}
+                                onChange={handleTabChange}
+                                variant="fullWidth"
+                                sx={{
+                                    "& .MuiTabs-indicator": {
+                                        backgroundColor: "#F26430",
+                                    },
+                                    "& .Mui-selected": {
+                                        color: "#F26430 !important",
+                                    },
+                                    "& .MuiTab-root": {
+                                        color: "#aaa",
+                                    },
+                                }}
+                            >
+                                <Tab label="Organization" />
+                                <Tab label="Primary Contact" />
+                                <Tab label="User Details" />
+                                <Tab label="Documents" />
+                            </Tabs>
+                        </Box>
+                    </Box>
+
+                    <TabPanel value={activeTab} index={0}>
+                        <OrganizationDetails control={control} errors={errors} />
+                    </TabPanel>
+                    <TabPanel value={activeTab} index={1}>
+                        <PrimaryContactDetails control={control} errors={errors} />
+                    </TabPanel>
+                    <TabPanel value={activeTab} index={2}>
+                        <UserDetails control={control} errors={errors} />
+                    </TabPanel>
+                    <TabPanel value={activeTab} index={3}>
+                        <DocumentUpload onFileChange={handleFileChange} />
+                    </TabPanel>
+
+                    <Box
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginTop: "24px",
+                        }}
+                    >
+                        <Button
+                            variant="outlined"
+                            onClick={prevStep}
+                            disabled={activeTab === 0}
+                            style={{
+                                borderColor: "#444",
+                                color: "#aaa",
+                            }}
+                        >
+                            Previous
+                        </Button>
+
+                        {activeTab !== 3 ? (
+                            <Button
+                                type="button"
+                                variant="contained"
+                                onClick={(e) => nextStep(e)}
+                                style={{
+                                    backgroundColor: "#F26430",
+                                    "&:hover": {
+                                        backgroundColor: "#e05a2a",
+                                    },
+                                }}
+                            >
+                                Next
+                            </Button>
+                        ) : (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                disabled={isSubmitting}
+                                style={{
+                                    backgroundColor: "#F26430",
+                                    "&:hover": {
+                                        backgroundColor: "#e05a2a",
+                                    },
+                                }}
+                            >
+                                {isSubmitting ? <CircularProgress size={24} style={{ color: "white" }} /> : "Complete Registration"}
+                            </Button>
+                        )}
+                    </Box>
+                </form>
+            </CardContent>
+        </Card>
+    )
+}
+
+function TabPanel(props) {
+    const { children, value, index, ...other } = props
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`tabpanel-${index}`}
+            aria-labelledby={`tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box>{children}</Box>}
+        </div>
+    )
+}
+
+export default UserOrgManagement

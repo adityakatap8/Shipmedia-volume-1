@@ -17,6 +17,7 @@ import ProjectsDashboard from '../../components/projectsDashboard/ProjectsDashbo
 import ViewAndEditForm from '../../components/projectsForm/ViewAndEditForm';
 import BrowseFestival from '../../components/browseFestival/BrowseFestival';
 import UserManagement from '../../components/userManagement/managementPanel/userManagement';
+import UserOrgManagement from '../userOrgRegister/userOrgForm';
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
@@ -35,3 +36,4 @@ export const projectsDashboard = () => <ProjectsDashboard />
 export const viewAndEditForm = () => <ViewAndEditForm />
 export const browseFestival = () => <BrowseFestival />
 export const userManagement = () => <UserManagement />
+export const userOrganizationManagement = () => <UserOrgManagement />

@@ -28,7 +28,7 @@ import {
   projectsForm,
   projectsDashboard,
   viewAndEditForm,
-  userManagement
+  userOrganizationManagement
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -199,6 +199,9 @@ function App() {
                 <DashboardLayout><UserManagement /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/user-org-register" element={
+              <ProtectedRoute>
+                <DashboardLayout>{userOrganizationManagement()}</DashboardLayout></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

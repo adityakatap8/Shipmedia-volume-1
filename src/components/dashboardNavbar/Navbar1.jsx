@@ -50,7 +50,7 @@ export function Navebar1({
     { name: "Title Files", icon: <UploadIcon />, href: "/video-catalogue" },
     { name: "Deals", icon: <MovieIcon />, href: "/deals" },
     { name: "Services", icon: <VideocamIcon />, href: "/main" },
-    { name: "Account", icon: <AccountCircleIcon />, href: "/user-management" },
+    { name: "Account", icon: <AccountCircleIcon />, href: "/user-org-register" },
   ];
 
   // Get menu items based on user role
