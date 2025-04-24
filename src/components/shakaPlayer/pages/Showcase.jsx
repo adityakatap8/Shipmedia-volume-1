@@ -248,8 +248,6 @@ const Showcase = ({ children }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { userData } = useContext(UserContext);
-  const orgName = userData ? userData.orgName : '';
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarCollapsed((prevState) => !prevState);
@@ -324,15 +322,15 @@ const Showcase = ({ children }) => {
       const project = title;
 
       const backgroundImageURL = banner
-        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner}`
+        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.user.orgName}/${project}/film+stills/${banner}`
         : localDefaultBanner;
 
       const logoImageURL = poster
-        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
+        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.user.orgName}/${project}/film+stills/${poster}`
         : localDefaultPoster;
 
-      const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
-      const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
+      const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.user.orgName}/${project}/trailer/${trailer}`;
+      const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.user.orgName}/${project}/master/${movie}`;
 
       const handlePlayTrailer = () => {
         setIsCarouselPaused(true);
@@ -414,7 +412,7 @@ const Showcase = ({ children }) => {
         </div>
       );
     };
-  }, [currentIndex, isCarouselPaused, isTrailerPlaying, trailerUrl, orgName, navigate]);
+  }, [currentIndex, isCarouselPaused, isTrailerPlaying, trailerUrl, user.user.orgName, navigate]);
 
   return (
     <div className="min-h-screen">
@@ -431,7 +429,7 @@ const Showcase = ({ children }) => {
               const title = project?.projectTitle || "Untitled Project";
               const poster = project?.posterFileName;
               const logoImageURL = poster
-                ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${encodeURIComponent(title)}/film+stills/${poster}`
+                ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.user.orgName}/${encodeURIComponent(title)}/film+stills/${poster}`
                 : defaultPoster;
 
               return (

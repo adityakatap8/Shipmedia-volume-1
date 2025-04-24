@@ -84,14 +84,6 @@ function Menu({ isSidebarCollapsed }) {
         {isSidebarCollapsed && <FaVideo className="text-2xl" />}
       </Link>
 
-      <Link
-        to="/user-management"
-        className="flex items-center py-2.5 px-4 text-lg"
-      >
-        {!isSidebarCollapsed && <span>Account Management</span>}
-        {isSidebarCollapsed && <FaVideo className="text-2xl" />}
-      </Link>
-
       {/* Profile */}
       {/* <Link
         to="/profile"

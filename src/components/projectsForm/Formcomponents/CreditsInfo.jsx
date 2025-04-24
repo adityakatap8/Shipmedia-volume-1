@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 
 const CreditsInfo = ({ onInputChange }) => {
+    // Separate state for directors, writers, producers, and actors
     const [credits, setCredits] = useState({
-        directors: [{ firstName: '', middleName: '', lastName: '', priorCredits: '', image: null }],
-        writers: [{ firstName: '', middleName: '', lastName: '', priorCredits: '', image: null }],
-        producers: [{ firstName: '', middleName: '', lastName: '', priorCredits: '', image: null }],
-        actors: [{ firstName: '', middleName: '', lastName: '', priorCredits: '', image: null }],
+        directors: [{ firstName: '', middleName: '', lastName: '', priorCredits: '' }],
+        writers: [{ firstName: '', middleName: '', lastName: '', priorCredits: '' }],
+        producers: [{ firstName: '', middleName: '', lastName: '', priorCredits: '' }],
+        actors: [{ firstName: '', middleName: '', lastName: '', priorCredits: '' }],
     });
 
     // Add new credit for a specific category (directors, writers, producers, actors)
@@ -167,11 +168,46 @@ const CreditsInfo = ({ onInputChange }) => {
                         <button onClick={() => removePerson('actors', index)}>&times;</button>
                     </div>
                     <div className="input-fields">
-                        {generateCreditFields('actors', index)}
+                        <input
+                            type="text"
+                            placeholder="First Name"
+                            value={credit.firstName}
+                            onChange={(e) =>
+                                handleChange('actors', index, 'firstName', e.target.value)
+                            }
+                        />
+                        <input
+                            type="text"
+                            placeholder="Middle Name"
+                            value={credit.middleName}
+                            onChange={(e) =>
+                                handleChange('actors', index, 'middleName', e.target.value)
+                            }
+                        />
+                        <input
+                            type="text"
+                            placeholder="Last Name"
+                            value={credit.lastName}
+                            onChange={(e) =>
+                                handleChange('actors', index, 'lastName', e.target.value)
+                            }
+                        />
+                        <input
+                            type="text"
+                            placeholder="Prior Credits (Optional)"
+                            value={credit.priorCredits}
+                            onChange={(e) =>
+                                handleChange('actors', index, 'priorCredits', e.target.value)
+                            }
+                        />
                     </div>
                 </div>
             ))}
-            <button onClick={(e) => addPerson('actors', e)} className="add-person-button mb-4" type="button">
+            <button
+                onClick={(e) => addPerson('actors', e)}
+                className="add-person-button mb-4"
+                type="button"
+            >
                 + Add Actor
             </button>
 

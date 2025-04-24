@@ -529,8 +529,8 @@
     font-weight: normal;
     cursor: pointer;
     transition: transform 0.2s, background-color 0.2s;
-    width: auto;
-    height: auto;
+    width: 170px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;

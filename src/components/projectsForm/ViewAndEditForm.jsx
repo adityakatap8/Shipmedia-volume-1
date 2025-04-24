@@ -1,9 +1,7 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import './ViewAndEditFormCss.css';
-import Loader from '../loader/Loader';
-import { UserContext } from '../../contexts/UserContext';
+import './ViewAndEditFormCss.css'; // Ensure you import your CSS for styling
 
 function ViewAndEditForm() {
   const { projectId } = useParams();
@@ -11,51 +9,51 @@ function ViewAndEditForm() {
   const [projectData, setProjectData] = useState(null);
   const [error, setError] = useState(null);
 
+  // Editing states for each section
   const [isEditingProject, setIsEditingProject] = useState(false);
+  const [isEditingSubmitter, setIsEditingSubmitter] = useState(false);
   const [isEditingCredits, setIsEditingCredits] = useState(false);
   const [isEditingSpecifications, setIsEditingSpecifications] = useState(false);
   const [isEditingScreenings, setIsEditingScreenings] = useState(false);
 
-  const [userInfo, setUserInfo] = useState(null);
-  const { userData } = useContext(UserContext);
-  const orgName = userData ? userData.orgName : '';
+  const updateSection = async (projectId, section, data) => {
+    try {
+      const response = await fetch(`/api/projectforms/update/${projectId}/${section}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (projectData?.projectInfoData?.userId) {
-        try {
-          const response = await axios.get(`https://www.mediashippers.com/api/users/${projectData.projectInfoData.userId}`, {
-            withCredentials: true
-          });
-
-          if (response.status === 200) {
-            setUserInfo(response.data);
-            console.log("Organization Name:", response.data?.orgName);
-          }
-        } catch (error) {
-          console.error("Error fetching user info:", error);
-        }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update section');
       }
-    };
 
-    fetchUserDetails();
-  }, [projectData]);
+      const result = await response.json();
+      console.log(`${section} updated successfully`, result);
+
+      // Update projectData state with the updated data (optional)
+      setProjectData((prevData) => ({
+        ...prevData,
+        [`${section}InfoData`]: data,
+      }));
+    } catch (error) {
+      console.error("Error updating section:", error.message);
+    }
+  };
 
   useEffect(() => {
     const fetchProjectData = async () => {
       try {
-        const response = await axios.get(`https://www.mediashippers.com/api/project-form/data/${projectId}`, {
-          withCredentials: true,
-        });
-  
+        const response = await axios.get(`http://localhost:3000/api/project-form/data/${projectId}`);
         if (response.status === 200) {
-          console.log("✅ Full Project Data:", response.data); // <-- Log here
           setProjectData(response.data);
         } else {
           setError(`Failed to load project data. Status code: ${response.status}`);
         }
       } catch (err) {
-        console.error("❌ Fetch error:", err);
         setError('An error occurred while fetching the project data.');
       } finally {
         setLoading(false);
@@ -65,19 +63,21 @@ function ViewAndEditForm() {
     fetchProjectData();
   }, [projectId]);
 
-  if (loading) return <div className="loading"><Loader /></div>;
+  if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
 
   const {
     projectInfoData,
+    submitterInfoData,
     creditsInfoData,
     specificationsInfoData,
     screeningsInfoData,
   } = projectData;
 
+  // Handle Edit/Save button toggle
   const toggleEditSection = async (section) => {
     let updatedData;
-
+  
     switch (section) {
       case 'project':
         if (isEditingProject) {
@@ -86,7 +86,15 @@ function ViewAndEditForm() {
         }
         setIsEditingProject(!isEditingProject);
         break;
-
+  
+      case 'submitter':
+        if (isEditingSubmitter) {
+          updatedData = projectData.submitterInfoData;
+          await updateSection(projectId, section, updatedData);
+        }
+        setIsEditingSubmitter(!isEditingSubmitter);
+        break;
+  
       case 'credits':
         if (isEditingCredits) {
           updatedData = projectData.creditsInfoData;
@@ -94,7 +102,7 @@ function ViewAndEditForm() {
         }
         setIsEditingCredits(!isEditingCredits);
         break;
-
+  
       case 'specifications':
         if (isEditingSpecifications) {
           updatedData = projectData.specificationsInfoData;
@@ -102,7 +110,7 @@ function ViewAndEditForm() {
         }
         setIsEditingSpecifications(!isEditingSpecifications);
         break;
-
+  
       case 'screenings':
         if (isEditingScreenings) {
           updatedData = projectData.screeningsInfoData;
@@ -110,24 +118,19 @@ function ViewAndEditForm() {
         }
         setIsEditingScreenings(!isEditingScreenings);
         break;
-
+  
       default:
         break;
     }
   };
+  
 
   const handleSave = (section) => {
+    // Implement the save logic for each section, e.g., save changes to the backend
+    console.log(`${section} saved`);
+
+    // After saving, set the section back to view mode
     toggleEditSection(section);
-  };
-
-  const constructS3Url = (subfolder, fileName) => {
-    if (!orgName || !projectInfoData?.projectName || !fileName) return null;
-
-    const encodedOrg = encodeURIComponent(orgName.trim());
-    const encodedProject = encodeURIComponent(projectInfoData.projectName.trim());
-    const encodedFile = encodeURIComponent(fileName.trim());
-
-    return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${encodedOrg}/${encodedProject}/${subfolder}/${encodedFile}`;
   };
 
   return (
@@ -137,99 +140,249 @@ function ViewAndEditForm() {
         <div className="section-header">
           <h1 className="header-numbered">
             <span>1</span> Project Information
+            {/* <p>{projectInfoData?._id || 'No ID found'}</p> */}
           </h1>
           <button
-            className="edit-btn"
-            onClick={() =>
-              isEditingProject ? handleSave('project') : toggleEditSection('project')
-            }
-          >
-            {isEditingProject ? 'Save' : 'Edit'}
-          </button>
+  className="edit-btn"
+  onClick={() => (isEditingProject ? handleSave('project') : toggleEditSection('project'))}
+>
+  {isEditingProject ? 'Save' : 'Edit'}
+</button>
         </div>
-
         <div className="info-row">
           <strong>Project Title:</strong>
           {isEditingProject ? (
             <input
               type="text"
               value={projectInfoData?.projectTitle || ''}
-              onChange={(e) =>
-                setProjectData((prev) => ({
-                  ...prev,
-                  projectInfoData: {
-                    ...prev.projectInfoData,
-                    projectTitle: e.target.value,
-                  },
-                }))
-              }
+              onChange={(e) => {
+                projectInfoData.projectTitle = e.target.value;
+              }}
             />
           ) : (
             <p>{projectInfoData?.projectTitle || 'No Title Found'}</p>
           )}
         </div>
-
-        {/* Poster */}
         <div className="info-row">
-          <strong>Poster:</strong>
-          {projectInfoData?.posterFileName ? (
-            <img
-              src={constructS3Url('film stills', projectInfoData.posterFileName)}
-              alt="Poster"
-              style={{ width: '150px', height: 'auto' }}
+          <strong>Brief Synopsis:</strong>
+          {isEditingProject ? (
+            <textarea
+              value={projectInfoData?.briefSynopsis || ''}
+              onChange={(e) => {
+                projectInfoData.briefSynopsis = e.target.value;
+              }}
             />
           ) : (
-            <p>N/A</p>
+            <p>{projectInfoData?.briefSynopsis || 'No synopsis available'}</p>
           )}
         </div>
-
-        {/* Banner */}
         <div className="info-row">
-          <strong>Banner:</strong>
-          {projectInfoData?.bannerFileName ? (
-            <img
-              src={constructS3Url('film stills', projectInfoData.bannerFileName)}
-              alt="Banner"
-              style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+          <strong>Website:</strong>
+          {isEditingProject ? (
+            <input
+              type="text"
+              value={projectInfoData?.website || ''}
+              onChange={(e) => {
+                projectInfoData.website = e.target.value;
+              }}
             />
           ) : (
-            <p>N/A</p>
+            <p>
+              {projectInfoData?.website ? (
+                <a href={projectInfoData.website} target="_blank" rel="noopener noreferrer">
+                  {projectInfoData.website}
+                </a>
+              ) : (
+                'No website available'
+              )}
+            </p>
           )}
         </div>
-
-        {/* Trailer */}
         <div className="info-row">
-          <strong>Trailer:</strong>
-          {projectInfoData?.trailerFileName ? (
-            <a
-              href={constructS3Url('trailer', projectInfoData.trailerFileName)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Watch Trailer
-            </a>
+          <strong>Twitter:</strong>
+          {isEditingProject ? (
+            <input
+              type="text"
+              value={projectInfoData?.twitter || ''}
+              onChange={(e) => {
+                projectInfoData.twitter = e.target.value;
+              }}
+            />
           ) : (
-            <p>N/A</p>
+            <p>{projectInfoData?.twitter || 'No Twitter handle'}</p>
           )}
         </div>
+        <div className="info-row">
+          <strong>Facebook:</strong>
+          {isEditingProject ? (
+            <input
+              type="text"
+              value={projectInfoData?.facebook || ''}
+              onChange={(e) => {
+                projectInfoData.facebook = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{projectInfoData?.facebook || 'No Facebook link'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>Instagram:</strong>
+          {isEditingProject ? (
+            <input
+              type="text"
+              value={projectInfoData?.instagram || ''}
+              onChange={(e) => {
+                projectInfoData.instagram = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{projectInfoData?.instagram || 'No Instagram link'}</p>
+          )}
+        </div>
+      </section>
 
-        {/* Other static values */}
-        <div className="info-row"><strong>Movie File:</strong> <p>{projectInfoData?.movieFileName || 'N/A'}</p></div>
-        <div className="info-row"><strong>SRT File:</strong> <p>{projectInfoData?.srtFileName || 'N/A'}</p></div>
+      {/* Submitter Info */}
+      <section className="section">
+        <div className="section-header">
+          <h1 className="header-numbered">
+            <span>2</span> Submitter Information 
+            {/* <p>{submitterInfoData?._id || 'No ID found'}</p> */}
+          </h1>
+          <button
+  className="edit-btn"
+  onClick={() => (isEditingProject ? handleSave('project') : toggleEditSection('project'))}
+>
+  {isEditingProject ? 'Save' : 'Edit'}
+</button>
+        </div>
+        <div className="info-row">
+          <strong>Email:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="email"
+              value={submitterInfoData?.email || ''}
+              onChange={(e) => {
+                submitterInfoData.email = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.email || 'No email available'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>Contact Number:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.contactNumber || ''}
+              onChange={(e) => {
+                submitterInfoData.contactNumber = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.contactNumber || 'No contact number'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>Address:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.address || ''}
+              onChange={(e) => {
+                submitterInfoData.address = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.address || 'No address'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>City:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.city || ''}
+              onChange={(e) => {
+                submitterInfoData.city = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.city || 'No city'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>State:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.state || ''}
+              onChange={(e) => {
+                submitterInfoData.state = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.state || 'No state'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>Postal Code:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.postalCode || ''}
+              onChange={(e) => {
+                submitterInfoData.postalCode = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.postalCode || 'No postal code'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>Country:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.country || ''}
+              onChange={(e) => {
+                submitterInfoData.country = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.country || 'No country'}</p>
+          )}
+        </div>
+        <div className="info-row">
+          <strong>Gender:</strong>
+          {isEditingSubmitter ? (
+            <input
+              type="text"
+              value={submitterInfoData?.gender || ''}
+              onChange={(e) => {
+                submitterInfoData.gender = e.target.value;
+              }}
+            />
+          ) : (
+            <p>{submitterInfoData?.gender || 'No gender'}</p>
+          )}
+        </div>
       </section>
 
       {/* Credits Info */}
       <section className="section">
         <div className="section-header">
           <h1 className="header-numbered">
-            <span>3</span> Credits
+            <span>3</span> Credits 
+            {/* <p>{creditsInfoData?._id || 'No ID found'}</p> */}
           </h1>
           <button
-            className="edit-btn"
-            onClick={() => toggleEditSection('credits')}
-          >
-            {isEditingCredits ? 'Save' : 'Edit'}
-          </button>
+  className="edit-btn"
+  onClick={() => (isEditingProject ? handleSave('project') : toggleEditSection('project'))}
+>
+  {isEditingProject ? 'Save' : 'Edit'}
+</button>
         </div>
         <div className="info-row">
           <strong>Directors:</strong>
@@ -249,7 +402,6 @@ function ViewAndEditForm() {
             </ul>
           )}
         </div>
-
         <div className="info-row">
           <strong>Writers:</strong>
           {isEditingCredits ? (
@@ -268,28 +420,46 @@ function ViewAndEditForm() {
             </ul>
           )}
         </div>
-        {/* Actors */}
         <div className="info-row">
-          <strong>Actors:</strong>
+          <strong>Producers:</strong>
           {isEditingCredits ? (
             <input
               type="text"
-              value={creditsInfoData?.actors?.map(actor => `${actor.firstName} ${actor.lastName}`).join(', ') || ''}
+              value={creditsInfoData?.producers?.join(', ') || ''}
               onChange={(e) => {
-                creditsInfoData.actors = e.target.value.split(',').map((name) => {
-                  const [firstName, lastName] = name.trim().split(' ');
-                  return { firstName, lastName: lastName || '' };
-                });
+                creditsInfoData.producers = e.target.value.split(',').map((name) => ({ firstName: name.trim() }));
               }}
             />
           ) : (
             <ul>
-              {creditsInfoData?.actors?.map((actor, index) => (
-                <li key={index}>{actor.firstName} {actor.lastName}</li>
+              {creditsInfoData?.producers?.map((producer, index) => (
+                <li key={index}>{producer.firstName} {producer.lastName}</li>
               ))}
             </ul>
           )}
         </div>
+         {/* Actors */}
+  <div className="info-row">
+    <strong>Actors:</strong>
+    {isEditingCredits ? (
+      <input
+        type="text"
+        value={creditsInfoData?.actors?.map(actor => `${actor.firstName} ${actor.lastName}`).join(', ') || ''}
+        onChange={(e) => {
+          creditsInfoData.actors = e.target.value.split(',').map((name) => {
+            const [firstName, lastName] = name.trim().split(' ');
+            return { firstName, lastName: lastName || '' };
+          });
+        }}
+      />
+    ) : (
+      <ul>
+        {creditsInfoData?.actors?.map((actor, index) => (
+          <li key={index}>{actor.firstName} {actor.lastName}</li>
+        ))}
+      </ul>
+    )}
+  </div>
       </section>
 
       {/* Specifications Info */}
@@ -297,13 +467,14 @@ function ViewAndEditForm() {
         <div className="section-header">
           <h1 className="header-numbered">
             <span>4</span> Specifications
+            {/* <p>{specificationsInfoData?._id || 'No ID found'}</p> */}
           </h1>
           <button
-            className="edit-btn"
-            onClick={() => toggleEditSection('specifications')}
-          >
-            {isEditingSpecifications ? 'Save' : 'Edit'}
-          </button>
+  className="edit-btn"
+  onClick={() => (isEditingProject ? handleSave('project') : toggleEditSection('project'))}
+>
+  {isEditingProject ? 'Save' : 'Edit'}
+</button>
         </div>
         <div className="info-row">
           <strong>Project Type:</strong>
@@ -368,13 +539,14 @@ function ViewAndEditForm() {
         <div className="section-header">
           <h1 className="header-numbered">
             <span>5</span> Screenings
+            {/* <p>{screeningsInfoData?._id || 'No ID found'}</p> */}
           </h1>
           <button
-            className="edit-btn"
-            onClick={() => toggleEditSection('screenings')}
-          >
-            {isEditingScreenings ? 'Save' : 'Edit'}
-          </button>
+  className="edit-btn"
+  onClick={() => (isEditingProject ? handleSave('project') : toggleEditSection('project'))}
+>
+  {isEditingProject ? 'Save' : 'Edit'}
+</button>
         </div>
         <div className="info-row">
           <strong>Screening Locations:</strong>

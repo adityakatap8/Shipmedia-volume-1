@@ -308,7 +308,7 @@ const SpecificationsInfo = ({
             <div className="row submitter-row">
                 <div className="submitter-container">
                     <h1 className="header-numbered">
-                        <span>2</span>
+                        <span>5</span>
                         Specifications
                     </h1>
                 </div>
