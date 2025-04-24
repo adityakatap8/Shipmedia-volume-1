@@ -27,7 +27,7 @@ function Main() {
                 type: type.toLowerCase()
             });
 
-            const response = await fetch('http://localhost:3000/api/ordertype/', {
+            const response = await fetch(`/api/ordertype/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

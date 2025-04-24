@@ -4,7 +4,7 @@ import user from '../../assets/User1.jpg';
 
 const Navbar1 = ({ user }) => {
     const handleLogout = () => {
-        fetch('http://localhost:3000/api/auth/logout', { method: 'POST' })
+        fetch(`https://www.mediashippers.com/api/auth/logout`, { method: 'POST' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

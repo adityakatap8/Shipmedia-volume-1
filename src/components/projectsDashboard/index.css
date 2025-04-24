@@ -3,18 +3,7 @@
 /* Container for the entire dashboard */
 .projects-dashboard {
     padding: 20px;
-    position: relative; /* To allow absolute positioning of the button */
-    border: 2px solid #c8c8c8;
-    border-radius: 20px;
-    /* background: white; */
-    padding: 55px;
-
-    background: rgba(255, 255, 255, 0.1);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
   }
   
   .add-button {
@@ -52,7 +41,8 @@
     background-color: #1E3E62;
     border: 1px solid #ccc;
     border-radius: 10px;
-    width: 25%; /* Adjust the card width to make it fit two per row */
+    width: 25%; 
+    height: 270px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Shadow evenly around the card */
     padding: 15px;
     display: flex;
@@ -92,7 +82,7 @@
   }
   
   .movie-poster img {
-    width: 100px;
+    width: 80px;
     height: auto;
     object-fit: cover;
    
@@ -106,7 +96,7 @@
   
   .project-info h3 {
     font-weight: 600;
-    font-size: 36px;
+    font-size: 18px;
     margin-bottom: 10px;
     text-align: left;
   }

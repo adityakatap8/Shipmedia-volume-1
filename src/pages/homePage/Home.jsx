@@ -84,7 +84,7 @@ function Home() {
 
   // Create an Axios instance with default configuration
 const apiInstance = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: '',
 });
 
 // Function to cancel the request if needed
@@ -115,7 +115,7 @@ function cancelRequest() {
 
   //   try {
   //     // Make the POST request to your backend API
-  //     const response = await fetch('http://localhost:3000/api/submitform', {
+  //     const response = await fetch('/api/submitform', {
   //       method: 'POST',
   //       headers: {
   //         'Content-Type': 'application/json', // Set the content type to JSON
@@ -173,7 +173,7 @@ function cancelRequest() {
   
   //   try {
   //     // Use the fetch API efficiently
-  //     const response = await fetch('http://localhost:3000/api/submitform', {
+  //     const response = await fetch('/api/submitform', {
   //       method: 'POST',
   //       headers: {
   //         'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ const handleSubmit = async (e) => {
   const formData = { name, email, organization, phone, selectedService: normalizedService, message };
 
   try {
-    const response = await fetch('http://localhost:3000/api/submitform', {
+    const response = await fetch('/api/submitform', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -33,7 +33,7 @@ function Main() {
   // Fetch project data from the backend
   useEffect(() => {
     axios
-      .get('http://localhost:3000/api/projects') // Replace with your actual API endpoint
+      .get(`https://www.mediashippers.com/api/projects`) // Replace with your actual API endpoint
       .then((response) => {
         setProjectData(response.data); // Store the fetched project data in state
       })

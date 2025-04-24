@@ -24,7 +24,7 @@ function ProjectsDashboard() {
       console.log('Organization Name from UserContext:', orgName);
 
       axios
-        .get(`http://localhost:3000/api/projects/${userData.userId}`)
+        .get(`https://www.mediashippers.com/api/projects/${userData.userId}`)
         .then((response) => {
           console.log('Fetched projects successfully:', response.data);
           setProjectData(response.data);
@@ -59,7 +59,7 @@ function ProjectsDashboard() {
       try {
         // Create the main folder in the S3 bucket
         const response = await axios.post(
-          'http://localhost:3000/api/folders/create-folder', 
+          `https://www.mediashippers.com/api/folders/create-folder`, 
           { orgName, projectName: newGeneratedProjectName },
           {
             headers: {
@@ -73,7 +73,7 @@ function ProjectsDashboard() {
         const subfolders = ['raw', 'edited', 'final']; // Subfolders to be created
         for (const subfolder of subfolders) {
           await axios.post(
-            'http://localhost:3000/api/folders/create-folder',
+            `https://www.mediashippers.com/api/folders/create-folder`,
             { orgName, projectName: `${newGeneratedProjectName}/${subfolder}` },
             {
               headers: {

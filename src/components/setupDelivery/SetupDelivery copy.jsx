@@ -338,7 +338,7 @@ const SetupDelivery = ({ goToPreviousTab }) => {
             }, null, 2));
 
             // Send the data to the API
-            const response = await fetch('http://localhost:3000/api/destinationtype/', {
+            const response = await fetch(`/api/destinationtype/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

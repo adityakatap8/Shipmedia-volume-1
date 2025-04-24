@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Button } from "../components/ui/button";
@@ -8,13 +8,15 @@ import { PlayerMenu } from "../components/PlayerMenu";
 import placeholder from "../../../assets/placeholder.svg"; // Import the placeholder image
 import ShakaPlayer from "./ShakaPlayer"; // Import ShakaPlayer component
 import './index.css';
+import { UserContext } from "../../../contexts/UserContext";
+import zIndex from "@mui/material/styles/zIndex";
+import Loader from "../../loader/Loader";
 
 // Function to generate image URL for crew members (directors, writers, actors, producers)
 const getCrewImageURL = (firstName, lastName, title) => {
   // Convert names to lowercase, trim spaces, and replace multiple spaces with a single '+'
   const sanitizedFirstName = firstName.trim().toLowerCase().replace(/\s+/g, '+');  // Convert to lowercase and handle spaces
   const sanitizedLastName = lastName.trim().toLowerCase().replace(/\s+/g, '+');    // Same for last name
-  
   // Construct the URL using sanitized first and last names
   return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/cast+and+crew+details/${sanitizedFirstName}+${sanitizedLastName}.jpg`;
 };
@@ -35,6 +37,11 @@ const MovieDetails = () => {
     comment: "",
     rating: "Yet to Decide",
   });
+
+  const { userData } = useContext(UserContext);
+  const orgName = userData ? userData.orgName : '';
+
+
   // Fetch movie data logic
   const fetchMovieData = async () => {
     if (!projectId) {
@@ -46,7 +53,12 @@ const MovieDetails = () => {
     console.log("Fetching data for projectId:", projectId); // Log the projectId to confirm
 
     try {
-      const response = await axios.get(`http://localhost:3000/api/project-form/data/${projectId}`);
+      const response = await axios.get(
+        `https://www.mediashippers.com/api/project-form/data/${projectId}`,
+        {
+          withCredentials: true, // ✅ Send token from cookies
+        }
+      );
       if (response.status === 200) {
         console.log("Fetched data:", response.data); // Log the response data
         setMovieData(response.data); // Store the fetched movie data
@@ -72,7 +84,7 @@ const MovieDetails = () => {
   }, [projectId]);
 
   // Show loading state or error message while waiting for data
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div><Loader /></div>;
   if (error) return <div>{error}</div>; // Show error message if there's an error
   if (!movieData) return <div>No data available.</div>; // If movieData is still null after loading, show message
 
@@ -80,17 +92,28 @@ const MovieDetails = () => {
   const { projectInfoData, creditsInfoData, specificationsInfoData } = movieData;
 
   // Use the title directly, no need to sanitize it
-  const title = projectInfoData.projectTitle || "default";
+  // const title = projectInfoData.projectTitle || "default";
+
+  const title = projectInfoData.projectTitle;
+  const poster = projectInfoData.posterFileName;
+  const banner = projectInfoData.bannerFileName;
+  const trailer = projectInfoData.trailerFileName;
+  const movie = projectInfoData.movieFileName;
+  const project = projectInfoData.projectTitle
 
   console.log("title", title)
 
+
+
   // Default URLs for logo and background images if not provided
-  const backgroundImageURL = projectInfoData.backgroundImage || `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/film+stills/banner.jpg`;
-  const logoImageURL = projectInfoData.logoImage || `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/film+stills/logo.jpg`;
+  const backgroundImageURL = banner ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner} ` : defaultBanner;;
+  const logoImageURL = poster
+    ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
+    : defaultPoster;
 
   // Trailer URL construction using the title directly
-  const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/trailer/trailer.mp4`;
-  const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/master/master.mp4`;
+  const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
+  const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
 
   // Play Movie handler
   const handlePlayMovie = () => {
@@ -126,7 +149,6 @@ const MovieDetails = () => {
     // Replace with an API call if needed
   };
 
-  
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -155,10 +177,10 @@ const MovieDetails = () => {
               <Play className="mr-2 h-5 w-5" />
               Play Movie
             </Button>
-            <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={handlePlayMovie}>
+            {/* <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={handlePlayMovie}>
               <Play className="mr-2 h-5 w-5" />
               Share Movie
-            </Button>
+            </Button> */}
           </div>
           <p className="text-white text-lg mb-4 project-description">{projectInfoData.briefSynopsis}</p>
         </div>
@@ -166,10 +188,16 @@ const MovieDetails = () => {
 
       {/* Show Trailer Video when playing */}
       {isTrailerPlaying && trailerUrl && (
-        <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50">
           <div className="relative">
             <ShakaPlayer width="80%" height="auto" url={trailerUrl} />
-            <button onClick={handleCloseTrailer} className="text-white player-close-button">X</button>
+            <button
+              onClick={handleCloseTrailer}
+              className="absolute top-2 right-2 text-white text-3xl player-close-button"
+              style={{ zIndex: 10 }}
+            >
+              X
+            </button>
           </div>
         </div>
       )}
@@ -179,7 +207,7 @@ const MovieDetails = () => {
         <div className="absolute top-0 left-0 w-full h-full bg-opacity-75 flex justify-center items-center">
           <div className="relative">
             <ShakaPlayer width="80%" height="auto" url={movieUrl} />
-            <button onClick={handleCloseMovie} className="text-white text-3xl player-close-button">X</button>
+            <button onClick={handleCloseMovie} className="text-white text-3xl player-close-button" style={{ zIndex: 1 }}>X</button>
           </div>
         </div>
       )}
@@ -194,7 +222,7 @@ const MovieDetails = () => {
         <div className="mt-2 rounded-lg shadow-lg bg-opacity-50 p-6">
           <div className="">
             <p><strong>Directors:</strong></p>
-            <div className="flex flex-wrap gap-6 mb-4">
+            {/* <div className="flex flex-wrap gap-6 mb-4">
               {creditsInfoData.directors && creditsInfoData.directors.length ? creditsInfoData.directors.map((director, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <img src={director.photo ? director.photo : getCrewImageURL(director.firstName, director.lastName, title)}
@@ -203,9 +231,9 @@ const MovieDetails = () => {
                 </div>
               )) : <img src={placeholder} alt="director" className="w-20 h-20 rounded-full mb-2 object-cover" />}
 
-            </div>
+            </div> */}
 
-            <p><strong>Writers:</strong></p>
+            {/* <p><strong>Writers:</strong></p>
             <div className="flex flex-wrap gap-6 mb-4">
               {creditsInfoData.writers && creditsInfoData.writers.length ? creditsInfoData.writers.map((writer, index) => (
                 <div key={index} className="flex flex-col items-center">
@@ -236,7 +264,7 @@ const MovieDetails = () => {
                   <p>{actor.firstName} {actor.lastName}</p>
                 </div>
               )) : 'No actors available'}
-            </div>
+            </div> */}
           </div>
         </div>
 

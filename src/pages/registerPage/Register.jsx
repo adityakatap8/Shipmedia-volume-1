@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "./index.css";
+import './index.css';
 
 import mediaShippers from '../../assets/mediaShippers.png';
 import SubmitButton from '../../components/submit/Submit';
 
-// Utility functions for validation
 const validateEmail = (email) => {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[(com|in)]$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in)$/;
   return emailRegex.test(email);
 };
 
@@ -28,8 +28,6 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Reset error state
     setError(null);
 
     if (!name || !email || !password || !confirmPassword || !orgName) {
@@ -37,7 +35,6 @@ function Register() {
       return;
     }
 
-    // Password validation
     if (!validatePassword(password)) {
       setError('Password requirements: Minimum 8 characters, one capital letter, one number, and one special character');
       return;
@@ -49,11 +46,13 @@ function Register() {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/register', {
+      const response = await axios.post(`https://www.mediashippers.com/api/auth/register`, {
         name,
         orgName,
         email,
         password
+      }, {
+        withCredentials: true,
       });
 
       if (response.status === 200) {
@@ -66,28 +65,39 @@ function Register() {
         setConfirmPassword('');
 
         const token = response.data.token;
+        const userId = response.data.userId;
+
         console.log('Generated token:', token);
         alert(`Registration successful! Token: ${token}`);
 
-        // Store token in localStorage
-        localStorage.setItem('token', token);
-
-      } else if (response.status === 200) {
-        // Handle duplicate email or invalid input
-        setError("User Registered Successfully");
+        // Store token and user data in cookies
+        Cookies.set('token', token, { expires: 1 });
+        Cookies.set('userData', JSON.stringify({ userId, email }), { expires: 1 });
       } else if (response.status === 409 || response.status === 500) {
-        // Handle duplicate email or invalid input
         setError("Email already registered. Please choose a different email.");
-      } else if (response.status >= 500) {
-        // Handle server errors
-        setError("An unexpected error occurred. Please try again later.");
       } else {
-        // Handle other status codes
         setError("Unexpected error. Status code: " + response.status);
       }
     } catch (err) {
-      console.error('Error occurred during registration:', err.response?.data);
-      setError(err.response?.data ? err.response.data : 'An error occurred during registration');
+      console.error('Registration failed');
+
+      if (err.response) {
+        // Server responded with a status code outside 2xx
+        console.error('Error status:', err.response.status);
+        console.error('Error data:', err.response.data);
+        console.error('Error headers:', err.response.headers);
+        setError(err.response.data?.errorMessage || 'Server responded with an error');
+      } else if (err.request) {
+        // Request was made but no response received
+        console.error('No response received:', err.request);
+        setError('No response from server. Please check your connection or CORS settings.');
+      } else {
+        // Something went wrong setting up the request
+        console.error('Axios config error:', err.message);
+        setError('Unexpected error occurred while making the request.');
+      }
+
+      console.error('Full error object:', err.toJSON ? err.toJSON() : err);
     }
   };
 
@@ -166,7 +176,7 @@ function Register() {
                     ? "This email is already registered. Please choose a different email."
                     : error === "Email already registered. Please choose a different email."
                       ? "Email already registered. Please choose a different email."
-                      : "An error occurred. Please try again later."
+                      : error
                 )}
               </div>
             )}
@@ -181,7 +191,7 @@ function Register() {
         </div>
       </div> 
     </div>
-  )
+  );
 }
 
-export default Register
+export default Register;

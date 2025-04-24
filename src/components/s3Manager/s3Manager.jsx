@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useDropzone } from 'react-dropzone';
 import { UserContext } from '../../contexts/UserContext';
 import './index.css';
+import Loader from '../loader/Loader';
 
 // Redux action to clear the auth token
 const clearAuthToken = () => ({
@@ -43,7 +44,7 @@ function S3Manager() {
 
   // Axios setup with token handling
   const axiosInstance = axios.create({
-    baseURL: 'http://localhost:3000/api',
+    baseURL: `/api`,
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -62,25 +63,7 @@ function S3Manager() {
     }
   );
 
-  // Fetch folder contents
-  // const fetchFolderContents = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await axiosInstance.get(`/folders/list-folder?folderPath=${currentFolder}`);
-  //     setFolders(response.data.folders || []); // Set folders based on the response
-  //     setFiles(response.data.files || []); // Set files based on the response
-
-  //     // Log the folders to the console
-  //     console.log("Fetched folders:", response.data.folders);
-
-  //   } catch (error) {
-  //     console.error('Error fetching folder contents:', error);
-  //     alert('Error fetching folder contents.');
-  //   }
-  //   setIsLoading(false);
-  // };
-
-
+  
   // Ref to track if the folder contents have been fetched
   const hasFetchedFolders = useRef(false);
   // Fetch folder contents based on orgName
@@ -229,55 +212,7 @@ function S3Manager() {
     }
   };
 
-  // Check and create org folder if it doesn't exist
-  // const createOrgFolderIfNeeded = async () => {
-  //   try {
-  //     const response = await axiosInstance.get(`/folders/list-folder?folderPath=${orgName}`);
-  //     if (!response.data.exists) {
-  //       // If the folder doesn't exist, create it
-  //       await axiosInstance.post('/folders/create-folder', { folderPath: orgName });
-  //       console.log('Org folder created:', orgName);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error checking or creating org folder:', error);
-  //     alert('Error creating org folder.');
-  //   }
-  // };
-
-  // Create the project folder inside orgName
-  // const createProjectFolder = async (folderName) => {
-  //   if (!folderName) return;
-  //   setIsLoading(true);
-
-  //   // Ensure org folder exists before creating the project folder
-  //   await createOrgFolderIfNeeded();
-
-  //   const folderPath = `${orgName}/${folderName}`;
-
-
-  //   try {
-  //     await axiosInstance.post('/folders/create-folder', { folderPath });
-
-  //     // Create subfolders inside the newly created folder after user confirms
-  //     await createSubFolders(folderPath);
-
-  //     setFolders((prevFolders) => [...prevFolders, { name: folderName, type: 'folder' }]);
-
-  //     alert(`Project folder "${folderName}" created successfully.`);
-  //   } catch (error) {
-  //     console.error('Error creating project folder:', error);
-  //     alert(`Error creating project folder "${folderName}".`);
-  //   }
-
-  //   setIsLoading(false);
-  // };
-
-  // Watch for projectFolder from Redux state to trigger folder creation
-  // useEffect(() => {
-  //   if (projectFolder) {
-  //     createProjectFolder(projectFolder);
-  //   }
-  // }, [projectFolder]);
+ 
 
   // Delete an item (folder/file)
   const deleteItem = async () => {
@@ -368,9 +303,10 @@ function S3Manager() {
         <i className="fas fa-file-alt file-icon"></i>
         <span>{file.name}</span>
         {/* Add Download Button */}
-        <button onClick={handleDownload} className="download-btn">
-          Download
-        </button>
+        <button onClick={handleDownload} className="btn btn-primary btn-sm">
+  Download
+</button>
+
       </div>
     );
   };
@@ -394,7 +330,7 @@ function S3Manager() {
     return (
       <div className="folder-list">
         {isLoading ? (
-          <p>Loading...</p>
+          <p><Loader /></p>
         ) : (
           <>
             {/* Render only the folders that match orgName */}
@@ -466,7 +402,7 @@ function S3Manager() {
   // ------------------------------------------------------------------------
   const [data, setData] = useState({ folders: [], files: [] });
   const [history, setHistory] = useState([]); // Store previous folder paths
-  const [currentPath, setCurrentPath] = useState(`mediashippers-filestash/ledzeppelin`); // Start from a specific folder
+  const [currentPath, setCurrentPath] = useState(`mediashippers-filestash/${orgName}`); // Start from a specific folder
 
   console.log("path.......>>>", currentPath)
   useEffect(() => {
@@ -476,7 +412,7 @@ function S3Manager() {
 
 const fetchData = async (folderPath) => {
   try {
-    const response = await fetch("http://localhost:3000/api/folders/s3-list", {
+    const response = await fetch(`/api/folders/s3-list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -539,7 +475,7 @@ const fetchData = async (folderPath) => {
     const handleDownloadAll = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:3000/api/download-files/", {
+        const response = await fetch(`/api/download-files/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -561,26 +497,60 @@ const fetchData = async (folderPath) => {
       setLoading(false);
     };
     // Function to download file from a pre-signed URL
+    // const downloadFile = async (url) => {
+    //   try {
+    //     // Extract the correct filename (remove query params)
+    //     console.log("url >>>>", url)
+    //     const filename = decodeURIComponent(url.split("/").pop().split("?")[0]);
+    //     const response = await fetch(url);
+    //     if (!response.ok) throw new Error(`Failed to download: ${response.status}`);
+    //     const blob = await response.blob();
+    //     const blobUrl = URL.createObjectURL(blob);
+    //     const link = document.createElement("a");
+    //     link.href = blobUrl;
+    //     link.download = filename; // Correct filename for all file types
+    //     document.body.appendChild(link);
+    //     link.click();
+    //     document.body.removeChild(link);
+    //     URL.revokeObjectURL(blobUrl); // Cleanup memory
+    //   } catch (error) {
+    //     console.error("Download Error:", error);
+    //   }
+    // };
+
+
     const downloadFile = async (url) => {
       try {
         // Extract the correct filename (remove query params)
-        console.log("url >>>>", url)
+        console.log("url >>>>", url);
         const filename = decodeURIComponent(url.split("/").pop().split("?")[0]);
+    
+        // Ensure this is triggered by a user action (e.g., a click)
         const response = await fetch(url);
+    
+        // Check for a valid response
         if (!response.ok) throw new Error(`Failed to download: ${response.status}`);
+    
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
+    
+        // Create a temporary link element to trigger download
         const link = document.createElement("a");
         link.href = blobUrl;
         link.download = filename; // Correct filename for all file types
+    
+        // Add the link to the document, trigger the click, and remove the link
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl); // Cleanup memory
+    
+        // Cleanup memory by revoking the blob URL
+        URL.revokeObjectURL(blobUrl);
       } catch (error) {
         console.error("Download Error:", error);
       }
     };
+    
 
 
     const handleFileDownload = async (file) => {
@@ -592,7 +562,7 @@ const fetchData = async (folderPath) => {
       setLoading(true);
       
       try {
-        const response = await fetch("http://localhost:3000/api/folders/download-files/", {
+        const response = await fetch(`/api/folders/download-files/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -773,7 +743,7 @@ const fetchData = async (folderPath) => {
 
       <div className="container">
         <button className="back-btn" onClick={goBack} disabled={history.length === 0}>
-          🔙 Back
+          :back: Back
         </button>
 
         <h2 className="folder-title">Folder: {currentPath}</h2>
@@ -781,13 +751,13 @@ const fetchData = async (folderPath) => {
         <div className="grid-container">
   {data.folders.map((folder) => (
     <div key={folder} className="card folder" onDoubleClick={() => handleFolderClick(folder)}>
-      <span title={folder}>📁 {folder}</span>
+      <span title={folder}>:file_folder: {folder}</span>
     </div>
   ))}
 
   {data.files.map((file) => (
     <div key={file} className="card file">
-      <span title={file}>📄 {file}</span>
+      <span title={file}>:page_facing_up: {file}</span>
 
       {/* Add a download button for each file */}
       <button

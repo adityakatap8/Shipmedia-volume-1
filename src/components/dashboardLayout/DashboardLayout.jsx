@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux'; // Import useDispatch
 import { setUser } from '../../redux/userSlice/userSlice'; // Import the setUser action
 import Sidebar from '../sidebar/Sidebar';
-import Navbar1 from '../dashboardNavbar/Navbar1';
 import ContentWrapper from '../contentWrapper/ContentWrapper';
+import { Navebar1 } from '../dashboardNavbar/Navbar1';
 
 const DashboardLayout = ({ children }) => {
   const [userData, setUserData] = useState(null);
@@ -15,24 +15,40 @@ const DashboardLayout = ({ children }) => {
   const dispatch = useDispatch(); // Get dispatch function
 
   useEffect(() => {
+    console.log("Component mounted or updated");
+
+    // Function to get a cookie by name
+    const getCookie = (name) => {
+      const cookieString = document.cookie;
+      const cookies = cookieString.split('; ');
+      for (let i = 0; i < cookies.length; i++) {
+        const [cookieName, cookieValue] = cookies[i].split('=');
+        if (cookieName === name) {
+          return decodeURIComponent(cookieValue);
+        }
+      }
+      return null;
+    };
+
     const checkAuthAndFetchData = async () => {
       console.log('Checking authentication...');
-      
-      const token = window.localStorage.getItem("token");
-      
-      if (!token || !token.trim()) {
+
+      const token = getCookie('token');
+
+      if (!token) {
         console.log('No valid token found');
         setIsAuthenticated(false);
         return;
       }
-      
+
       try {
         console.log('Fetching user data...');
-        const response = await fetch('http://localhost:3000/api/auth/user', {
+        const response = await fetch(`/api/auth/user`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -40,6 +56,7 @@ const DashboardLayout = ({ children }) => {
         }
 
         const userData = await response.json();
+        console.log("userData inside the dashboard layout", userData)
         setUserData(userData);
         setIsAuthenticated(true);
 
@@ -63,13 +80,13 @@ const DashboardLayout = ({ children }) => {
   return (
     <div className="flex h-screen">
       <ContentWrapper>
-        <Navbar1 user={userData} isAuthenticated={isAuthenticated} />
+        <Navebar1 user={userData} isAuthenticated={isAuthenticated} />
         <main className="flex-1 overflow-hidden">
           <div className="flex flex-col md:flex-row">
-            <aside className={`transition-all ${isSidebarCollapsed ? 'w-16' : 'w-64'} bg-white-800`}>
+            {/* <aside className={`transition-all ${isSidebarCollapsed ? 'w-16' : 'w-64'} bg-white-800`}>
               <Sidebar isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
-            </aside>
-            <div className={`flex-1 p-4 ${isSidebarCollapsed ? 'ml-16' : 'ml-0'}`}>
+            </aside> */}
+            <div className={`flex-1 ${isSidebarCollapsed ? 'ml-1' : 'ml-0'}`}>
               {children}
             </div>
           </div>

@@ -10,22 +10,48 @@ import axios from 'axios';
 import { setProjectName, setMovieName } from '../../redux/projectInfoSlice/projectInfoSlice';  // Import actions
 import { useProjectInfo } from '../../contexts/projectInfoContext';  // Import the custom hook
 import ClipLoader from 'react-spinners/ClipLoader';  // Importing the spinner
+import Cookies from "js-cookie";
+import Loader from '../loader/Loader';
+import Toast from '../toast/Toast';
 
 function ProjectsDashboard() {
   const [projectData, setProjectData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false); 
+  const [showModal, setShowModal] = useState(false);
   const [projectName, setProjectNameState] = useState('');  // Changed to store the project name
   const [movieName, setMovieNameState] = useState('');  // Local state for movie name
   const [isCreating, setIsCreating] = useState(false);  // Track the creating state
   const [isSuccess, setIsSuccess] = useState(false);  // Track the success state
   const navigate = useNavigate();
 
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState('info');
+
   const dispatch = useDispatch(); // Initialize dispatch
 
   // Access user data from UserContext
   const { userData } = useContext(UserContext);
-  const orgName = userData ? userData.orgName : ''; 
+  const orgName = userData ? userData.orgName : '';
+
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState('');
+
+  useEffect(() => {
+    if (userData && userData.name) {
+      const { name, role } = userData;
+  
+      console.log('User data:', userData); // Existing
+      console.log('User role:', role);     // ✅ NEW: log the role
+  
+      setWelcomeMessage(`Welcome, ${name}!`);
+      setShowWelcome(true);
+    }
+  }, [userData]);
+  
+  useEffect(() => {
+    console.log('Toast visibility:', showWelcome); // Check the toast visibility in production
+  }, [showWelcome]);
 
   // Get token and projectFolder from Redux store
   const token = useSelector((state) => state.auth.token);
@@ -33,57 +59,119 @@ function ProjectsDashboard() {
   // Access projectName and movieName from the context
   const { setProjectName, setMovieName } = useProjectInfo();
 
+
+
   // Fetch existing projects from the server
   useEffect(() => {
-    if (userData && userData.userId) {
-      axios
-        .get(`http://localhost:3000/api/projects/${userData.userId}`)
+    console.log("Component mounted or updated");
+
+    // Get the token and userData from cookies
+    const token = Cookies.get("token");
+    const userDataCookie = Cookies.get("userData");
+
+    if (token && userDataCookie) {
+      try {
+        const userData = JSON.parse(userDataCookie);
+        console.log("Token from cookies:", token);
+        console.log("User data from cookies:", userData);
+
+        // Check if userData contains userId
+        if (userData.userId) {
+          console.log("Making API call with token...");
+
+          axios
+            .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+            })
+            .then((response) => {
+              setProjectData(response.data);
+              setLoading(false);
+            })
+            .catch((err) => {
+              console.error("Error fetching projects:", err);
+              setLoading(false);
+            });
+        } else {
+          console.log("User data does not contain userId");
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error parsing userData from cookies:", error);
+        setLoading(false);
+      }
+    } else {
+      console.log("No token or user data found in cookies");
+      setLoading(false);
+    }
+  }, []);
+
+  // Function to fetch project data
+  const fetchProjectData = () => {
+    console.log("Fetching data...");
+
+    // Get user data from cookies
+    const storedUserData = Cookies.get("userData");
+    const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
+
+    console.log("User Data:", parsedUserData);
+
+    if (parsedUserData && parsedUserData.userId) {
+      setLoading(true);
+
+      // Make request with cookies included
+      axios.get(`https://www.mediashippers.com/api/projects/${parsedUserData.userId}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+      })
         .then((response) => {
           setProjectData(response.data);
           setLoading(false);
         })
         .catch((err) => {
-          console.error('Error fetching projects:', err);
+          console.error("Error fetching projects:", err);
           setLoading(false);
         });
+    } else {
+      console.error("User data not found in cookies.");
+      setLoading(false);
     }
+  };
+
+
+  // Call the function inside useEffect
+  useEffect(() => {
+    fetchProjectData();
   }, [userData]);
 
+
   const handleCreateProject = () => {
-    if (orgName && projectData.length >= 0 && projectName) {
-      // Set project name and movie name to the context
-      setProjectName(projectName);  // Save projectName to the context
-      setMovieName(movieName);       // Save movieName to the context
-  
-      // Check if token exists
-      if (!token) {
-        alert('User is not authenticated. Please log in.');
-        return;
-      }
-  
-      setIsCreating(true);  // Start the loading state
-  
-      // Close the modal right after the user clicks the button
-      setShowModal(false);
-  
-      // Call the backend to create the project folder in S3
+    if (orgName && projectName) {
+      setProjectName(projectName);
+      setMovieName(movieName);
+
+      setIsCreating(true); // Start the loading state
+      setShowModal(false); // Close the modal
+      
+      // Step 1: Create the project folder in S3
       axios
         .post(
-          'http://localhost:3000/api/folders/create-project-folder',
+          `https://www.mediashippers.com/api/folders/create-project-folder`,
           {
             orgName: orgName,
             projectName: projectName,
           },
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true, // 🔐 Send cookies
           }
         )
         .then((response) => {
           console.log('Project folder created successfully:', response.data);
-  
-          // After successfully creating the project folder, create subfolders inside it
+
           const subFolders = [
             'trailer',
             'film stills',
@@ -92,73 +180,82 @@ function ProjectsDashboard() {
             'info docs',
             'master',
           ];
-  
-          // Create subfolders inside the project folder
+
+          // Step 2: Create subfolders
           axios
             .post(
-              'http://localhost:3000/api/folders/create-subfolders',
+              `https://www.mediashippers.com/api/folders/create-subfolders`,
               {
                 orgName: orgName,
                 projectName: projectName,
-                subFolders: subFolders, 
+                subFolders: subFolders,
               },
               {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
+                withCredentials: true,
               }
             )
             .then((subfolderResponse) => {
               console.log('Subfolders created successfully:', subfolderResponse.data);
-  
-              // After successfully creating all subfolders, create the project info in the database
+
+              // Step 3: Create project info in DB
               axios
                 .post(
-                  'http://localhost:3000/api/projectsInfo/createProjectInfo',
+                  `https://www.mediashippers.com/api/projectsInfo/createProjectInfo`,
                   {
                     projectName: projectName,
                     projectTitle: movieName,
                     userId: userData.userId,
                   },
                   {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
+                    withCredentials: true,
                   }
                 )
                 .then((projectResponse) => {
                   console.log('Project saved successfully:', projectResponse.data);
-                  
-                  // Show success message and wait before redirecting
-                  setIsSuccess(true);  // Show success message
+                  setIsSuccess(true);
+                  setToastMessage('Project created successfully!');
+                  setToastSeverity('success');
+                  setToastOpen(true);
                   setTimeout(() => {
                     navigate(`/projects-form`);
-                  }, 2000);  // Delay the redirect by 2 seconds
-  
+                  }, 2000);
                 })
                 .catch((error) => {
                   console.error('Error saving project info:', error);
-                  alert('Failed to save project info.');
+                  setToastMessage('Failed to save project info.');
+                  setToastSeverity('error');
+                  setToastOpen(true);
                   setIsCreating(false);
                 });
             })
             .catch((subfolderError) => {
               console.error('Error creating subfolders:', subfolderError);
-              alert('Failed to create subfolders');
+              setToastMessage('Failed to create subfolders');
+              setToastSeverity('error');
+              setToastOpen(true);
               setIsCreating(false);
             });
         })
         .catch((error) => {
           console.error('Error creating folder:', error);
-          alert('Failed to create folder for the project.');
+          setToastMessage('Failed to create folder for the project.');
+          setToastSeverity('error');
+          setToastOpen(true);
           setIsCreating(false);
         });
     } else {
-      alert('Please provide a valid project name.');
+      setToastMessage('Please provide a valid project name.');
+      setToastSeverity('warning');
+      setToastOpen(true);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const handleCloseToast = () => {
+    setToastOpen(false);
+  };
+
+
+  if (loading) return <div><Loader /></div>;
 
   return (
     <div className="projects-dashboard">
@@ -171,6 +268,15 @@ function ProjectsDashboard() {
           <img src={videoEditing} alt="Clapper Board" className="w-12 h-12" />
         </button>
       </div>
+
+      {/* <div className="add-button">
+        <button
+          className="add-project-button flex items-center gap-2"
+          onClick={fetchProjectData}
+        >
+          Refresh the Page
+        </button>
+      </div> */}
 
       {showModal && (
         <div className="modal fade show" style={{ display: 'block' }} id="exampleModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -221,7 +327,8 @@ function ProjectsDashboard() {
 
       {isCreating && (
         <div className="loading-container p-10">
-          <ClipLoader color="#EE794E" loading={isCreating} size={70} />
+          {/* <ClipLoader color="#EE794E" loading={isCreating} size={70} /> */}
+          <Loader />
           <p className='text-white text-xl'>Creating your project... Please wait.</p>
         </div>
       )}
@@ -237,9 +344,18 @@ function ProjectsDashboard() {
         <div className="projects-list">
           {projectData.map((project) => (
             <div key={project._id} className="project-card">
-              <div className="movie-poster">
+              {/* <div className="movie-poster">
                 <img src={movie} alt="Movie Poster" />
+              </div> */}
+              <div className="movie-poster">
+                <img
+                  src={movie}
+                  alt="Movie Poster"
+                  width="400"  // Set your desired width
+                  height="600" // Set your desired height
+                />
               </div>
+
               <div className="project-info">
                 <h3>{project.projectTitle}</h3>
                 <div className="buttons">
@@ -261,7 +377,16 @@ function ProjectsDashboard() {
           <p>"If you build it, they will come." – Field of Dreams</p>
         </div>
       )}
+
+      <Toast
+        message={welcomeMessage}
+        severity="success"
+        open={showWelcome}
+        onClose={() => setShowWelcome(false)}
+      />
     </div>
+
+
   );
 }
 

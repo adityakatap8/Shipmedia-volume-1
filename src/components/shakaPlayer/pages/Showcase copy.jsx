@@ -28,7 +28,7 @@ const Showcase = ({ children }) => {
   // Fetch project data from the backend
   useEffect(() => {
     axios
-      .get('http://localhost:3000/api/projects') // Adjusted endpoint
+      .get('https://mediashippers.com/api/projects') // Adjusted endpoint
       .then((response) => {
         setProjectData(response.data); // Store project data in state
         console.log("Fetched Project IDs:", response.data.map(project => project._id)); // Log all projectIds to console
@@ -46,7 +46,7 @@ const Showcase = ({ children }) => {
     try {
       const specificationsPromises = projects.map((project) => {
         console.log(`Fetching specifications for project ID: ${project._id}`); // Log each project ID being requested
-        return axios.get(`http://localhost:3000/api/project-form/data/${project._id}`);
+        return axios.get(`/api/project-form/data/${project._id}`);
       });
 
       const specificationsResponses = await Promise.all(specificationsPromises);

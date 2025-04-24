@@ -1,104 +1,106 @@
 .brief-synopsis{
-    padding: 30px;
-    height: auto;
-    width: 950px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 30px;
+  height: auto;
+  width: 950px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 /* Categories Page Specific Styles */
 .categories-page {
-    background-color: var(--stream-background);
-  }
-  
+  background-color: var(--stream-background);
+}
 
-  
-  .categories-title {
-    font-size: 2rem;
-    color: var(--stream-text-primary);
-    margin-bottom: 2rem;
-  }
-  
-  .categories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .categories-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem 1.5rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    border-bottom: 2px solid darkblue;
-  }
 
-  .categories-button:hover{
+
+.categories-title {
+  font-size: 2rem;
+  color: var(--stream-text-primary);
+  margin-bottom: 2rem;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+.categories-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid darkblue;
+}
+
+.categories-button:hover{
 border-bottom: 2px solid #1F51FF;
-  }
-  
-  /* Selected button styles */
-  .categories-button-selected {
-    background-color: #3182ce; /* Blue background */
-    color: white;
-    border-color: white;
-  }
-  
-  /* Button hover styles (non-selected) */
-  .categories-button-hover:hover {
-    background-color: white;
-    color: #3182ce; /* Blue text on hover */
-    border-color: #3182ce;
-  }
-  
-  /* Category content styles */
-  .categories-content {
-    margin-top: 2rem;
-    color: var(--stream-text-secondary);
-  }
-  
-  .categories-subtitle {
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-  
-  .showcase-card img {
-    transition: box-shadow 0.3s ease-in-out; /* Smooth transition for box-shadow */
-  }
-  
-  .showcase-card img:hover {
-    box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6);
-   width: auto;
-   
-  }
-  
- 
+}
+
+/* Selected button styles */
+.categories-button-selected {
+  background-color: #3182ce; /* Blue background */
+  color: white;
+  border-color: white;
+}
+
+/* Button hover styles (non-selected) */
+.categories-button-hover:hover {
+  background-color: white;
+  color: #3182ce; /* Blue text on hover */
+  border-color: #3182ce;
+}
+
+/* Category content styles */
+.categories-content {
+  margin-top: 2rem;
+  color: var(--stream-text-secondary);
+}
+
+.categories-subtitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.showcase-card img {
+  transition: height 0.4s ease, box-shadow 0.3s ease-in-out;
+  height: 250px !important;
+  object-fit: contain;
+}
+
+.showcase-card img:hover {
+  box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6);
+  height: 200px !important;
+}
+
+
+
 
 /* Apply box-shadow effect only on the image when selected */
 .selected {
-  box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6); /* Blue shadow effect */
-
+box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6); /* Blue shadow effect */
+height: auto!important;
 }
 
 /* Selected effect for the project image */
 .showcase-card img.selected {
-  box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6); /* Blue shadow effect */
-  width: auto;
-  transition: box-shadow 0.3s ease-in-out; /* Smooth transition */
+box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6); /* Blue shadow effect */
+width: auto;
+transition: box-shadow 0.3s ease-in-out; /* Smooth transition */
 }
 
 /* Selected effect for the service buttons */
 .selected-service {
-  box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6); /* Blue shadow effect */
-  border: 2px solid rgba(31, 81, 255, 0.6); /* Optional: Add border for clarity */
-  transition: box-shadow 0.3s ease-in-out; /* Smooth transition */
+box-shadow: 0 4px 100px rgba(31, 81, 255, 0.6); /* Blue shadow effect */
+border: 2px solid rgba(31, 81, 255, 0.6); /* Optional: Add border for clarity */
+transition: box-shadow 0.3s ease-in-out; /* Smooth transition */
 }
 
 
@@ -106,50 +108,50 @@ border-bottom: 2px solid #1F51FF;
 
 /* Glass Effect */
 .project-description {
-  background: rgba(255, 255, 255, 0.1); /* Transparent white background */
-  border-radius: 10px;
-  padding: 20px;
-  backdrop-filter: blur(10px); /* Applies the glass effect */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Adds subtle shadow */
-  width: 200%; /* Increases width */
-  margin: 0 auto; /* Centers the container */
-  text-align: left; /* Ensures text is left-aligned */
-  margin-top: 20px;
+background: rgba(255, 255, 255, 0.1); /* Transparent white background */
+border-radius: 10px;
+padding: 20px;
+backdrop-filter: blur(10px); /* Applies the glass effect */
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Adds subtle shadow */
+width: 200%; /* Increases width */
+margin: 0 auto; /* Centers the container */
+text-align: left; /* Ensures text is left-aligned */
+margin-top: 20px;
 }
 
 .project-description p {
-  font-size: 1.1rem; /* Adjust text size */
-  color: white; /* White text color for contrast */
+font-size: 1.1rem; /* Adjust text size */
+color: white; /* White text color for contrast */
 }
 
 .glass-effect{
-  background: rgba(255, 255, 255, 0.1); /* Transparent white background */
-  border-radius: 10px;
-  padding: 20px;
-  backdrop-filter: blur(10px); /* Applies the glass effect */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-  width: 100%;
-  text-align: left;
+background: rgba(255, 255, 255, 0.1); /* Transparent white background */
+border-radius: 10px;
+padding: 20px;
+backdrop-filter: blur(10px); /* Applies the glass effect */
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+width: 100%;
+text-align: left;
 }
 
 .player-close-button{
-  background-color: black;
-  border: 1px solid white;
-  border-radius: 40px;
-  position: absolute;
-  top: 60px;
-  right: -30px;
-  width: auto;
-  height: auto;
-  padding: 10px 20px;
-  font-size: 30px;
-  font-weight: 600;
+background-color: black;
+border: 1px solid white;
+border-radius: 40px;
+position: absolute;
+top: 60px;
+right: -30px;
+width: auto;
+height: auto;
+padding: 10px 20px;
+font-size: 30px;
+font-weight: 600;
 }
 
 .video-player{
-  z-index: 1;
- 
-  border-radius: 20px;
+z-index: 1;
+
+border-radius: 20px;
 }
 
 .video-player video{
@@ -157,5 +159,5 @@ border-radius: 20px;
 }
 
 .glass-effect p{
-  font-size: 20px;
+font-size: 20px;
 }

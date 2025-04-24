@@ -1,60 +1,60 @@
 import { createSlice } from '@reduxjs/toolkit';
+import Cookies from 'js-cookie';
 
-// Check if there's a token in localStorage and if so, set the authentication state
-const storedToken = localStorage.getItem('token');
-const storedUserData = localStorage.getItem('userData');
+// Get token and user data from cookies
+const storedToken = Cookies.get('token');
+const storedUserData = Cookies.get('userData');
 let parsedUser = null;
 
 if (storedUserData) {
   try {
     parsedUser = JSON.parse(storedUserData);
   } catch (e) {
-    console.error('Error parsing user data from localStorage', e);
+    console.error('Error parsing user data from cookies', e);
   }
 }
 
 const initialState = {
   token: storedToken || null,
-  user: parsedUser,  // User is now safely parsed
+  user: parsedUser,
   error: null,
   successMessage: '',
-  isAuthenticated: storedToken ? true : false,  // Set isAuthenticated based on the presence of the token
+  isAuthenticated: !!storedToken,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Action to set the authentication token and user data
+    // Set token and user info in cookies
     setAuthToken: (state, action) => {
-      const { token, user } = action.payload; // Expect token and user in the payload
+      const { token, user } = action.payload;
       state.token = token;
       state.user = user;
       state.isAuthenticated = true;
-      localStorage.setItem('token', token);  // Store the token in localStorage
-      localStorage.setItem('userData', JSON.stringify(user));  // Store the user data in localStorage
+
+      Cookies.set('token', token, { expires: 1 }); // Expires in 1 day
+      Cookies.set('userData', JSON.stringify(user), { expires: 1 });
     },
-    
-    // Action to clear the authentication token and user data
+
+    // Clear token and user info from cookies
     clearAuthToken: (state) => {
       state.token = null;
       state.user = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('token');  // Remove the token from localStorage
-      localStorage.removeItem('userData');  // Remove the user data from localStorage
+
+      Cookies.remove('token');
+      Cookies.remove('userData');
     },
 
-    // Action to set the error message
     setError: (state, action) => {
       state.error = action.payload;
     },
 
-    // Action to set the success message
     setSuccessMessage: (state, action) => {
       state.successMessage = action.payload;
     },
-    
-    // Action to clear messages (error and success)
+
     clearMessages: (state) => {
       state.error = null;
       state.successMessage = '';
@@ -62,8 +62,12 @@ const authSlice = createSlice({
   },
 });
 
-// Export the actions
-export const { setAuthToken, clearAuthToken, setError, setSuccessMessage, clearMessages } = authSlice.actions;
+export const {
+  setAuthToken,
+  clearAuthToken,
+  setError,
+  setSuccessMessage,
+  clearMessages,
+} = authSlice.actions;
 
-// Export the reducer
 export default authSlice.reducer;

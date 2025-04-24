@@ -9,20 +9,20 @@ export function PlayerMenu() {
             to="/showcase-projects" 
             className="text-stream-text-primary hover:text-stream-accent transition-colors"
           >
-            Showcase Projects
+            Showcase Catalogue
           </Link>
-          <Link 
+          {/* <Link 
             to="/categories" 
             className="text-stream-text-primary hover:text-stream-accent transition-colors"
           >
             Categories
-          </Link>
-          <Link 
+          </Link> */}
+          {/* <Link 
             to="/search" 
             className="text-stream-text-primary hover:text-stream-accent transition-colors"
           >
             Search
-          </Link>
+          </Link> */}
         </nav>
       </div>
     </div>
