@@ -366,7 +366,7 @@ const uploadFileToS3 = async (file, baseUrl) => {
   console.log("file:----====>>>", file)
 
   try {
-      const response = await fetch(`/api/files/upload-file`, {
+      const response = await fetch(`https://www.mediashippers.com/api/files/upload-file`, {
           method: 'POST',
           body: formData,
       });

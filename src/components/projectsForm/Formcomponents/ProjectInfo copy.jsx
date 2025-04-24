@@ -14,7 +14,10 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   const [accessKey, setAccessKey] = useState(''); // To store S3 access key
   const [secretKey, setSecretKey] = useState('');
 
-  const [trailerUploadUrl, setTrailerUploadUrl] = useState('');
+
+
+
+  const [trailerUploadUrl, setTrailerUploadUrl] = useState(''); 
 
   useEffect(() => {
     console.log("recieved from projectForm:", projectName);
@@ -70,7 +73,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     const userId = userData?.userId;
     if (userId && projectName) {
       try {
-        const response = await axios.get(`/api/projectInfo/${userId}`, {
+        const response = await axios.get(`https://www.mediashippers.com/api/projectInfo/${userId}`, {
           params: { projectName }
         });
         console.log('Project Data:', response.data);
@@ -207,8 +210,8 @@ const onDropTrailer = (acceptedFiles) => {
 
 
 
-  // Adjusted code for Movie File
-  const onDropMovie = (acceptedFiles) => {
+   // Adjusted code for Movie File
+   const onDropMovie = (acceptedFiles) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       onInputChange({ movieFile: file.name });      // Store only the file name
@@ -229,9 +232,17 @@ const onDropTrailer = (acceptedFiles) => {
     }
   };
 
-  useEffect(() => {
+  useEffect( () => {
     console.log(trailerUrl);
-  }, [trailerUrl])
+  },[trailerUrl])
+
+  
+
+
+ 
+
+
+
 
   const { getRootProps: getRootPropsPoster, getInputProps: getInputPropsPoster } = useDropzone({
     onDrop: onDropPoster,

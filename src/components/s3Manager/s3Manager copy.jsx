@@ -34,7 +34,7 @@ function S3Manager() {
 
   // Axios setup with token handling
   const axiosInstance = axios.create({
-    baseURL: `/api`,
+    baseURL: `https://mediashippers.com/api`,
     headers: {
       'Authorization': `Bearer ${token}`,
     },

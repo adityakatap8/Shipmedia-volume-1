@@ -71,7 +71,7 @@ const DashboardLayout = ({ children }) => {
     };
 
     checkAuthAndFetchData();
-  }, [dispatch]);
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(prevState => !prevState); 

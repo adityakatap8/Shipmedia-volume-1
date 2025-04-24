@@ -70,6 +70,7 @@ function ViewAndEditForm() {
 
   const {
     projectInfoData,
+    submitterInfoData,
     creditsInfoData,
     specificationsInfoData,
     screeningsInfoData,
@@ -86,6 +87,15 @@ function ViewAndEditForm() {
         }
         setIsEditingProject(!isEditingProject);
         break;
+  
+      case 'submitter':
+        if (isEditingSubmitter) {
+          updatedData = projectData.submitterInfoData;
+          await updateSection(projectId, section, updatedData);
+        }
+        setIsEditingSubmitter(!isEditingSubmitter);
+        break;
+  
       case 'credits':
         if (isEditingCredits) {
           updatedData = projectData.creditsInfoData;
