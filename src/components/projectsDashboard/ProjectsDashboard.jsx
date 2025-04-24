@@ -64,36 +64,36 @@ function ProjectsDashboard() {
   // Fetch existing projects from the server
   useEffect(() => {
     console.log("Component mounted or updated");
-
-    // Get the token and userData from cookies
+  
     const token = Cookies.get("token");
     const userDataCookie = Cookies.get("userData");
-
+  
     if (token && userDataCookie) {
       try {
         const userData = JSON.parse(userDataCookie);
         console.log("Token from cookies:", token);
         console.log("User data from cookies:", userData);
-
-        // Check if userData contains userId
+  
         if (userData.userId) {
           console.log("Making API call with token...");
-
+  
           axios
-            .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
-              credentials: 'include', // Ensure cookies are sent with the request
+            .get(`http://localhost:3000/api/projects/${userData.userId}`, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
+              withCredentials: true,
             })
-            .then((response) => {
-              setProjectData(response.data);
+            .then((res) => {
+              console.log("Project data:", res.data);
+              setProjectData(res.data);  // ✅ Correct usage
               setLoading(false);
             })
             .catch((err) => {
-              console.error("Error fetching projects:", err);
+              console.error("Error fetching projects:", err.response?.data || err.message);
               setLoading(false);
             });
+  
         } else {
           console.log("User data does not contain userId");
           setLoading(false);
@@ -107,6 +107,7 @@ function ProjectsDashboard() {
       setLoading(false);
     }
   }, []);
+  
 
   // Function to fetch project data
   const fetchProjectData = () => {
@@ -122,7 +123,7 @@ function ProjectsDashboard() {
       setLoading(true);
 
       // Make request with cookies included
-      axios.get(`https://www.mediashippers.com/api/projects/${parsedUserData.userId}`, {
+      axios.get(`http://localhost:3000/api/projects/${parsedUserData.userId}`, {
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`,
@@ -160,7 +161,7 @@ function ProjectsDashboard() {
       // Step 1: Create the project folder in S3
       axios
         .post(
-          `https://www.mediashippers.com/api/folders/create-project-folder`,
+          `http://localhost:3000/api/folders/create-project-folder`,
           {
             orgName: orgName,
             projectName: projectName,
@@ -184,7 +185,7 @@ function ProjectsDashboard() {
           // Step 2: Create subfolders
           axios
             .post(
-              `https://www.mediashippers.com/api/folders/create-subfolders`,
+              `http://localhost:3000/api/folders/create-subfolders`,
               {
                 orgName: orgName,
                 projectName: projectName,
@@ -200,7 +201,7 @@ function ProjectsDashboard() {
               // Step 3: Create project info in DB
               axios
                 .post(
-                  `https://www.mediashippers.com/api/projectsInfo/createProjectInfo`,
+                  `http://localhost:3000/api/projectsInfo/createProjectInfo`,
                   {
                     projectName: projectName,
                     projectTitle: movieName,

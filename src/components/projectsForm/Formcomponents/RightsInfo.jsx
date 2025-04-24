@@ -65,6 +65,8 @@ function RightsInfo({ onRightsChange, errors, setRightsInfoErrors }) {
   const [selectedPaymentTerms, setSelectedPaymentTerms] = useState([]);
   const [listPrice, setListPrice] = useState('');
 
+  
+
   const handleSelectionChange = (updatedList, field) => {
     let updatedRights = selectedRights;
     let updatedTerritories = selectedTerritories;
@@ -132,8 +134,8 @@ function RightsInfo({ onRightsChange, errors, setRightsInfoErrors }) {
           licenseTerm: selectedLicenseTerm,
           usageRights: selectedUsageRights,
           paymentTerms: selectedPaymentTerms,
-          platformType: selectedRights,
-          listPrice: value,
+          platformType: selectedRights,  // Assuming selectedRights is correct for platformType
+          listPrice: value,  // Pass the updated listPrice
         });
       }
     }
@@ -227,15 +229,15 @@ function RightsInfo({ onRightsChange, errors, setRightsInfoErrors }) {
           />
         </div>
 
-        <div className="dropdown-container text-left">
-          <h3>List Price (USD)</h3>
+        <div className="dropdown-container text-left text-black">
+          <h3 className='text-white'>List Price (USD)</h3>
           <input
-            type="text"
-            value={listPrice}
-            onChange={handleListPriceChange}
-            placeholder="Enter USD price"
-            className="price-input"
-          />
+  type="text"
+  value={listPrice}   // Ensure this is linked to the listPrice state
+  onChange={handleListPriceChange}
+  placeholder="$ Enter USD price"
+  className="price-input"
+/>
         </div>
       </div>
     </div>

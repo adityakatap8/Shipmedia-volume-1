@@ -161,3 +161,144 @@ border-radius: 20px;
 .glass-effect p{
 font-size: 20px;
 }
+
+
+
+/* Banner.css */
+
+/* Container for the banner */
+.relative {
+  position: relative;
+}
+
+/* Background image style */
+.absolute {
+  position: absolute;
+}
+
+/* Dark gradient overlay */
+.bg-gradient-to-t {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.0)); /* Bottom darker, fading up */
+  opacity: 0.7;
+}
+
+/* Content container (logo, buttons, and description) */
+.absolute {
+  position: absolute;
+}
+
+.bottom-0 {
+  bottom: 0;
+}
+
+.left-0 {
+  left: 0;
+}
+
+.w-1\/2 {
+  width: 50%;
+}
+
+.pl-10 {
+  padding-left: 2.5rem; /* pl-10 */
+}
+
+.pt-20 {
+  padding-top: 5rem; /* pt-20 */
+}
+
+/* Logo style */
+.w-64 {
+  width: 16rem; /* w-64 */
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem; /* mb-6 */
+}
+
+/* Button container */
+.flex {
+  display: flex;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem; /* mb-6 */
+}
+
+/* Project description text */
+.text-white {
+  color: white;
+}
+
+.text-lg {
+  font-size: 1.125rem; /* text-lg */
+}
+
+.mb-4 {
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+/* Unique styles for the play buttons */
+.btn-play-trailer {
+  background-color: #1e3a8a; /* Blue background */
+  color: white!important;
+  padding: 0.5rem 1.5rem;
+  border-radius: 1.25rem!important; /* Rounded corners */
+  font-size: 1rem;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+}
+
+.btn-play-trailer:hover {
+  background-color: #2563eb; /* Lighter blue on hover */
+  transform: scale(1.05); /* Slight scale on hover */
+}
+
+.btn-play-trailer:focus {
+  outline: none;
+}
+
+.btn-play-movie {
+  background-color: #1e3a8a; /* Blue background */
+  color: white!important;
+  padding: 0.5rem 1.5rem;
+  border-radius: 1.25rem!important; /* Rounded corners */
+  font-size: 1rem;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  border-radius: 30px;
+}
+
+.btn-play-movie:hover {
+  background-color: #2563eb; /* Lighter blue on hover */
+  transform: scale(1.05); /* Slight scale on hover */
+}
+
+.btn-play-movie:focus {
+  outline: none;
+}
+
+.specifications-container {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: white;
+  flex-wrap: wrap; /* for responsiveness */
+}
+
+.spec-item {
+  border: 1px solid white;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  min-width: 100px;
+  text-align: center;
+}
