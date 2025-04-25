@@ -11,6 +11,10 @@ import './index.css';
 import { UserContext } from "../../../contexts/UserContext";
 import zIndex from "@mui/material/styles/zIndex";
 import Loader from "../../loader/Loader";
+import Cookies from "js-cookie";
+import defaultBanner from '../../../assets/Banner-Holder.png'
+import defaultPoster from '../../../assets/Logo-Holder.png'
+
 
 // Function to generate image URL for crew members (directors, writers, actors, producers)
 const getCrewImageURL = (firstName, lastName, title) => {
@@ -38,6 +42,7 @@ const MovieDetails = () => {
     rating: "Yet to Decide",
   });
 
+  const token = Cookies.get("token");
   const { userData } = useContext(UserContext);
   const orgName = userData ? userData.orgName : '';
 
@@ -54,9 +59,13 @@ const MovieDetails = () => {
 
     try {
       const response = await axios.get(
-        `https://www.mediashippers.com/api/project-form/data/${projectId}`,
+        `http://localhost:3000/api/project-form/data/${projectId}`,
         {
-          withCredentials: true, // ✅ Send token from cookies
+          withCredentials: true, 
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
         }
       );
       if (response.status === 200) {
@@ -89,7 +98,10 @@ const MovieDetails = () => {
   if (!movieData) return <div>No data available.</div>; // If movieData is still null after loading, show message
 
   // Destructure the movieData into required parts
-  const { projectInfoData, creditsInfoData, specificationsInfoData } = movieData;
+  const projectInfoData = movieData?.projectInfoData || {};
+  const creditsInfoData = movieData?.creditsInfoData || {};
+  const specificationsInfoData = movieData?.specificationsInfoData || {};
+
 
   // Use the title directly, no need to sanitize it
   // const title = projectInfoData.projectTitle || "default";
@@ -151,39 +163,69 @@ const MovieDetails = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-black">
       <PlayerMenu />
 
+
       {/* Movie Hero Section */}
-      <div className="relative h-[100vh] w-full bg-cover bg-center">
+      <div className="relative h-[70vh] w-full bg-cover bg-center">
         {/* Image tag to load the background banner */}
         <img
           src={backgroundImageURL}
-          alt={title}
-          className="absolute inset-0 object-cover w-full h-full transition-all duration-700"
+          alt={projectInfoData.projectTitle}
+          className="absolute inset-0 object-cover w-full h-[50vh] transition-all duration-700"
           style={{ objectFit: 'cover' }} // Ensure it's in the background
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 w-1/2 pl-10 pt-20">
-          <img src={logoImageURL} alt={projectInfoData.projectTitle}
-            className="w-64 mb-6"
-            style={{ height: '250px', objectFit: 'contain' }} />
-          <div className="flex gap-4 mb-6">
-            <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={handlePlayTrailer}>
-              <Play className="mr-2 h-5 w-5" />
-              Play Trailer
-            </Button>
-            <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={handlePlayMovie}>
-              <Play className="mr-2 h-5 w-5" />
-              Play Movie
-            </Button>
-            {/* <Button size="lg" className="bg-white text-black hover:bg-gray-200" onClick={handlePlayMovie}>
-              <Play className="mr-2 h-5 w-5" />
-              Share Movie
-            </Button> */}
+
+        {/* Dark backdrop with gradient overlay */}
+        <div className="absolute inset-0 bg-black opacity-60"></div> {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div> {/* Gradient effect */}
+
+        {/* Content Section (Logo, Buttons, and Description) */}
+        <div className="relative h-[70vh] w-full bg-cover bg-center">
+          {/* Image tag to load the background banner */}
+          <img
+            src={backgroundImageURL}
+            alt={projectInfoData.projectTitle}
+            className="absolute inset-0 object-cover w-full h-full transition-all duration-700"
+            style={{ objectFit: 'cover' }} // Ensure it's in the background
+          />
+
+          {/* Dark backdrop with gradient overlay */}
+          <div className="absolute inset-0 bg-black opacity-60"></div> {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div> {/* Gradient effect */}
+
+          {/* Content Section (Logo, Buttons, and Description) */}
+          <div className="absolute bottom-0 left-0 flex items-end pl-5 pt-20"> {/* Position content as flex container */}
+            <img
+              src={logoImageURL}
+              alt={projectInfoData.projectTitle}
+              className="w-64 mb-6"
+              style={{ height: '250px', objectFit: 'contain' }}
+            />
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 ml-10 mb-6"> {/* Align buttons inline (side-by-side) */}
+              <Button
+                size="lg"
+                className="btn-play-trailer"
+                onClick={handlePlayTrailer}
+              >
+                <Play className="mr-2 h-5 w-5" />
+                Watch Trailer
+              </Button>
+              <Button
+                size="lg"
+                className="btn-play-movie"
+                onClick={handlePlayMovie}
+              >
+                <Play className="mr-2 h-5 w-5" />
+                Watch Sample
+              </Button>
+            </div>
           </div>
-          <p className="text-white text-lg mb-4 project-description">{projectInfoData.briefSynopsis}</p>
         </div>
+
       </div>
 
       {/* Show Trailer Video when playing */}
@@ -213,16 +255,37 @@ const MovieDetails = () => {
       )}
 
       {/* Project Information */}
-      <div className="container mx-auto px-4 py-12 text-white glass-effect">
-        <div className="p-6 rounded-lg shadow-lg bg-opacity-50  ">
-          <p><strong>Title:</strong> {projectInfoData.projectTitle}</p>
+      <div className="container mx-auto px-4 text-white glass-effect" style={{ background: "black" }}>
+        <div
+          className="flex items-center p-3 rounded-lg shadow-lg bg-opacity-50 bg-black"
+          style={{ borderBottom: "0.5px solid white" }}
+        >
+          <p className="text-white" style={{ fontSize: "50px", paddingRight: "20px" }}>
+            {projectInfoData.projectTitle}
+          </p>
+          <span
+            className="text-md text-gray-300"
+            style={{ marginTop: "20px" }}
+          >
+            ({new Date(specificationsInfoData.completionDate).getFullYear()})
+          </span>
+        </div>
+
+        {/* Specifications Information */}
+        <div className="mt-2">
+          <div className="specifications-container">
+            <p className="spec-item">{specificationsInfoData.projectType}</p>
+            <p className="spec-item">{specificationsInfoData.genres}</p>
+            <p className="spec-item">{new Date(specificationsInfoData.completionDate).getFullYear()}</p>
+            <p className="spec-item">{specificationsInfoData.language}</p>
+          </div>
         </div>
 
         {/* Credits Information */}
         <div className="mt-2 rounded-lg shadow-lg bg-opacity-50 p-6">
           <div className="">
             <p><strong>Directors:</strong></p>
-            {/* <div className="flex flex-wrap gap-6 mb-4">
+            <div className="flex flex-wrap gap-6 mb-4">
               {creditsInfoData.directors && creditsInfoData.directors.length ? creditsInfoData.directors.map((director, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <img src={director.photo ? director.photo : getCrewImageURL(director.firstName, director.lastName, title)}
@@ -231,9 +294,9 @@ const MovieDetails = () => {
                 </div>
               )) : <img src={placeholder} alt="director" className="w-20 h-20 rounded-full mb-2 object-cover" />}
 
-            </div> */}
+            </div>
 
-            {/* <p><strong>Writers:</strong></p>
+            <p><strong>Writers:</strong></p>
             <div className="flex flex-wrap gap-6 mb-4">
               {creditsInfoData.writers && creditsInfoData.writers.length ? creditsInfoData.writers.map((writer, index) => (
                 <div key={index} className="flex flex-col items-center">
@@ -264,61 +327,11 @@ const MovieDetails = () => {
                   <p>{actor.firstName} {actor.lastName}</p>
                 </div>
               )) : 'No actors available'}
-            </div> */}
-          </div>
-        </div>
-
-        {/* Specifications Information */}
-        <div className="mt-2">
-          <div className="text-left text-white p-6 rounded-lg shadow-md bg-opacity-50 backdrop-blur-md">
-            <p><strong>Project Type:</strong> {specificationsInfoData.projectType}</p>
-            <p><strong>Genres:</strong> {specificationsInfoData.genres}</p>
-            <p><strong>Completion Date:</strong> {new Date(specificationsInfoData.completionDate).toLocaleDateString()}</p>
-            <p><strong>Language:</strong> {specificationsInfoData.language}</p>
-
-            <div className="social-links mt-4 flex space-x-4">
-              <a href={projectInfoData.twitter} target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-twitter text-2xl text-white"></i>
-              </a>
-              <a href={projectInfoData.facebook} target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-facebook text-2xl text-white"></i>
-              </a>
-              <a href={projectInfoData.instagram} target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-instagram text-2xl text-white"></i>
-              </a>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Feedback Information */}
-      <div className="flex justify-center items-center bg-gray-900 mt-10">
-        <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-[500px]">
-          <h2 className="text-2xl font-bold mb-4 text-center text-gray-100">Feedback Form</h2>
-          <textarea
-            name="comment"
-            value={feedback.comment}
-            onChange={handleFeedbackChange}
-            placeholder="Leave a comment..."
-            className="w-full p-3 mb-3 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            name="rating"
-            value={feedback.rating}
-            onChange={handleFeedbackChange}
-            className="w-full p-3 mb-4 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Good">Good</option>
-            <option value="Bad">Bad</option>
-            <option value="Yet to Decide">Yet to Decide</option>
-          </select>
-          <button
-            onClick={handleSubmit}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Save
-          </button>
-        </div>
+
       </div>
     </div>
   );

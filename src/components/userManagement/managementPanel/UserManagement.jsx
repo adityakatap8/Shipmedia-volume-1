@@ -16,7 +16,7 @@ function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true); // Start loading
     try {
-      const response = await axios.get('https://www.mediashippers.com/api/auth/all-users', {
+      const response = await axios.get('http://localhost:3000/api/auth/all-users', {
         withCredentials: true,
       });
       const allUsers = response.data.users;

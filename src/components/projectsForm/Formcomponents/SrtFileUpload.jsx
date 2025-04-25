@@ -40,7 +40,7 @@ function SrtFileUpload({ onSrtFileChange, onInfoDocsFileChange }) {
     }));
 
     if (uploadedInfos.length > 0 && onInfoDocsFileChange) {
-      console.log('📦 Sending Info Docs to parent:', uploadedInfos);
+      // console.log('📦 Sending Info Docs to parent:', uploadedInfos);
       onInfoDocsFileChange(uploadedInfos); // ⬅️ Send full metadata to parent
     }
   };

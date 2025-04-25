@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import './ViewAndEditFormCss.css';
 import Loader from '../loader/Loader';
 import { UserContext } from '../../contexts/UserContext';
+import Cookies from 'js-cookie';
 
 function ViewAndEditForm() {
   const { projectId } = useParams();
@@ -20,11 +21,13 @@ function ViewAndEditForm() {
   const { userData } = useContext(UserContext);
   const orgName = userData ? userData.orgName : '';
 
+    const token = Cookies.get("token");
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       if (projectData?.projectInfoData?.userId) {
         try {
-          const response = await axios.get(`https://www.mediashippers.com/api/users/${projectData.projectInfoData.userId}`, {
+          const response = await axios.get(`http://localhost:3000/api/users/${projectData.projectInfoData.userId}`, {
             withCredentials: true
           });
 
@@ -44,8 +47,12 @@ function ViewAndEditForm() {
   useEffect(() => {
     const fetchProjectData = async () => {
       try {
-        const response = await axios.get(`https://www.mediashippers.com/api/project-form/data/${projectId}`, {
+        const response = await axios.get(`http://localhost:3000/api/project-form/data/${projectId}`, {
           withCredentials: true,
+            headers: {
+              'Authorization': `Bearer ${token}`, // Add token in header
+              'Content-Type': 'application/json',
+            },
         });
   
         if (response.status === 200) {
