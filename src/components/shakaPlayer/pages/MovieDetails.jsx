@@ -11,6 +11,10 @@ import './index.css';
 import { UserContext } from "../../../contexts/UserContext";
 import zIndex from "@mui/material/styles/zIndex";
 import Loader from "../../loader/Loader";
+import Cookies from "js-cookie";
+import defaultBanner from '../../../assets/Banner-Holder.png'
+import defaultPoster from '../../../assets/Logo-Holder.png'
+
 
 // Function to generate image URL for crew members (directors, writers, actors, producers)
 const getCrewImageURL = (firstName, lastName, title) => {
@@ -39,6 +43,7 @@ const MovieDetails = () => {
     rating: "Yet to Decide",
   });
 
+  const token = Cookies.get("token");
   const { userData } = useContext(UserContext);
   const orgName = userData ? userData.orgName : '';
 
@@ -57,7 +62,11 @@ const MovieDetails = () => {
       const response = await axios.get(
         `http://localhost:3000/api/project-form/data/${projectId}`,
         {
-          withCredentials: true, // ✅ Send token from cookies
+          withCredentials: true, 
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
         }
       );
       if (response.status === 200) {

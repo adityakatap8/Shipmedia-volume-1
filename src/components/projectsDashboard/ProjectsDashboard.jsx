@@ -14,6 +14,7 @@ import Cookies from "js-cookie";
 import Loader from '../loader/Loader';
 import Toast from '../toast/Toast';
 
+
 function ProjectsDashboard() {
   const [projectData, setProjectData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,8 @@ function ProjectsDashboard() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
 
+   const token = Cookies.get("token");
+
   useEffect(() => {
     if (userData && userData.name) {
       const { name, role } = userData;
@@ -53,8 +56,7 @@ function ProjectsDashboard() {
     console.log('Toast visibility:', showWelcome); // Check the toast visibility in production
   }, [showWelcome]);
 
-  // Get token and projectFolder from Redux store
-  const token = useSelector((state) => state.auth.token);
+
 
   // Access projectName and movieName from the context
   const { setProjectName, setMovieName } = useProjectInfo();
@@ -78,7 +80,7 @@ function ProjectsDashboard() {
           console.log("Making API call with token...");
   
           axios
-            .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
+            .get(`http://localhost:3000/api/projects/${userData.userId}`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -155,10 +157,11 @@ function ProjectsDashboard() {
     if (orgName && projectName) {
       setProjectName(projectName);
       setMovieName(movieName);
-
-      setIsCreating(true); // Start the loading state
-      setShowModal(false); // Close the modal
-      
+      setIsCreating(true);
+      setShowModal(false);
+  
+      const token = Cookies.get("token");
+  
       // Step 1: Create the project folder in S3
       axios
         .post(
@@ -168,12 +171,16 @@ function ProjectsDashboard() {
             projectName: projectName,
           },
           {
-            withCredentials: true, // 🔐 Send cookies
+            withCredentials: true,
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
           }
         )
         .then((response) => {
           console.log('Project folder created successfully:', response.data);
-
+  
           const subFolders = [
             'trailer',
             'film stills',
@@ -182,7 +189,7 @@ function ProjectsDashboard() {
             'info docs',
             'master',
           ];
-
+  
           // Step 2: Create subfolders
           axios
             .post(
@@ -194,11 +201,15 @@ function ProjectsDashboard() {
               },
               {
                 withCredentials: true,
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
               }
             )
             .then((subfolderResponse) => {
               console.log('Subfolders created successfully:', subfolderResponse.data);
-
+  
               // Step 3: Create project info in DB
               axios
                 .post(
@@ -210,6 +221,10 @@ function ProjectsDashboard() {
                   },
                   {
                     withCredentials: true,
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    },
                   }
                 )
                 .then((projectResponse) => {

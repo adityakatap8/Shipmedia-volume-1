@@ -12,7 +12,7 @@ import defaultPoster from '../../../assets/Logo-holder.png';
 import defaultBanner from '../../../assets/Banner-Holder.png';
 import { UserContext } from '../../../contexts/UserContext.jsx';
 import Cookies from 'js-cookie';
-import Filter from './Filter.jsx'
+
 import {
   Search as SearchIcon,
   GridView as GridViewIcon,
@@ -40,8 +40,7 @@ import {
   Popover,
   Rating,
 } from "@mui/material"
-import img1 from "../../../assets/assets/img1.jpg"
-import img2 from "../../../assets/assets/img2.jpg"
+
 
 const Showcase = ({ children }) => {
 
@@ -62,7 +61,7 @@ const Showcase = ({ children }) => {
       genre: "Thriller",
       year: 2022,
       price: 15.99,
-      image: img1,
+      // image: img1,
       rating: 4.2,
     },
     {
@@ -71,7 +70,7 @@ const Showcase = ({ children }) => {
       genre: "Romance",
       year: 2023,
       price: 14.99,
-      image: img2,
+      // image: img2,
       rating: 3.8,
     },
     {
@@ -80,7 +79,7 @@ const Showcase = ({ children }) => {
       genre: "Sci-Fi",
       year: 2021,
       price: 18.99,
-      image: img1,
+      // image: img1,
       rating: 4.7,
     },
     {
@@ -89,7 +88,7 @@ const Showcase = ({ children }) => {
       genre: "Comedy",
       year: 2023,
       price: 16.99,
-      image: img1,
+      // image: img1,
       rating: 4.0,
     },
     {
@@ -98,7 +97,7 @@ const Showcase = ({ children }) => {
       genre: "Drama/History",
       year: 2022,
       price: 17.99,
-      image: img1,
+      // image: img1,
       rating: 4.3,
     },
     {
@@ -107,7 +106,7 @@ const Showcase = ({ children }) => {
       genre: "Action/Adventure",
       year: 2023,
       price: 21.99,
-      image: img2,
+      // image: img2,
       rating: 4.1,
     },
     {
@@ -116,7 +115,7 @@ const Showcase = ({ children }) => {
       genre: "Thriller",
       year: 2022,
       price: 15.99,
-      image: img1,
+      // image: img1,
       rating: 3.9,
     },
     {
@@ -125,10 +124,12 @@ const Showcase = ({ children }) => {
       genre: "Romance",
       year: 2023,
       price: 14.99,
-      image: img1,
+      // image: img1,
       rating: 4.4,
     },
   ]
+
+  const token = Cookies.get("token");
 
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -166,6 +167,8 @@ const Showcase = ({ children }) => {
   // Get min and max prices
   const minPrice = Math.floor(Math.min(...movies.map((movie) => movie.price)))
   const maxPrice = Math.ceil(Math.max(...movies.map((movie) => movie.price)))
+
+  
 
   // Count movies for each filter
   const genreCounts = allGenres.reduce((acc, genre) => {
@@ -733,21 +736,27 @@ const Showcase = ({ children }) => {
 
   const fetchProjectInfoForProjects = async (projects) => {
     try {
+      const token = Cookies.get("token"); // Make sure js-cookie is imported
+  
       const projectInfoResponses = await Promise.all(
         projects.map((project) =>
           axios.get(`http://localhost:3000/api/folders/project-info/${project._id}`, {
             withCredentials: true, // Send cookies with the request (including JWT cookie)
+            headers: {
+              'Authorization': `Bearer ${token}`, // Add token in header
+              'Content-Type': 'application/json',
+            },
           })
         )
       );
-
+  
       const projectInfos = projectInfoResponses.map((response) => ({
         projectId: response.data?._id,
         projectTitle: response.data?.projectTitle,
         projectPoster: response.data?.projectPoster,
         trailerFile: response.data?.trailerFile,
       }));
-
+  
       setSpecificationsData(projectInfos);
     } catch (error) {
       toast({
@@ -758,6 +767,7 @@ const Showcase = ({ children }) => {
       console.error("Fetch error:", error.response?.data || error.message);
     }
   };
+  
 
   const getSortDisplayText = () => {
     switch (sortOption) {
@@ -782,7 +792,7 @@ const Showcase = ({ children }) => {
 
 
       <PlayerMenu />
-      <Filter />
+      
       <Box sx={styles.root}>
       <Box sx={styles.search}>
         <Box sx={styles.searchIcon}>
