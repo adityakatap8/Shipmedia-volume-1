@@ -45,42 +45,16 @@ const SpecificationsInfo = ({
     const [studentProjectValue, setStudentProjectValue] = useState(formData?.specificationsInfo?.studentProject || '');
     const [isFirstTimeFilmmaker, setIsFirstTimeFilmmaker] = useState(formData?.specificationsInfo?.isFirstTimeFilmmaker || false);
 
-    useEffect(() => {
-        console.log('Project Type changed:', projectType);
-    }, [projectType]);
-
-    useEffect(() => {
-        console.log('Runtime changed:', runtime);
-    }, [runtime]);
-
-    useEffect(() => {
-        console.log('Completion Date changed:', inputValue);
-    }, [inputValue]);
-
-    useEffect(() => {
-        console.log('Country of Origin changed:', selectedCountryOfOrigin);
-    }, [selectedCountryOfOrigin]);
-
-    useEffect(() => {
-        console.log('Country of Filming changed:', selectedCountryOfFilming);
-    }, [selectedCountryOfFilming]);
+    const [rating, setRating] = useState(formData?.specificationsInfo?.rating || '');
 
 
     useEffect(() => {
         console.log('Form data:', {
             projectType,
-            runtime,
-            completionDate,
-            countryOfOrigin,
-            countryOfFilming,
             language,
-            shootingFormat,
-            aspectRatio,
             genres,
             budget,
-            currency,
-            selectedCountryOfOrigin,
-            selectedCountryOfFilming
+            rating
         });
     }, [
         projectType, runtime, completionDate, countryOfOrigin,
@@ -88,32 +62,6 @@ const SpecificationsInfo = ({
         genres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming
     ]);
 
-    // Combined adjustTime function
-    const adjustTime = (unit, action) => {
-        setTime(prevTime => {
-            let newValue;
-
-            // Handle the logic for each unit
-            if (unit === 'hours') {
-                newValue = action === 'increase' ? Math.min(23, prevTime.hours + 1) : Math.max(0, prevTime.hours - 1);
-            } else if (unit === 'minutes') {
-                if (prevTime.seconds === 59 && action === 'increase') {
-                    newValue = Math.min(59, prevTime.minutes + 1);
-                } else if (prevTime.seconds === 0 && action === 'decrease') {
-                    newValue = Math.max(0, prevTime.minutes - 1);
-                } else {
-                    newValue = prevTime.minutes;
-                }
-            } else if (unit === 'seconds') {
-                newValue = action === 'increase' ? Math.min(59, prevTime.seconds + 1) : Math.max(0, prevTime.seconds - 1);
-            }
-
-            return {
-                ...prevTime,
-                [unit]: newValue,
-            };
-        });
-    };
 
     const handleRadioChange = (event) => {
         const value = event.target.value;
@@ -136,9 +84,10 @@ const SpecificationsInfo = ({
                 aspectRatio,
                 filmColor,
                 studentProject: studentProjectValue === 'yes',
-                isFirstTimeFilmmaker: isFirstTimeFilmmaker
+                isFirstTimeFilmmaker: isFirstTimeFilmmaker,
+                rating
             });
-        }, [formData, projectType, runtime, inputValue, selectedCountryOfOrigin, selectedCountryOfFilming, language, shootingFormat, aspectRatio, filmColor, studentProjectValue, isFirstTimeFilmmaker]);
+        }, [formData, projectType, runtime, inputValue, selectedCountryOfOrigin, selectedCountryOfFilming, language, shootingFormat, aspectRatio, filmColor, studentProjectValue, isFirstTimeFilmmaker, rating]);
     };
 
     // Handle the input change
@@ -207,22 +156,21 @@ const SpecificationsInfo = ({
                     case 'first_time_filmmaker':
                         setIsFirstTimeFilmmaker(event.target.value === 'yes');
                         break;
+                    case 'rating':
+                        setRating(value);
+                        break;
+
                 }
         }
 
         // Log state changes
         console.log('State changes:', {
             projectType,
-            runtime,
-            completionDate: inputValue,
-            countryOfOrigin: selectedCountryOfOrigin,
-            countryOfFilming: selectedCountryOfFilming,
+           
             language,
-            shootingFormat,
-            aspectRatio,
+         
             genres,
-            budget,
-            currency
+            rating
         });
 
         // Call the parent's onInputChange function with the updated data
@@ -244,28 +192,6 @@ const SpecificationsInfo = ({
         });
     };
 
-    const inputHandlers = {
-        'completion-date': setInputValue,
-        'production_budget': setBudget,
-        'country_of_origin': setSelectedCountryOfOrigin,
-        'country_of_filming': setSelectedCountryOfFilming,
-        'language': setLanguage,
-        'shooting-format': setShootingFormat,
-        'aspect-ratio': setAspectRatio,
-        'genres': setGenres,
-        'runtime': setTime,
-        'film_color': setFilmColor,
-        'student_project': setStudentProjectValue,
-        'first_time_filmmaker': setIsFirstTimeFilmmaker
-    };
-
-
-    // Handle the date selection from the calendar
-    const handleDateSelect = (date) => {
-        setSelectedDate(date);
-        setInputValue(format(date, 'MMMM dd, yyyy'));
-        setIsCalendarOpen(false);
-    };
 
 
 
@@ -281,26 +207,13 @@ const SpecificationsInfo = ({
         }
     };
 
-    // Toggle the visibility of the calendar
-    const toggleCalendar = () => {
-        setIsCalendarOpen((prev) => !prev);
-    };
 
-    useEffect(() => {
-        // This effect will run whenever the component mounts or when formData changes
-        onInputChange(formData);
-    }, [formData, onInputChange]);
 
     const getFormattedRuntime = () => {
         const { hours, minutes, seconds } = time;
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    const handleFormDataUpdate = (updatedData) => {
-        setFilmColor(updatedData.filmColor || '');
-        setStudentProjectValue(updatedData.studentProject || '');
-        setIsFirstTimeFilmmaker(updatedData.isFirstTimeFilmmaker || false);
-    };
 
 
     return (
@@ -490,175 +403,28 @@ const SpecificationsInfo = ({
                 </div>
 
                 <div className="form-sectionThree">
-
- {/* <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Run Time
-                        </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <div className="time-picker">
-                                <div className="input-container">
-                                    <label>Hours</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="23"
-                                        value={time.hours}
-                                        onChange={(e) => setTime({ ...time, hours: parseInt(e.target.value) })}
-                                    />
-                                </div>
-
-                                <div className="input-container">
-                                    <label>Minutes</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="59"
-                                        value={time.minutes}
-                                        onChange={(e) => setTime({ ...time, minutes: parseInt(e.target.value) })}
-                                    />
-                                </div>
-
-                                <div className="input-container">
-                                    <label>Seconds</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="59"
-                                        value={time.seconds}
-                                        onChange={(e) => setTime({ ...time, seconds: parseInt(e.target.value) })}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="form-section">
                         <div className="form-label grid-3 span-12-phone">
-                            Completion Date
+                            Rating
                         </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <div className="calendar-field form-field span-6 span-8-tablet span-12-phone">
-                              
-                                <input
-                                    type="text"
-                                    value={inputValue}
-                                    onChange={handleInputChange}
-                                    placeholder="Select a date"
-                                    id="completion-date"
-                                    onClick={() => setIsCalendarOpen(true)}
-                                />
-
-                                
-                                {isCalendarOpen && (
-                                    <div className="calendar-container">
-                                        <DayPicker
-                                            selected={selectedDate}
-                                            onDayClick={handleDateSelect}
-                                            showWeekNumbers={true}
-                                            disabledDates={[new Date(1900, 0, 1)]}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Production Budget
-                        </div>
-
-                        <div className="currency-form radio-buttons span-6 span-8-tablet span-12-phone">
-                          
-                            <div className="currency-form-field-input">
-                                <input
-                                    type="number"
-                                    value={budget}
-                                    onChange={(e) => handleBudgetChange(e)}
-                                    name="production_budget"
-                                    id="production_budget"
-                                    placeholder="Enter Budget"
-                                    min="0"
-                                    max="9999999999" // Set a high max value to allow large budgets
-                                />
-                            </div>
-
-                          
-                            <div className="currency-form-field-input currency-dropdown">
+                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-black">
+                            <div className="input optional form-field-input">
                                 <select
-                                    value={currency}
-                                    onChange={(e) => setCurrency(e.target.value)}
-                                    name="currency"
-                                    id="currency"
+                                    value={rating}
+                                    onChange={handleInputChange}
+                                    id="rating"
                                 >
-                                    <option value="">Select Currency</option>
-                                    {currencies.map((currencyItem) => (
-                                        <option key={currencyItem.code} value={currencyItem.code}>
-                                            {currencyItem.name} ({currencyItem.symbol})
-                                        </option>
-                                    ))}
+                                    <option value="">Select rating</option>
+                                    <option value="G">G</option>
+                                    <option value="PG">PG</option>
+                                    <option value="PG-13">PG-13</option>
+                                    <option value="R">R</option>
+                                    <option value="NC-17">NC-17</option>
+                                    <option value="Unrated / NR">Unrated / NR</option>
                                 </select>
-
-
                             </div>
                         </div>
-                    </div> */}
-
-                    {/* <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Country Of Origin
-                        </div>
-                        <div className="country-origin-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <select
-                                style={{
-                                    border: 'none',
-                                    outline: 'none',
-                                    background: 'transparent',
-                                }}
-                                className="input optional form-field-input"
-                                name="country_of_origin"
-                                id="country_of_origin"
-                                value={selectedCountryOfOrigin}
-                                onChange={(e) => setSelectedCountryOfOrigin(e.target.value)}
-                            >
-                                <option value="">Select a country</option>
-                                {countries.map((country) => (
-                                    <option key={country.name} value={country.name}>
-                                        {country.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div> */}
-
-
-                    {/* <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Country Of Filming
-                        </div>
-                        <div className="country-filming-field form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <select style={{
-                                border: 'none',
-                                outline: 'none',
-                                background: 'transparent',
-                            }}
-                                className="input optional form-field-input"
-                                name="country_of_filming"
-                                id="country_of_filming"
-                                value={selectedCountryOfFilming}
-                                onChange={(e) => setSelectedCountryOfFilming(e.target.value)}
-                            >
-                                <option className='option' value="">Select a country</option>
-                                {countries.map((country) => (
-                                    <option key={country.name} value={country.name}>
-                                        {country.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div> */}
-
+                    </div>
                 </div>
             </div>
         </div>

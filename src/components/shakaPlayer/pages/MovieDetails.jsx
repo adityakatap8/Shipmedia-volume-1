@@ -283,6 +283,14 @@ const MovieDetails = () => {
             <p className="spec-item">{specificationsInfoData.language}</p>
           </div>
         </div>
+        {/* Brief Synopsis Section */}
+<div className="mt-2">
+  <div className="brief-synopsis-container">
+    <p className="spec-label"><strong>Brief Synopsis:</strong></p>
+    <p className="spec-item">{projectInfoData?.briefSynopsis || "N/A"}</p>
+  </div>
+</div>
+
 
         {/* Credits Information */}
         <div className="mt-2 rounded-lg shadow-lg bg-opacity-50 p-6">

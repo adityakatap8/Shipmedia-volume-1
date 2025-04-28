@@ -642,3 +642,31 @@ input[type="text"] {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+
+/* Unique styles for the Language input field */
+.language-field-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  background-color: #f8f8f8;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  color: #000; /* Black text color for the language input */
+}
+
+/* Unique styles for the Rating dropdown */
+.rating-field-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  background-color: #f8f8f8;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  color: #000; /* Black text color for the dropdown */
+}
+
+/* Option Text Color for Rating */
+.rating-field-input option {
+  color: #000; /* Black text color for the options */
+}

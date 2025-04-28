@@ -13,6 +13,9 @@ import { setProjectFolderRequest, setProjectFolderSuccess, setProjectFolderFailu
 import { useProjectInfo } from '../../contexts/projectInfoContext.jsx';
 import SrtFileUpload from './Formcomponents/SrtFileUpload.jsx';
 import Cookies from 'js-cookie';
+import Loader from '../loader/Loader.jsx';
+
+
 
 function ProjectsForm() {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -20,8 +23,12 @@ function ProjectsForm() {
 
   const [srtFiles, setSrtFiles] = useState([]);
   const [infoDocs, setInfoDocs] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+
 
   const token = Cookies.get('token');
+
+
 
   const { projectName, movieName } = useProjectInfo();
   const [formData, setFormData] = useState({
@@ -178,6 +185,7 @@ function ProjectsForm() {
       // screeningsErrors: {},
       rightsInfoErrors: {},
     };
+console.log(tempErrors);
 
     if (!formData.projectInfo.projectTitle) {
       isValid = false;
@@ -202,7 +210,8 @@ function ProjectsForm() {
 
   const transferFileToLocation = async () => {
     const orgName = userData ? userData.orgName : '';
-    const projectFolder = projectName || 'defaultProjectFolder';
+    // const projectFolder = projectName || 'defaultProjectFolder';
+    const projectFolder = formData.projectInfo.projectName;
 
     const posterFileUrl = formData.projectInfo.s3SourcePosterUrl;
     const bannerFileUrl = formData.projectInfo.s3SourceBannerUrl;
@@ -221,7 +230,8 @@ function ProjectsForm() {
       const response = await fetch(`http://localhost:3000/api/folders/transfer-file`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -256,9 +266,11 @@ function ProjectsForm() {
 
   const extractFileNameFromUrl = (url) => {
     if (!url) return '';
-    const parts = url.split('/');
+    const parts = String(url).split('/');
     return parts[parts.length - 1];
   };
+  
+
 
 
 
@@ -298,8 +310,12 @@ function ProjectsForm() {
         method: 'POST',
         body: formData,
         credentials: 'include',
+        headers: {
+          
+          'Authorization': `Bearer ${token}`, // Authorization header with Bearer token
+        },
       });
-
+   
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText);
@@ -329,160 +345,43 @@ function ProjectsForm() {
   };
 
 
-
-
-
-
-
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-  //   setIsFormSubmitted(true);
-  //   console.log('Form submission started');
-
-  //   if (!userData || !userData.orgName) {
-  //     alert('Organization name is not available.');
-  //     return;
-  //   }
-
-  //   const orgName = userData.orgName;  // Now orgName is guaranteed to be available
-  //   console.log("orgName before file upload:", orgName);
-
-  //   const userId = user?.userId || '';
-  //   const errors = validateForm();
-  //   if (errors !== true) {
-  //     alert('Please fix the errors before submitting.');
-  //     return;
-  //   }
-
-  //   try {
-  //     const { projectPoster, projectBanner, trailerFile: projectTrailer, projectName, orgName: organizationName } = formData.projectInfo;
-
-  //     const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
-  //     const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
-  //     const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
-
-  //     if (shouldUploadPoster || shouldUploadBanner || shouldUploadTrailer) {
-  //       // Use organizationName from formData if available, otherwise fall back to orgName from userData
-  //       const orgNameToUse = organizationName || orgName;
-
-  //       console.log("Uploading files with orgName:", orgNameToUse);
-
-  //       const uploadedFiles = await uploadFilesToS3(
-  //         {
-  //           projectPoster: shouldUploadPoster ? projectPoster : null,
-  //           projectBanner: shouldUploadBanner ? projectBanner : null,
-  //           projectTrailer: shouldUploadTrailer ? projectTrailer : null,
-  //         },
-  //         projectName,
-  //         orgNameToUse
-  //       );
-
-  //       if (uploadedFiles.projectPosterUrl) formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
-  //       if (uploadedFiles.projectBannerUrl) formData.projectInfo.s3SourceBannerUrl = uploadedFiles.projectBannerUrl;
-  //       if (uploadedFiles.projectTrailerUrl) formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
-  //     }
-  //   } catch (uploadError) {
-  //     console.error('Error during upload:', uploadError);
-  //     alert('File upload failed: ' + uploadError.message);
-  //     return;
-  //   }
-
-  //   const updatedFormData = {
-  //     projectInfo: {
-  //       ...formData.projectInfo,
-  //       projectName,
-  //       userId,
-  //       posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
-  //       bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
-  //       trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
-  //       movieFileName: formData.projectInfo.movieFileName || ''
-  //     },
-  //     creditsInfo: { ...formData.creditsInfo, projectName, userId },
-  //     specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
-  //     screeningsInfo: { ...formData.screeningsInfo, projectName, userId },
-  //     rightsInfo: { ...formData.rightsInfo, projectName, userId },
-  //     srtInfo: {
-  //       srtFiles: formData.srtInfo.map(pair => pair.srtFile),
-  //       infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
-  //       projectName,
-  //       userId
-  //     }
-  //   };
-
-  //   try {
-  //     const response = await fetch('http://localhost:3000/api/projectForm', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       credentials: 'include',
-  //       body: JSON.stringify(updatedFormData),
-  //     });
-
-  //     const result = await response.json();
-
-  //     if (!response.ok) throw new Error(result.message);
-
-  //     dispatch(setProjectFolderSuccess(projectName));
-  //     alert('✅ Project saved successfully!');
-
-  //     const transferResult = await transferFileToLocation();
-  //     if (transferResult.success) {
-  //       alert('✅ File transfer successful!');
-  //     } else {
-  //       alert(`⚠️ File transfer failed: ${transferResult.error}`);
-  //     }
-
-  //   } catch (error) {
-  //     console.error('❌ Error saving project:', error);
-  //     alert('Error saving project: ' + error.message);
-  //     dispatch(setProjectFolderFailure(error));
-  //   }
-  // };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsFormSubmitted(true);
+    setIsUploading(true); // 🔥 Start loader
     console.log('Form submission started');
-
+  
     if (!userData || !userData.orgName) {
       alert('Organization name is not available.');
+      setIsUploading(false);
       return;
     }
-
+  
     const orgName = userData.orgName;
-    console.log("orgName before file upload:", orgName);
-
     const userId = user?.userId || '';
     const errors = validateForm();
+  
     if (errors !== true) {
-      console.error('❌ Validation failed with the following errors:', errors);
-
-      // Create a readable message string
       const errorMessages = Object.entries(errors)
         .map(([field, message]) => `${field}: ${message}`)
         .join('\n');
-
+  
       alert('Form validation failed:\n' + errorMessages);
+      setIsUploading(false);
       return;
     }
-
-
+  
     try {
+      // Uploading files
       const { projectPoster, projectBanner, trailerFile: projectTrailer, projectName, orgName: organizationName } = formData.projectInfo;
-
       const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
       const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
       const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
-
-      // Track if any file is uploaded or URL used
+  
       let uploadedFiles = {};
-
       if (shouldUploadPoster || shouldUploadBanner || shouldUploadTrailer) {
         const orgNameToUse = organizationName || orgName;
-
-        console.log("Uploading files with orgName:", orgNameToUse);
-
+  
         uploadedFiles = await uploadFilesToS3(
           {
             projectPoster: shouldUploadPoster ? projectPoster : null,
@@ -492,52 +391,40 @@ function ProjectsForm() {
           projectName,
           orgNameToUse
         );
-
-        // Update formData with URLs if uploadedFiles exist
+  
         if (uploadedFiles.projectPosterUrl) formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
         if (uploadedFiles.projectBannerUrl) formData.projectInfo.s3SourceBannerUrl = uploadedFiles.projectBannerUrl;
         if (uploadedFiles.projectTrailerUrl) formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
       } else {
-        // Handle cases where URLs are used for the assets instead of uploads
-        const posterUrl = formData.projectInfo.posterUrl;
-        const bannerUrl = formData.projectInfo.bannerUrl;
-        const trailerUrl = formData.projectInfo.trailerUrl;
-
+        // URLs fallback
+        const { posterUrl, bannerUrl, trailerUrl } = formData.projectInfo;
         if (posterUrl) formData.projectInfo.s3SourcePosterUrl = posterUrl;
         if (bannerUrl) formData.projectInfo.s3SourceBannerUrl = bannerUrl;
         if (trailerUrl) formData.projectInfo.s3SourceTrailerUrl = trailerUrl;
       }
-
-    } catch (uploadError) {
-      console.error('Error during upload:', uploadError);
-      alert('File upload failed: ' + uploadError.message);
-      return;
-    }
-
-    const updatedFormData = {
-      projectInfo: {
-        ...formData.projectInfo,
-        projectName,
-        userId,
-        posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
-        bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
-        trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
-        movieFileName: formData.projectInfo.movieFileName || ''
-      },
-      creditsInfo: { ...formData.creditsInfo, projectName, userId },
-      specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
-      // screeningsInfo: { ...formData.screeningsInfo, projectName, userId },
-      rightsInfo: { ...formData.rightsInfo, projectName, userId },
-      srtInfo: {
-        srtFiles: formData.srtInfo.map(pair => pair.srtFile),
-        infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
-        projectName,
-        userId
-      }
-    };
-    console.log('Submitting full form data:', updatedFormData);
-
-    try {
+  
+      // Form submission
+      const updatedFormData = {
+        projectInfo: {
+          ...formData.projectInfo,
+          projectName,
+          userId,
+          posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
+          bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
+          trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
+          movieFileName: formData.projectInfo.movieFileName || ''
+        },
+        creditsInfo: { ...formData.creditsInfo, projectName, userId },
+        specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
+        rightsInfo: { ...formData.rightsInfo, projectName, userId },
+        srtInfo: {
+          srtFiles: formData.srtInfo.map(pair => pair.srtFile),
+          infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
+          projectName,
+          userId
+        }
+      };
+  
       const response = await fetch('http://localhost:3000/api/projectForm', {
         method: 'POST',
         headers: {
@@ -547,32 +434,37 @@ function ProjectsForm() {
         credentials: 'include',
         body: JSON.stringify(updatedFormData),
       });
-
+  
       const result = await response.json();
-
       if (!response.ok) throw new Error(result.message);
-
+  
       dispatch(setProjectFolderSuccess(projectName));
       alert('✅ Project saved successfully!');
-
+  
       const transferResult = await transferFileToLocation();
       if (transferResult.success) {
         alert('✅ File transfer successful!');
+        navigate('/showcase-projects');
       } else {
         alert(`⚠️ File transfer failed: ${transferResult.error}`);
+        navigate('/projects-form');
       }
-
+  
     } catch (error) {
-      console.error('❌ Error saving project:', error);
+      console.error('❌ Error during submission:', error);
       alert('Error saving project: ' + error.message);
       dispatch(setProjectFolderFailure(error));
+    } finally {
+      setIsUploading(false); // 🔁 End loader
     }
   };
+  
 
 
 
   return (
     <form className="container-fluid projects-form-container">
+      {isUploading && <Loader />} 
       <div className='text-white'>
         <h1>{user.userId}</h1>
         {/* Display orgName below userId */}
@@ -648,20 +540,9 @@ function ProjectsForm() {
           }
         />
 
-        {/* <ScreeningsInfo
-          onInputChange={(data) => handleInputChange('screeningsInfo', data)}
-          screeningsInfo={formData.screeningsInfo}
-          errors={isFormSubmitted ? errors.screeningsErrors : {}}
-          setScreeningErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              screeningsErrors: errors,
-            }))
-          }
-        /> */}
       </div>
 
-      <button type="submit" to="/video-catalogue" className="save-button" onClick={handleSubmit}>
+      <button type="submit" to="/showcase-projects" className="save-button" onClick={handleSubmit}>
         Save Project
       </button>
     </form>

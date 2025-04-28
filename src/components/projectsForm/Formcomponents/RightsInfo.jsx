@@ -245,3 +245,10 @@ function RightsInfo({ onRightsChange, errors, setRightsInfoErrors }) {
 }
 
 export default RightsInfo;
+
+
+
+
+
+
+// ////////////////////////////////////////////

@@ -136,74 +136,74 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
 
 
   // Handle the file drop for the poster image
-const onDropPoster = (acceptedFiles) => {
-  if (acceptedFiles.length > 0) {
-    const file = acceptedFiles[0]; // Get the first file from accepted files
-    const posterFileName = file.name;  // Get the file name
+  const onDropPoster = (acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0]; // Get the first file from accepted files
+      const posterFileName = file.name;  // Get the file name
 
-    // Save the poster file object and the file name (if needed)
-    onInputChange({
-      projectPoster: file, // Store the actual file object
-      projectPosterName: posterFileName // Store the file name if needed
-    });
+      // Save the poster file object and the file name (if needed)
+      onInputChange({
+        projectPoster: file, // Store the actual file object
+        projectPosterName: posterFileName // Store the file name if needed
+      });
 
-    const posterUrl = URL.createObjectURL(file); // Create an object URL for local rendering
-    onInputChange({ projectPosterUrl: posterUrl }); // Store the URL for displaying the uploaded poster
-  }
-};
+      const posterUrl = URL.createObjectURL(file); // Create an object URL for local rendering
+      onInputChange({ projectPosterUrl: posterUrl }); // Store the URL for displaying the uploaded poster
+    }
+  };
 
-// Handle input changes for the URL input field (when URL option is selected)
-const handlePosterUrlChange = (e) => {
-  const { value } = e.target;
-  onInputChange({ projectPosterUrl: value }); // Store the URL directly when the user inputs it
-};
+  // Handle input changes for the URL input field (when URL option is selected)
+  const handlePosterUrlChange = (e) => {
+    const { value } = e.target;
+    onInputChange({ projectPosterUrl: value }); // Store the URL directly when the user inputs it
+  };
 
-// On drop banner image
-const onDropBanner = (acceptedFiles) => {
-  if (acceptedFiles.length > 0) {
-    const file = acceptedFiles[0];
+  // On drop banner image
+  const onDropBanner = (acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
 
-    // Save the banner file object and the file name
-    onInputChange({
-      projectBanner: file,               // ✅ match this to useEffect
-      projectBannerName: file.name      // Optional: if you want to keep a separate name
-    });
+      // Save the banner file object and the file name
+      onInputChange({
+        projectBanner: file,               // ✅ match this to useEffect
+        projectBannerName: file.name      // Optional: if you want to keep a separate name
+      });
 
-    // Create object URL for the banner image (for rendering)
-    const bannerUrl = URL.createObjectURL(file);
+      // Create object URL for the banner image (for rendering)
+      const bannerUrl = URL.createObjectURL(file);
 
-    // Save the URL for rendering
-    onInputChange({ projectBannerUrl: bannerUrl });
-  }
-};
+      // Save the URL for rendering
+      onInputChange({ projectBannerUrl: bannerUrl });
+    }
+  };
 
-// On drop trailer file (e.g., video)
-const onDropTrailer = (acceptedFiles) => {
-  if (acceptedFiles.length > 0) {
-    const file = acceptedFiles[0]; // Get the first file from accepted files
-    const trailerFileName = file.name;  // Get the file name
+  // On drop trailer file (e.g., video)
+  const onDropTrailer = (acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0]; // Get the first file from accepted files
+      const trailerFileName = file.name;  // Get the file name
 
-    // Set the trailer file object and name in the project info
-    onInputChange({
-      trailerFile: file, // Store the actual file object
-      trailerFileName: trailerFileName // Store the file name if needed
-    });
+      // Set the trailer file object and name in the project info
+      onInputChange({
+        trailerFile: file, // Store the actual file object
+        trailerFileName: trailerFileName // Store the file name if needed
+      });
 
-    // Generate the S3 URL dynamically
-    const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '_');  // Sanitize project title
-    const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${trailerFileName}`;  // S3 URL
+      // Generate the S3 URL dynamically
+      const projectFolder = projectInfo.projectName;  // Sanitize project title
+      const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${trailerFileName}`;  // S3 URL
 
-    // Log for debugging
-    console.log(`Trailer File Name: ${trailerFileName}`);
-    console.log(`Trailer S3 URL: ${trailerS3Url}`);
+      // Log for debugging
+      console.log(`Trailer File Name: ${trailerFileName}`);
+      console.log(`Trailer S3 URL: ${trailerS3Url}`);
 
-    // Set the S3 trailer URL to the project info
-    onInputChange({ trailerUrl: trailerS3Url });
+      // Set the S3 trailer URL to the project info
+      onInputChange({ trailerUrl: trailerS3Url });
 
-    // Set the local trailer URL for display in ShakaPlayer
-    setTrailerUrl(URL.createObjectURL(file));  // This creates a URL for displaying in ShakaPlayer
-  }
-};
+      // Set the local trailer URL for display in ShakaPlayer
+      setTrailerUrl(URL.createObjectURL(file));  // This creates a URL for displaying in ShakaPlayer
+    }
+  };
 
 
 
@@ -235,7 +235,7 @@ const onDropTrailer = (acceptedFiles) => {
 
   const { getRootProps: getRootPropsPoster, getInputProps: getInputPropsPoster } = useDropzone({
     onDrop: onDropPoster,
-   'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
+    'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
     multiple: false
   });
 
@@ -339,7 +339,7 @@ const onDropTrailer = (acceptedFiles) => {
   //     // Create base URL for trailers and movies (assuming you want these to be stored separately)
   //     let trailerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/`;
   //     let movieUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/movies/`;
- 
+
   //     // Append the poster URL if it exists
   //     if (projectInfo.projectPoster) {
   //       posterUrl += projectInfo.projectPoster.name;
@@ -371,34 +371,34 @@ const onDropTrailer = (acceptedFiles) => {
   useEffect(() => {
     if (projectInfo.projectTitle) {
       const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '+'); // Replace spaces with '+'
-  
+
       // Create base URL for film stills
       let posterUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/film+stills/`;
       let bannerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/film+stills/`;
-  
+
       // Create base URL for trailers and movies
       let trailerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/`;
       let movieUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/movies/`;
-  
+
       // Append the poster URL if it exists
       if (projectInfo.projectPoster) {
         posterUrl += projectInfo.projectPoster.name;
         console.log('Project Poster URL:', posterUrl);  // Log poster URL
       }
-  
+
       // Check and append the banner URL if it exists
       if (projectInfo.projectBanner) {
         console.log('projectInfo.projectBanner:', projectInfo.projectBanner); // Log the banner data
         bannerUrl += projectInfo.projectBanner.name;  // Ensure you are accessing the correct property here
         console.log('Project Banner URL:', bannerUrl);  // Log banner URL
       }
-  
+
       // Append the trailer URL if it exists
       if (projectInfo.projectTrailer) {
         trailerUrl += projectInfo.projectTrailer.name;  // Assuming projectTrailer is an object
         console.log('Project Trailer URL:', trailerUrl);  // Log trailer URL
       }
-  
+
       // Append the movie URL if it exists
       if (projectInfo.projectMovie) {
         movieUrl += projectInfo.projectMovie.name;  // Assuming projectMovie is an object
@@ -406,7 +406,7 @@ const onDropTrailer = (acceptedFiles) => {
       }
     }
   }, [projectInfo.projectTitle, projectInfo.projectPoster, projectInfo.projectBanner, projectInfo.projectTrailer, projectInfo.projectMovie]);
-  
+
 
 
 
@@ -419,7 +419,7 @@ const onDropTrailer = (acceptedFiles) => {
 
 
       {/* Project Title */}
-      <div className="form-section">
+      {/* <div className="form-section">
         <div className="form-label grid-3 span-12-phone">Title <span className="required">*</span></div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -433,10 +433,10 @@ const onDropTrailer = (acceptedFiles) => {
             {errors.projectTitle && <span className="error-text">{errors.projectTitle}</span>}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Project Name */}
-      <div className="form-section">
+      {/* <div className="form-section">
         <div className="form-label grid-3 span-12-phone">Name <span className="required">*</span></div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
@@ -450,7 +450,73 @@ const onDropTrailer = (acceptedFiles) => {
             {errors.projectName && <span className="error-text">{errors.projectName}</span>}
           </div>
         </div>
+      </div> */}
+
+
+      {/* Project Title */}
+      <div className="form-section" >
+        <div className="form-label grid-3 span-12-phone">
+          Title <span className="required">*</span>
+        </div>
+        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+          <div className="input optional form-field-input">
+            <input
+              type="text"
+              name="projectTitle"
+              value={projectInfo.projectTitle || ''}
+              onChange={handleChange}
+              placeholder="Enter title"
+            />
+            {errors.projectTitle && (
+              <span className="error-text">{errors.projectTitle}</span>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Project Name */}
+      <div className="form-section">
+        <div className="form-label grid-3 span-12-phone">
+          Name <span className="required">*</span>
+        </div>
+        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+          <div className="input optional form-field-input">
+            <input
+              type="text"
+              name="projectName"
+              value={projectInfo.projectName || ''}
+              onChange={handleChange}
+              placeholder="Enter name"
+            />
+            {errors.projectName && (
+              <span className="error-text">{errors.projectName}</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+{/* Brief Synopsis */}
+<div className="form-section">
+  <div className="form-label grid-3 span-12-phone">
+    Brief Synopsis <span className="required">*</span>
+  </div>
+  <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+    <div className="input optional form-field-input">
+      <textarea
+        name="briefSynopsis"
+        value={projectInfo.briefSynopsis || ''}
+        onChange={handleChange}
+        placeholder="Enter a brief synopsis of your movie"
+        rows={4}
+        style={{ color: 'black' }} 
+      />
+      {errors.briefSynopsis && (
+        <span className="error-text">{errors.briefSynopsis}</span>
+      )}
+    </div>
+  </div>
+</div>
+
 
 
 
@@ -762,24 +828,24 @@ const onDropTrailer = (acceptedFiles) => {
 
 
       {/* Movie File Upload */}
-      {/* <div className="form-section">
+      <div className="form-section">
         <div className="form-label grid-3 span-12-phone">
           Movie File <span className="required">*</span>
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-left">
           <div className="input optional form-field-input">
-          
+
             <div className="upload-or-url-option d-flex text-white">
 
 
             </div>
 
 
-       
+
             <div className="input optional form-field-input">
               <input
                 type="text"
-                name="movieFileName"  
+                name="movieFileName"
                 value={projectInfo.movieFileName || ''}
                 onChange={handleChange}
                 placeholder="Enter Movie File Name"
@@ -787,7 +853,7 @@ const onDropTrailer = (acceptedFiles) => {
               {errors.movieFileName && <div className="error">{errors.movieFileName}</div>}
             </div>
 
-          
+
             {projectInfo.movieFileName && (
               <div>
                 <p>Uploaded Movie File Name: {projectInfo.movieFileName}</p>
@@ -796,7 +862,7 @@ const onDropTrailer = (acceptedFiles) => {
 
           </div>
         </div>
-      </div> */}
+      </div>
 
     </div>
 
