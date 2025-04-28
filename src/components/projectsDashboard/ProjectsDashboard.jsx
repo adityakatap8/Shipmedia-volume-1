@@ -442,7 +442,7 @@ function ProjectDashboard() {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => setOpenModal(true)}
+          onClick={() => navigate("/projects-form")}
           size="small"
           sx={{
             background: "linear-gradient(135deg, #0070f3 0%, #00a2ff 100%)",
