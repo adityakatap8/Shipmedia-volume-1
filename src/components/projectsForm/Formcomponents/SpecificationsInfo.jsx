@@ -45,50 +45,25 @@ const SpecificationsInfo = ({
     const [studentProjectValue, setStudentProjectValue] = useState(formData?.specificationsInfo?.studentProject || '');
     const [isFirstTimeFilmmaker, setIsFirstTimeFilmmaker] = useState(formData?.specificationsInfo?.isFirstTimeFilmmaker || false);
 
-    const [rating, setRating] = useState(formData?.specificationsInfo?.rating || '');
+    const [rating, setRating] = useState('');
 
 
     useEffect(() => {
-        console.log('Form data:', {
+        onInputChange({
             projectType,
+            completionDate,
             language,
             genres,
-            budget,
             rating
         });
     }, [
         projectType, runtime, completionDate, countryOfOrigin,
         countryOfFilming, language, shootingFormat, aspectRatio,
-        genres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming
+        genres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming, rating
     ]);
 
 
-    const handleRadioChange = (event) => {
-        const value = event.target.value;
-        setProjectType(value);
 
-        // Call the parent's onInputChange function with the updated data
-        const [filmColor, setFilmColor] = useState(formData?.specificationsInfo?.filmColor || '');
-
-        // ... (other state declarations)
-
-        useEffect(() => {
-            onInputChange({
-                projectType,
-                runtime: getFormattedRuntime(),
-                completionDate: inputValue,
-                countryOfOrigin: selectedCountryOfOrigin,
-                countryOfFilming: selectedCountryOfFilming,
-                language,
-                shootingFormat,
-                aspectRatio,
-                filmColor,
-                studentProject: studentProjectValue === 'yes',
-                isFirstTimeFilmmaker: isFirstTimeFilmmaker,
-                rating
-            });
-        }, [formData, projectType, runtime, inputValue, selectedCountryOfOrigin, selectedCountryOfFilming, language, shootingFormat, aspectRatio, filmColor, studentProjectValue, isFirstTimeFilmmaker, rating]);
-    };
 
     // Handle the input change
     const handleInputChange = (event) => {
@@ -121,7 +96,7 @@ const SpecificationsInfo = ({
             default:
                 switch (targetId) {
                     case 'completion-date':
-                        setInputValue(format(new Date(), 'MMMM dd, yyyy'));
+                        setCompletionDate(value); // Update completion date
                         break;
                     case 'production_budget':
                         setBudget(value.replace(/[^0-9]/g, ''));
@@ -166,30 +141,14 @@ const SpecificationsInfo = ({
         // Log state changes
         console.log('State changes:', {
             projectType,
-           
+            completionDate,
             language,
-         
             genres,
             rating
         });
 
         // Call the parent's onInputChange function with the updated data
-        onInputChange({
-            projectType,
-            runtime: getFormattedRuntime(),
-            completionDate: inputValue,
-            countryOfOrigin: selectedCountryOfOrigin,
-            countryOfFilming: selectedCountryOfFilming,
-            language,
-            shootingFormat,
-            aspectRatio,
-            genres,
-            budget,
-            currency,
-            filmColor,
-            studentProject: isStudentProject,
-            isFirstTimeFilmmaker: isFirstTimeFilmmaker
-        });
+      
     };
 
 
@@ -399,29 +358,52 @@ const SpecificationsInfo = ({
                         </div>
                     </div>
 
+                    <div className="section-One text-left text-white">
+                        <div className="form-section">
+                            <div className="form-label grid-3 span-12-phone">
+                                Completion Date
+                            </div>
 
-                </div>
-
-                <div className="form-sectionThree">
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Rating
+                            <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone" style={{ width: "10px" }}>
+                                <div className="input optional form-field-input">
+                                    <input
+                                        type="date"
+                                        value={completionDate}
+                                        onChange={handleInputChange}
+                                        id="completion-date"
+                                        style={{ width: "220px" }}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-black">
-                            <div className="input optional form-field-input">
-                                <select
-                                    value={rating}
-                                    onChange={handleInputChange}
-                                    id="rating"
-                                >
-                                    <option value="">Select rating</option>
-                                    <option value="G">G</option>
-                                    <option value="PG">PG</option>
-                                    <option value="PG-13">PG-13</option>
-                                    <option value="R">R</option>
-                                    <option value="NC-17">NC-17</option>
-                                    <option value="Unrated / NR">Unrated / NR</option>
-                                </select>
+
+                    </div>
+
+                    <div className="form-sectionThree">
+                        <div className="form-section">
+                            <div className="form-label grid-3 span-12-phone">
+                                Rating
+                            </div>
+                            <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-black">
+                                <div className="input optional form-field-input">
+                                    <select
+                                        name="rating"
+                                        id="rating"
+                                        value={rating}
+                                        onChange={handleInputChange}
+
+                                        style={{ width: "220px", padding: '10px', borderRadius: "10px" }}
+                                    >
+                                        <option value="">Select rating</option>
+                                    
+                                        <option value="G">G</option>
+                                        <option value="PG">PG</option>
+                                        <option value="PG-13">PG-13</option>
+                                        <option value="R">R</option>
+                                        <option value="NC-17">NC-17</option>
+                                        <option value="Unrated / NR">Unrated / NR</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -50,7 +50,7 @@
 //     }
 
 //     try {
-//       const response = await axios.post(`https://www.mediashippers.com/api/auth/register`, {
+//       const response = await axios.post(`http://localhost:3000/api/auth/register`, {
 //         name,
 //         orgName,
 //         email,

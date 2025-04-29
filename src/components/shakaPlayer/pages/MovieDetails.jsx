@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Button } from "../components/ui/button";
@@ -14,10 +14,13 @@ import Loader from "../../loader/Loader";
 import Cookies from "js-cookie";
 import defaultBanner from '../../../assets/Banner-Holder.png'
 import defaultPoster from '../../../assets/Logo-Holder.png'
+import { useSelector } from 'react-redux';
+
 
 
 // Function to generate image URL for crew members (directors, writers, actors, producers)
 const getCrewImageURL = (firstName, lastName, title) => {
+
   // Convert names to lowercase, trim spaces, and replace multiple spaces with a single '+'
   const sanitizedFirstName = firstName.trim().toLowerCase().replace(/\s+/g, '+');  // Convert to lowercase and handle spaces
   const sanitizedLastName = lastName.trim().toLowerCase().replace(/\s+/g, '+');    // Same for last name
@@ -25,7 +28,9 @@ const getCrewImageURL = (firstName, lastName, title) => {
   return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/cast+and+crew+details/${sanitizedFirstName}+${sanitizedLastName}.jpg`;
 };
 
-const MovieDetails = () => {
+export default function MovieDetails() {
+  const { orgName } = useSelector((state) => state.auth.user.user)
+
   const { projectId } = useParams(); // Extract the projectId from URL
   const { toast } = useToast();
 
@@ -43,8 +48,7 @@ const MovieDetails = () => {
   });
 
   const token = Cookies.get("token");
-  const { userData } = useContext(UserContext);
-  const orgName = userData ? userData.orgName : '';
+
 
 
   // Fetch movie data logic
@@ -61,7 +65,7 @@ const MovieDetails = () => {
       const response = await axios.get(
         `http://localhost:3000/api/project-form/data/${projectId}`,
         {
-          withCredentials: true, 
+          withCredentials: true,
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -163,49 +167,57 @@ const MovieDetails = () => {
 
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen">
       <PlayerMenu />
 
 
       {/* Movie Hero Section */}
       <div className="relative h-[70vh] w-full bg-cover bg-center">
-        {/* Image tag to load the background banner */}
+        {/* Background Image */}
         <img
           src={backgroundImageURL}
           alt={projectInfoData.projectTitle}
-          className="absolute inset-0 object-cover w-full h-[50vh] transition-all duration-700"
-          style={{ objectFit: 'cover' }} // Ensure it's in the background
+          className="absolute inset-0 object-cover w-full h-[70vh] transition-all duration-700"
+          style={{ objectFit: 'cover' }}
         />
 
-        {/* Dark backdrop with gradient overlay */}
-        <div className="absolute inset-0 bg-black opacity-60"></div> {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div> {/* Gradient effect */}
+        {/* Overlays */}
+        <div className="absolute inset-0 bg-black opacity-60"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
 
-        {/* Content Section (Logo, Buttons, and Description) */}
-        <div className="relative h-[70vh] w-full bg-cover bg-center">
-          {/* Image tag to load the background banner */}
+        {/* Content Section */}
+        <div className="absolute bottom-0 left-0 flex pl-5 pt-20">
+          {/* Poster */}
           <img
-            src={backgroundImageURL}
+            src={logoImageURL}
             alt={projectInfoData.projectTitle}
-            className="absolute inset-0 object-cover w-full h-full transition-all duration-700"
-            style={{ objectFit: 'cover' }} // Ensure it's in the background
+            className="w-64 mb-6"
+            style={{ height: '350px', objectFit: 'contain' }}
           />
 
-          {/* Dark backdrop with gradient overlay */}
-          <div className="absolute inset-0 bg-black opacity-60"></div> {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div> {/* Gradient effect */}
-
-          {/* Content Section (Logo, Buttons, and Description) */}
-          <div className="absolute bottom-0 left-0 flex items-end pl-5 pt-20"> {/* Position content as flex container */}
-            <img
-              src={logoImageURL}
-              alt={projectInfoData.projectTitle}
-              className="w-64 mb-6"
-              style={{ height: '250px', objectFit: 'contain' }}
-            />
+          {/* Right side: Specs and Buttons */}
+          <div className="flex flex-col ml-10 mb-6 justify-end">
+            {/* Specifications List */}
+            <div className="flex gap-3 mb-4">
+              <div className="glass-card p-2">
+                <p className="text-white text-sm">{specificationsInfoData.projectType}</p>
+              </div>
+              <div className="glass-card p-2">
+                <p className="text-white text-sm">{specificationsInfoData.genres}</p>
+              </div>
+              <div className="glass-card p-2">
+                <p className="text-white text-sm">{new Date(specificationsInfoData.completionDate).getFullYear()}</p>
+              </div>
+              <div className="glass-card p-2">
+                <p className="text-white text-sm">{specificationsInfoData.language}</p>
+              </div>
+              <div className="glass-card p-2">
+                <p className="text-white text-sm">{specificationsInfoData.rating}</p>
+              </div>
+            </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 ml-10 mb-6"> {/* Align buttons inline (side-by-side) */}
+            <div className="flex gap-4">
               <Button
                 size="lg"
                 className="btn-play-trailer"
@@ -225,8 +237,10 @@ const MovieDetails = () => {
             </div>
           </div>
         </div>
-
       </div>
+
+
+
 
       {/* Show Trailer Video when playing */}
       {isTrailerPlaying && trailerUrl && (
@@ -255,9 +269,9 @@ const MovieDetails = () => {
       )}
 
       {/* Project Information */}
-      <div className="container mx-auto px-4 text-white glass-effect" style={{ background: "black" }}>
+      <div className="container text-white glass-effect">
         <div
-          className="flex items-center p-3 rounded-lg shadow-lg bg-opacity-50 bg-black"
+          className="flex items-center p-3 rounded-lg bg-opacity-50 "
           style={{ borderBottom: "0.5px solid white" }}
         >
           <p className="text-white" style={{ fontSize: "50px", paddingRight: "20px" }}>
@@ -272,77 +286,120 @@ const MovieDetails = () => {
         </div>
 
         {/* Specifications Information */}
-        <div className="mt-2">
+        {/* <div className="mt-2">
           <div className="specifications-container">
             <p className="spec-item">{specificationsInfoData.projectType}</p>
             <p className="spec-item">{specificationsInfoData.genres}</p>
             <p className="spec-item">{new Date(specificationsInfoData.completionDate).getFullYear()}</p>
             <p className="spec-item">{specificationsInfoData.language}</p>
+            <p className="spec-item">{specificationsInfoData.rating}</p>
           </div>
-        </div>
-        {/* Brief Synopsis Section */}
-<div className="mt-2">
-  <div className="brief-synopsis-container">
-    <p className="spec-label"><strong>Brief Synopsis:</strong></p>
-    <p className="spec-item">{projectInfoData?.briefSynopsis || "N/A"}</p>
-  </div>
-</div>
+        </div> */}
+
 
 
         {/* Credits Information */}
-        <div className="mt-2 rounded-lg shadow-lg bg-opacity-50 p-6">
-          <div className="">
-            <p><strong>Directors:</strong></p>
-            <div className="flex flex-wrap gap-6 mb-4">
-              {creditsInfoData.directors && creditsInfoData.directors.length ? creditsInfoData.directors.map((director, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <img src={director.photo ? director.photo : getCrewImageURL(director.firstName, director.lastName, title)}
-                    alt={director.firstName} className="w-20 h-20 rounded-full mb-2 object-cover" />
-                  <p>{director.firstName}{director.lastName}</p>
-                </div>
-              )) : <img src={placeholder} alt="director" className="w-20 h-20 rounded-full mb-2 object-cover" />}
+        <div className="mt-6 flex flex-col md:flex-row gap-8">
 
+          {/* Left Side: Credits */}
+          <div className="md:w-1/3 w-full p-4 bg-opacity-50 rounded-lg">
+            <p className="text-xl font-semibold mb-4">Credits</p>
+
+            <div className="mb-6">
+              <p><strong>Directors:</strong></p>
+              <div className="flex flex-wrap gap-6 mt-2">
+                {creditsInfoData.directors?.length ? creditsInfoData.directors.map((director, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <img
+                      src={director.photo || getCrewImageURL(director.firstName, director.lastName, title)}
+                      alt={director.firstName}
+                      className="w-20 h-20 rounded-full mb-2 object-cover"
+                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                    />
+                    {!director.photo && !getCrewImageURL(director.firstName, director.lastName, title) && (
+                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    )}
+                    <p>{director.firstName} {director.lastName}</p>
+                  </div>
+                )) : <p>No directors available</p>}
+              </div>
             </div>
 
-            <p><strong>Writers:</strong></p>
-            <div className="flex flex-wrap gap-6 mb-4">
-              {creditsInfoData.writers && creditsInfoData.writers.length ? creditsInfoData.writers.map((writer, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <img src={writer.photo ? writer.photo : getCrewImageURL(writer.firstName, writer.lastName, title)}
-                    alt={writer.firstName} className="w-20 h-20 rounded-full mb-2 object-cover" />
-                  <p>{writer.firstName} {writer.lastName}</p>
-                </div>
-              )) : <img src={placeholder} alt="writer" className="w-20 h-20 rounded-full mb-2 object-cover" />}
+            <div className="mb-6">
+              <p><strong>Writers:</strong></p>
+              <div className="flex flex-wrap gap-6 mt-2">
+                {creditsInfoData.writers?.length ? creditsInfoData.writers.map((writer, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <img
+                      src={writer.photo || getCrewImageURL(writer.firstName, writer.lastName, title)}
+                      alt={writer.firstName}
+                      className="w-20 h-20 rounded-full mb-2 object-cover"
+                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                    />
+                    {!writer.photo && !getCrewImageURL(writer.firstName, writer.lastName, title) && (
+                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    )}
+                    <p>{writer.firstName} {writer.lastName}</p>
+                  </div>
+                )) : <p>No writers available</p>}
+              </div>
             </div>
 
-            <p><strong>Producers:</strong></p>
-            <div className="flex flex-wrap gap-6 mb-4">
-              {creditsInfoData.producers && creditsInfoData.producers.length ? creditsInfoData.producers.map((producer, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <img src={producer.photo ? producer.photo : getCrewImageURL(producer.firstName, producer.lastName, title)}
-                    alt={producer.firstName} className="w-20 h-20 rounded-full mb-2 object-cover" />
-                  <p>{producer.firstName} {producer.lastName}</p>
-                </div>
-              )) : 'Not available'}
+            <div className="mb-6">
+              <p><strong>Producers:</strong></p>
+              <div className="flex flex-wrap gap-6 mt-2">
+                {creditsInfoData.producers?.length ? creditsInfoData.producers.map((producer, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <img
+                      src={producer.photo || getCrewImageURL(producer.firstName, producer.lastName, title)}
+                      alt={producer.firstName}
+                      className="w-20 h-20 rounded-full mb-2 object-cover"
+                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                    />
+                    {!producer.photo && !getCrewImageURL(producer.firstName, producer.lastName, title) && (
+                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    )}
+                    <p>{producer.firstName} {producer.lastName}</p>
+                  </div>
+                )) : <p>No producers available</p>}
+              </div>
             </div>
 
-            <p><strong>Actors:</strong></p>
-            <div className="flex flex-wrap gap-6 mb-4">
-              {creditsInfoData.actors && creditsInfoData.actors.length ? creditsInfoData.actors.map((actor, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <img src={actor.photo ? actor.photo : getCrewImageURL(actor.firstName, actor.lastName, title)}
-                    alt={actor.firstName} className="w-20 h-20 rounded-full mb-2 object-cover" />
-                  <p>{actor.firstName} {actor.lastName}</p>
-                </div>
-              )) : 'No actors available'}
+            <div>
+              <p><strong>Actors:</strong></p>
+              <div className="flex flex-wrap gap-6 mt-2">
+                {creditsInfoData.actors?.length ? creditsInfoData.actors.map((actor, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <img
+                      src={actor.photo || getCrewImageURL(actor.firstName, actor.lastName, title)}
+                      alt={actor.firstName}
+                      className="w-20 h-20 rounded-full mb-2 object-cover"
+                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                    />
+                    {!actor.photo && !getCrewImageURL(actor.firstName, actor.lastName, title) && (
+                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    )}
+                    <p>{actor.firstName} {actor.lastName}</p>
+                  </div>
+                )) : <p>No actors available</p>}
+              </div>
             </div>
           </div>
+
+
+          {/* Right Side: Synopsis */}
+          <div className="md:w-2/3 w-full p-4 bg-opacity-50 rounded-lg">
+            <p className="text-xl font-semibold mb-4">Brief Synopsis</p>
+            <p className="text-gray-200">{projectInfoData?.briefSynopsis || "No synopsis provided."}</p>
+          </div>
+
         </div>
 
-
       </div>
+
+
     </div>
   );
 };
 
-export default MovieDetails;
+

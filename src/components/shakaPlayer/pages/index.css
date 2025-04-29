@@ -125,11 +125,10 @@ color: white; /* White text color for contrast */
 }
 
 .glass-effect{
-background: rgba(255, 255, 255, 0.1); /* Transparent white background */
+background:#0B192C; /* Transparent white background */
 border-radius: 10px;
 padding: 20px;
-backdrop-filter: blur(10px); /* Applies the glass effect */
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+
 width: 100%;
 text-align: left;
 }
@@ -301,4 +300,21 @@ font-size: 20px;
   padding: 0.5rem 1rem;
   min-width: 100px;
   text-align: center;
+}
+
+
+/* Glass effect class */
+.glass-card {
+  backdrop-filter: blur(10px); /* Apply blur effect */
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+  border-radius: 8px; /* Rounded corners */
+  padding: 0.5rem 1rem; /* Spacing around content */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hover effect for glass cards */
+.glass-card:hover {
+  backdrop-filter: blur(15px); /* Increased blur on hover */
+  background-color: rgba(255, 255, 255, 0.2); /* Slightly darker on hover */
 }
