@@ -77,6 +77,7 @@ function ViewAndEditForm() {
 
   const {
     projectInfoData,
+    submitterInfoData,
     creditsInfoData,
     specificationsInfoData,
     screeningsInfoData,
@@ -93,7 +94,15 @@ function ViewAndEditForm() {
         }
         setIsEditingProject(!isEditingProject);
         break;
-
+  
+      case 'submitter':
+        if (isEditingSubmitter) {
+          updatedData = projectData.submitterInfoData;
+          await updateSection(projectId, section, updatedData);
+        }
+        setIsEditingSubmitter(!isEditingSubmitter);
+        break;
+  
       case 'credits':
         if (isEditingCredits) {
           updatedData = projectData.creditsInfoData;
@@ -101,7 +110,6 @@ function ViewAndEditForm() {
         }
         setIsEditingCredits(!isEditingCredits);
         break;
-
       case 'specifications':
         if (isEditingSpecifications) {
           updatedData = projectData.specificationsInfoData;
@@ -109,7 +117,6 @@ function ViewAndEditForm() {
         }
         setIsEditingSpecifications(!isEditingSpecifications);
         break;
-
       case 'screenings':
         if (isEditingScreenings) {
           updatedData = projectData.screeningsInfoData;
@@ -117,7 +124,6 @@ function ViewAndEditForm() {
         }
         setIsEditingScreenings(!isEditingScreenings);
         break;
-
       default:
         break;
     }
@@ -256,7 +262,6 @@ function ViewAndEditForm() {
             </ul>
           )}
         </div>
-
         <div className="info-row">
           <strong>Writers:</strong>
           {isEditingCredits ? (

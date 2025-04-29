@@ -1,778 +1,724 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext } from "react"
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import { useDropzone } from 'react-dropzone';
+import {
+  Box,
+  Typography,
+  TextField,
+  Breadcrumbs,
+  Link,
+  Paper,
+  Grid,
+  IconButton,
+  InputAdornment,
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+  Divider,
+  Tooltip,
+  ToggleButtonGroup,
+  ToggleButton,
+} from "@mui/material"
+import {
+  Folder as FolderIcon,
+  InsertDriveFile as FileIcon,
+  Search as SearchIcon,
+  ArrowBack as ArrowBackIcon,
+  Home as HomeIcon,
+  Download as DownloadIcon,
+  GridView as GridViewIcon,
+  ViewList as ListViewIcon,
+} from "@mui/icons-material"
 import { UserContext } from '../../contexts/UserContext';
-import './index.css';
-import Loader from '../loader/Loader';
 
-// Redux action to clear the auth token
-const clearAuthToken = () => ({
-  type: 'CLEAR_AUTH_TOKEN',
-});
+export default function S3Browser() {
+  const [currentPath, setCurrentPath] = useState([]);
+  const [currentItems, setCurrentItems] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("table");
+  const [progress, setProgress] = useState(0);
 
-// Helper function to encode spaces as "+" signs when needed
-const encodeFolderNameForPath = (folderName) => {
-  return folderName.replace(/\s+/g, '+'); // Replace spaces with '+'
-};
-
-function S3Manager() {
-  const [currentFolder, setCurrentFolder] = useState('');
-  const [folderName, setFolderName] = useState('');
-  const [projectName, setProjectName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0); // Track progress
-  const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [showCreateFile, setShowCreateFile] = useState(false);
-  const [showCreateProject, setShowCreateProject] = useState(false);
-  const [folders, setFolders] = useState([]);
-  const [files, setFiles] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const [selectedFiles, setSelectedFiles] = useState([]);
-
-  // Get token and projectFolder from Redux store
   const token = useSelector((state) => state.auth.token);
   const dispatch = useDispatch();
-  const projectFolder = useSelector((state) => state.project.projectFolder);
+  const { user } = useSelector((state) => state.auth.user);
 
-  // Access the user context to get the orgName
-  const { userData } = useContext(UserContext);  // Use UserContext
-  const orgName = userData ? userData.orgName : '';  // Extract orgName from userData
-
-
-
-  // Axios setup with token handling
-  const axiosInstance = axios.create({
-    baseURL: `/api`,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  // Add response interceptor for handling token expiration (401 errors)
-  axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response && error.response.status === 401) {
-        alert('Your session has expired. Please log in again.');
-        dispatch(clearAuthToken()); // Clear the token from Redux
-        window.location.href = '/login'; // Redirect to login page
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  
-  // Ref to track if the folder contents have been fetched
-  const hasFetchedFolders = useRef(false);
-  // Fetch folder contents based on orgName
-  const fetchFolderContents = async () => {
-    // Check if data has already been fetched using useRef
-    if (hasFetchedFolders.current) return;
-
-    setIsLoading(true);
-
-    try {
-      // Fetch folders using the orgName in the API call
-      const response = await axiosInstance.get(`/folders/folders-by-org?orgName=${orgName}`);
-
-      // Set folders and files based on the response
-      setFolders(response.data.folders || []);
-      setFiles(response.data.files || []);
-
-      console.log("Fetched folders for org:", response.data.folders); // Log for debugging
-    } catch (error) {
-      console.error('Error fetching folder contents:', error);
-      alert('Error fetching folder contents.');
-    }
-
-    setIsLoading(false);
-
-    // Mark the folders as fetched to prevent re-fetching
-    hasFetchedFolders.current = true;
-  };
-
-
-
+  // Initialize currentPath when orgName is available
   useEffect(() => {
-    if (orgName) {
-      console.log("orgName =======>", orgName);
-      fetchFolderContents();
+    if (user.orgName) {
+      setCurrentPath(["mediashippers-filestash", user.orgName]);
     }
-  }, [orgName, currentFolder]);
+  }, [user.orgName]);
 
-  // Handle file uploads
-
-
-  // Handle file uploads with progress
-  const onDrop = async (acceptedFiles) => {
-    if (acceptedFiles.length === 0) return;
-    setProgress(0);
-    setIsLoading(true);
-
-    for (const file of acceptedFiles) {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Use selectedItem.fullPath for folder path if available
-      const folderPath = selectedItem ? selectedItem.fullPath : ''; // Default to empty if no folder is selected
-
-      // Log the folderPath to the console for debugging
-      console.log("Uploading file to folder path:", folderPath);
-
-      // S3 Bucket URL (this would be your S3 URL endpoint)
-      const s3Url = `https://s3.eu-north-1.amazonaws.com/mediashippers-filestash/${orgName}/${folderPath}/${file.name}`;
-      console.log(s3Url)
-      try {
-        // Send the file directly to S3 using the form data and dynamic S3 URL
-        const response = await axios.put(s3Url, file, {
-          headers: {
-            'Content-Type': file.type,
-          },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setProgress(percentCompleted);
-          },
-        });
-
-        setFiles((prevFiles) => [...prevFiles, { name: file.name, type: 'file' }]);
-        alert(`${file.name} uploaded successfully.`);
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        alert(`Error uploading ${file.name}. Please try again.`);
-      }
-    }
-
-    setProgress(0);
-    setIsLoading(false);
-    setShowCreateFile(false);
-  };
-
-
-
-
-
-
-  const { getRootProps, getInputProps } = useDropzone({ onDrop });
-
-  // Predefined subfolders for specific projects
-  const subFolders = [
-    'trailer',
-    'film stills',
-    'cast and crew details',
-    'srt files',
-    'info docs',
-    'master',
-  ];
-
-  // Create a new folder and subfolders automatically
-  const createFolder = async () => {
-    if (!folderName) {
-      alert('Please enter a folder name.');
-      return;
-    }
-
-    setIsLoading(true);
-
-    const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
-
-    try {
-      await axiosInstance.post('/folders/create-folder', { folderPath });
-
-      setFolders((prevFolders) => [...prevFolders, { name: folderName, type: 'folder' }]);
-      setFolderName('');
-      setShowCreateFolder(false);
-
-      alert(`Folder "${folderName}" created successfully.`);
-    } catch (error) {
-      console.error('Error creating folder:', error);
-      alert('Error creating folder.');
-    }
-
-    setIsLoading(false);
-  };
-
-  // Function to create subfolders automatically after a specific folder is created
-  const createSubFolders = async (folderPath) => {
-    try {
-      const folderPromises = subFolders.map(async (subFolderName) => {
-        const subFolderPath = `${folderPath}/${subFolderName}`;
-        console.log(`Creating subfolder: ${subFolderPath}`);
-        await axiosInstance.post('/folders/create-folder', { folderPath: subFolderPath });
-        console.log(`Created subfolder: ${subFolderPath}`);
-      });
-
-      // Wait for all subfolders to be created
-      await Promise.all(folderPromises);
-      console.log('All subfolders created successfully.');
-    } catch (error) {
-      console.error('Error creating subfolders:', error);
-      alert('Error creating subfolders.');
-    }
-  };
-
- 
-
-  // Delete an item (folder/file)
-  const deleteItem = async () => {
-    if (!selectedItem) return;
-    const { fullPath, type } = selectedItem;
-
-    const confirmation = window.confirm(
-      `Are you sure you want to delete this ${type === 'folder' ? 'folder' : 'file'}? This will also delete all contents inside the folder if it's a folder.`
-    );
-    if (!confirmation) return;
-
-    setIsLoading(true);
-
-    try {
-      await axiosInstance.post('/delete-item', { itemPath: fullPath, type });
-      alert(`${type === 'folder' ? 'Folder' : 'File'} deleted successfully at path: ${fullPath}`);
-      fetchFolderContents(); // Refresh folder contents after deletion
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      alert(`Error deleting ${type === 'folder' ? 'folder' : 'file'} at path: ${fullPath}`);
-    }
-
-    setIsLoading(false);
-  };
-
-
-  const handleItemClick = (item, type) => {
-    if (type === 'file') {
-      const fullPath = currentFolder ? `${currentFolder}/${item.name}` : item.name;
-      setSelectedItem({ name: item.name, type, fullPath });
-    } else if (type === 'folder') {
-      const fullPath = currentFolder ? `${currentFolder}/${item.name}` : item.name;
-      setSelectedItem({ name: item.name, type, fullPath });
-    }
-  };
-
-  // Function to fetch subfolders for a specific project folder
-  const fetchSubfolders = async (folderName) => {
-    setIsLoading(true);
-
-    try {
-      const response = await axiosInstance.get(`/folders/subfolders/${orgName}/${folderName}`);
-      const subfolders = response.data.subfolders || [];
-      setFolders(subfolders);
-    } catch (error) {
-      console.error('Error fetching subfolders:', error);
-      alert('Error loading subfolders.');
-    }
-
-    setIsLoading(false);
-  };
-
-
-  // Function that gets triggered when a folder is double-clicked
-  const handleFolderDoubleClick = (folderName) => {
-    const newPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
-    setCurrentFolder(newPath);
-
-    // Fetch subfolders for the selected folder
-    fetchSubfolders(folderName);  // This loads the subfolders of the current folder
-  };
-
-
-  const navigateTo = (index) => {
-    const pathParts = currentFolder.split('/').slice(0, index + 1); // Get the path up to the clicked breadcrumb
-    setCurrentFolder(pathParts.join('/')); // Update the currentFolder to the new path
-  };
-
-  const renderFileItem = (file) => {
-    const fileUrl = `https://s3.eu-north-1.amazonaws.com/mediashippers-filestash/${orgName}/${file.name}`; // Adjust the URL as necessary
-  
-    const handleDownload = () => {
-      // Trigger file download by creating an anchor element and programmatically clicking it
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = file.name; // This will set the file's name when downloading
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-  
-    return (
-      <div
-        key={file.id}
-        className={`file-item ${selectedItem?.name === file.name ? 'selected' : ''}`}
-        onClick={() => handleItemClick(file, 'file')}
-      >
-        <i className="fas fa-file-alt file-icon"></i>
-        <span>{file.name}</span>
-        {/* Add Download Button */}
-        <button onClick={handleDownload} className="btn btn-primary btn-sm">
-  Download
-</button>
-
-      </div>
-    );
-  };
-  
-
-  const filterFoldersByOrgName = (folders, orgName) => {
-    return folders.filter(folder =>
-      folder.name.toLowerCase().includes(orgName.toLowerCase())
-    );
-  };
-
-
-  // Modify the folder list rendering to include filtering
-  const renderFolderList = () => {
-    // Filter folders based on orgName
-    const filteredFolders = filterFoldersByOrgName(folders, orgName);
-
-    // Log the filtered folders to the console (for debugging purposes)
-    console.log("Filtered folders (matching orgName):", filteredFolders);
-
-    return (
-      <div className="folder-list">
-        {isLoading ? (
-          <p><Loader /></p>
-        ) : (
-          <>
-            {/* Render only the folders that match orgName */}
-            {filteredFolders.length > 0 ? (
-              filteredFolders.map((folder) => renderFolderItem(folder))
-            ) : (
-              <p>No matching folders found for the organization.</p>
-            )}
-            {/* You can also render files here, if needed */}
-            {files.map((file) => renderFileItem(file))}
-          </>
-        )}
-      </div>
-    );
-  };
-
-
-
-  // Modify the renderFolderItem function to include orgName filtering
-  const renderFolderItem = (folder) => {
-    const displayName = folder.name;
-
-    // Check if the folder is a subfolder or a main project folder
-    const isSubfolder = currentFolder.includes(displayName);  // Check if the folder is part of the current project folder
-
-    return (
-      <div
-        key={folder.id}
-        className={`folder-item ${selectedItem?.name === folder.name ? 'selected' : ''}`}
-        onClick={() => handleItemClick(folder, 'folder')}
-        onDoubleClick={() => handleFolderDoubleClick(folder.name)}
-      >
-        <i className={`fas ${isSubfolder ? 'fa-cogs' : 'fa-folder'} folder-icon`}></i>
-        <span>{displayName}</span>
-      </div>
-    );
-  };
-
-  // Function to render breadcrumbs
-  const renderBreadcrumbs = () => {
-    const parts = currentFolder.split('/').filter(Boolean); // Split path and remove empty parts
-
-    return (
-      <div className="breadcrumbs">
-        {/* Root breadcrumb */}
-        <span
-          className="breadcrumb-item"
-          onClick={() => setCurrentFolder('')} // Reset to root when clicked
-          style={{ cursor: 'pointer' }}
-        >
-          {orgName || 'Root Folder'}
-        </span>
-
-        {/* Breadcrumbs for subfolders */}
-        {parts.map((part, index) => (
-          <span key={index} className="breadcrumb-item">
-            <span
-              onClick={() => navigateTo(index)} // Navigate to the clicked breadcrumb
-              style={{ cursor: 'pointer' }}
-            >
-              {part}
-            </span>
-          </span>
-        ))}
-      </div>
-    );
-  };
-
-  // ------------------------------------------------------------------------
-  const [data, setData] = useState({ folders: [], files: [] });
-  const [history, setHistory] = useState([]); // Store previous folder paths
-  const [currentPath, setCurrentPath] = useState(`mediashippers-filestash/${orgName}`); // Start from a specific folder
-
-  console.log("path.......>>>", currentPath)
+  // Fetch data when currentPath changes
   useEffect(() => {
-    console.log("fetchData(currentPath); called............")
-    fetchData(currentPath);
-  }, []);
-
-const fetchData = async (folderPath) => {
-  try {
-    const response = await fetch(`/api/folders/s3-list`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Send token
-      },
-      body: JSON.stringify({ path: folderPath }), // Send full path
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
+    if (currentPath.length > 0) {
+      fetchData();
     }
+  }, [currentPath]);
 
-    const result = await response.json();
-    setData(result);
-    setCurrentPath(folderPath);
-
-    // Check if files exist and log them to the console
-    if (result.files && result.files.length > 0) {
-      console.log("Files detected in the folder:");
-      result.files.forEach((file) => {
-        console.log(`File name: ${file}`);
-      });
-    } else {
-      console.log("No files found in this folder.");
-    }
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-};
-
-
-  const handleFolderClick = (folder) => {
-    const newPath = `${currentPath}/${folder}`; // Append folder to current path
-    setHistory((prev) => [...prev, currentPath]); // Save current path to history
-    fetchData(newPath);
-  };
-
-  const goBack = () => {
-    if (history.length > 0) {
-      const prevPath = history[history.length - 1]; // Get last visited path
-      setHistory((prev) => prev.slice(0, -1)); // Remove last entry
-      fetchData(prevPath);
-    }
-  };
-  // ------------------------------------------------------------------------
-
-
-  // file download - sukhada
-  
-    const [loading, setLoading] = useState(false);
-    const fileUrls = [
-      "s3://vod-delivery/Thumbnails/SampleVideo_5mb.0000000.jpg",
-      "s3://vod-delivery/BangBangBetty2.json",
-      "s3://vod-delivery/AfricasWildRoommatesScreenerEN1080final.srt",
-      "s3://vod-delivery/MP4/sam.mp4"
-    ];
-
-    // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzgwZmUxODVhNmY4YmMyOTg1ODFhN2QiLCJpYXQiOjE3NDI5MDQ4ODMsImV4cCI6MTc0MjkwODQ4M30.0fVePsTfVHpBNwhWwQs91F_arN-jzmdSRzBCN8wABgI";
-    
-    const handleDownloadAll = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/download-files/`, {
-          method: "POST",
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const path = currentPath.join('/');
+      const response = await axios.post('/api/folders/s3-list', 
+        { path },
+        {
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // :small_blue_diamond: Send token
-          },
-          body: JSON.stringify({ files: fileUrls }),
-        });
-        const result = await response.json();
-        if (result.urls) {
-          result.urls.forEach(async (url, index) => {
-            await downloadFile(url, `file-${index + 1}`); // :small_blue_diamond: Download file
-          });
-        } else {
-          console.error("Failed to get download links:", result);
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         }
-      } catch (error) {
-        console.error("Download failed:", error);
+      );
+
+      if (response.data) {
+        setCurrentItems({
+          ...response.data.folders.reduce((acc, folder) => {
+            acc[folder] = { type: "folder", children: {} };
+            return acc;
+          }, {}),
+          ...response.data.files.reduce((acc, file) => {
+            acc[file.name] = { type: "file", size: file.size };
+            return acc;
+          }, {})
+        });
       }
-      setLoading(false);
-    };
-    // Function to download file from a pre-signed URL
-    // const downloadFile = async (url) => {
-    //   try {
-    //     // Extract the correct filename (remove query params)
-    //     console.log("url >>>>", url)
-    //     const filename = decodeURIComponent(url.split("/").pop().split("?")[0]);
-    //     const response = await fetch(url);
-    //     if (!response.ok) throw new Error(`Failed to download: ${response.status}`);
-    //     const blob = await response.blob();
-    //     const blobUrl = URL.createObjectURL(blob);
-    //     const link = document.createElement("a");
-    //     link.href = blobUrl;
-    //     link.download = filename; // Correct filename for all file types
-    //     document.body.appendChild(link);
-    //     link.click();
-    //     document.body.removeChild(link);
-    //     URL.revokeObjectURL(blobUrl); // Cleanup memory
-    //   } catch (error) {
-    //     console.error("Download Error:", error);
-    //   }
-    // };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please log in again.');
+        dispatch({ type: 'CLEAR_AUTH_TOKEN' });
+        window.location.href = '/login';
+      }
+    }
+    setLoading(false);
+  };
 
+  // Navigate to a specific path
+  const navigateTo = (path) => {
+    setCurrentPath(path);
+    setSearchTerm("");
+    setSearchResults([]);
+    setIsSearching(false);
+  };
 
-    const downloadFile = async (url) => {
-      try {
-        // Extract the correct filename (remove query params)
-        console.log("url >>>>", url);
-        const filename = decodeURIComponent(url.split("/").pop().split("?")[0]);
-    
-        // Ensure this is triggered by a user action (e.g., a click)
-        const response = await fetch(url);
-    
-        // Check for a valid response
-        if (!response.ok) throw new Error(`Failed to download: ${response.status}`);
-    
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-    
-        // Create a temporary link element to trigger download
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = filename; // Correct filename for all file types
-    
-        // Add the link to the document, trigger the click, and remove the link
+  // Navigate to a specific folder
+  const openFolder = (folderName) => {
+    navigateTo([...currentPath, folderName]);
+  };
+
+  // Navigate up one level
+  const goBack = () => {
+    if (currentPath.length > 1) {
+      navigateTo(currentPath.slice(0, -1));
+    }
+  };
+
+  // Navigate to root
+  const goHome = () => {
+    navigateTo(["mediashippers-filestash", orgName]);
+  };
+
+  // Download a file
+  const downloadFile = async (fileName) => {
+    try {
+      const fullFilePath = `s3://${currentPath.join('/')}/${fileName}`;
+      const response = await axios.post('/api/folders/download-files', 
+        { files: [fullFilePath] },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.urls && response.data.urls.length > 0) {
+        const url = response.data.urls[0];
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    
-        // Cleanup memory by revoking the blob URL
-        URL.revokeObjectURL(blobUrl);
-      } catch (error) {
-        console.error("Download Error:", error);
       }
-    };
-    
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Error downloading file');
+    }
+  };
 
+  // Handle view mode change
+  const handleViewModeChange = (event, newViewMode) => {
+    if (newViewMode !== null) {
+      setViewMode(newViewMode);
+    }
+  };
 
-    const handleFileDownload = async (file) => {
-      // Assuming currentPath is something like 's3://mediashippers-filestash/ledzeppelin/LEDZ-00007/trailer'
-      console.log("path.......>>>", currentPath);
-      
-      // Combine the currentPath with the file name to create the full S3 path
-      const fullFilePath = `s3://${currentPath}/${file}`;
-      setLoading(true);
-      
-      try {
-        const response = await fetch(`/api/folders/download-files/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Send token for authentication
-          },
-          body: JSON.stringify({ files: fullFilePath }), // Send files array
+  // Search for folders and files
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+
+    if (!term.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    setLoading(true);
+
+    const results = [];
+
+    // Search in current items
+    Object.entries(currentItems).forEach(([key, value]) => {
+      if (key.toLowerCase().includes(term.toLowerCase())) {
+        results.push({
+          name: key,
+          path: [...currentPath, key],
+          type: value.type,
+          size: value.type === "file" ? value.size : null,
         });
-        
-        // Ensure the response is okay and that response.json() can be called
-        if (!response.ok) {
-          throw new Error(`Failed to fetch download links: ${response.status}`);
-        }
-        
-        const result = await response.json();  // Await the JSON response
-        console.log("Result url ", result)
-        if (result.urls) {
-          // Assuming result.urls is an array with pre-signed URLs
-          downloadFile(result.urls); // Download the first file URL (if needed, handle multiple URLs)
-
-        } else {
-          console.error("Failed to get download links:", result);
-        }
-      } catch (error) {
-        console.error("Download failed:", error);
       }
-    
-      // Replace 's3://' with the proper URL scheme (https:// or http://) to point to S3
-      const fileUrl = fullFilePath;
-      console.log("file url", fileUrl);
-      console.log("full path", fullFilePath);
-    
-      // Create an anchor element to trigger the download
-      const anchor = document.createElement('a');
-      anchor.href = fileUrl;
-      anchor.download = file; // This sets the file name when downloaded
-      anchor.click(); // Simulate a click to download the file
-    };
-    
+    });
+
+    setSearchResults(results);
+    setLoading(false);
+  };
+
+  // Render grid view
+  const renderGridView = (items, isSearchResults = false) => {
+    return (
+      <Grid container spacing={2}>
+        {items.map(([name, details], index) => {
+          // Determine file type and color for the chip
+          let fileType = "Folder"
+          let chipColor = "#ffca28"
+          let chipBgColor = "rgba(255, 202, 40, 0.15)"
+
+          if (details.type === "file") {
+            const extension = name.split(".").pop()?.toLowerCase() || ""
+            if (["jpg", "jpeg", "png", "gif", "svg"].includes(extension)) {
+              fileType = "Image"
+              chipColor = "#4caf50"
+              chipBgColor = "rgba(76, 175, 80, 0.15)"
+            } else if (["mp4", "avi", "mov", "wmv"].includes(extension)) {
+              fileType = "Video"
+              chipColor = "#f44336"
+              chipBgColor = "rgba(244, 67, 54, 0.15)"
+            } else if (["mp3", "wav", "ogg"].includes(extension)) {
+              fileType = "Audio"
+              chipColor = "#9c27b0"
+              chipBgColor = "rgba(156, 39, 176, 0.15)"
+            } else if (["pdf"].includes(extension)) {
+              fileType = "PDF"
+              chipColor = "#f44336"
+              chipBgColor = "rgba(244, 67, 54, 0.15)"
+            } else if (["doc", "docx"].includes(extension)) {
+              fileType = "Word"
+              chipColor = "#2196f3"
+              chipBgColor = "rgba(33, 150, 243, 0.15)"
+            } else if (["xls", "xlsx"].includes(extension)) {
+              fileType = "Excel"
+              chipColor = "#4caf50"
+              chipBgColor = "rgba(76, 175, 80, 0.15)"
+            } else if (["ppt", "pptx"].includes(extension)) {
+              fileType = "PowerPoint"
+              chipColor = "#ff9800"
+              chipBgColor = "rgba(255, 152, 0, 0.15)"
+            } else if (["zip", "rar", "7z"].includes(extension)) {
+              fileType = "Archive"
+              chipColor = "#795548"
+              chipBgColor = "rgba(121, 85, 72, 0.15)"
+            } else {
+              fileType = extension.toUpperCase() || "File"
+              chipColor = "#90caf9"
+              chipBgColor = "rgba(144, 202, 249, 0.15)"
+            }
+          }
+
+          return (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+              <Paper
+                sx={{
+                  p: 0,
+                  bgcolor: "#234976",
+                  display: "flex",
+                  flexDirection: "column",
+                  cursor: details.type === "folder" ? "pointer" : "default",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    bgcolor: "#334155",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.3)",
+                  },
+                  position: "relative",
+                  overflow: "hidden",
+                  borderRadius: 2,
+                  height: "100%",
+                  minHeight: 220,
+                }}
+                onClick={() => {
+                  if (details.type === "folder") {
+                    if (isSearchResults) {
+                      navigateTo(details.path.slice(0, -1))
+                      setTimeout(() => openFolder(details.path[details.path.length - 1]), 100)
+                    } else {
+                      openFolder(name)
+                    }
+                  }
+                }}
+              >
+                {/* Top colored band based on file type */}
+                <Box
+                  sx={{
+                    height: 8,
+                    width: "100%",
+                    bgcolor: chipColor,
+                  }}
+                />
+
+                {/* Content area */}
+                <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      mb: 2,
+                    }}
+                  >
+                    {/* File type chip */}
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 4,
+                        fontSize: "0.75rem",
+                        fontWeight: "medium",
+                        color: chipColor,
+                        bgcolor: chipBgColor,
+                      }}
+                    >
+                      {fileType}
+                    </Box>
+
+                    {details.type === "file" && (
+                      <Tooltip title="Download">
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#64b5f6",
+                            "&:hover": {
+                              color: "white",
+                              bgcolor: "rgba(100, 181, 246, 0.2)",
+                            },
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            downloadFile(name)
+                          }}
+                        >
+                          <DownloadIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
+
+                  {/* Icon */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      my: 1.5,
+                    }}
+                  >
+                    {details.type === "folder" ? (
+                      <FolderIcon sx={{ fontSize: 64, color: "#ffca28" }} />
+                    ) : (
+                      <FileIcon sx={{ fontSize: 64, color: "#90caf9" }} />
+                    )}
+                  </Box>
+
+                  {/* Name and info */}
+                  <Box sx={{ mt: "auto" }}>
+                    <Typography
+                      sx={{
+                        width: "100%",
+                        fontSize: "0.95rem",
+                        fontWeight: "medium",
+                        textAlign: "center",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {name}
+                    </Typography>
+
+                    {details.type === "file" && (
+                      <Typography
+                        variant="caption"
+                        color="#90caf9"
+                        sx={{
+                          fontSize: "0.75rem",
+                          mt: 0.5,
+                          display: "block",
+                          textAlign: "center",
+                        }}
+                      >
+                        {details.size}
+                      </Typography>
+                    )}
+
+                    {isSearchResults && (
+                      <Typography
+                        variant="caption"
+                        color="#90caf9"
+                        sx={{
+                          fontSize: "0.7rem",
+                          mt: 1,
+                          display: "block",
+                          textAlign: "center",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {details.path.slice(0, -1).join(" / ")}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Paper>
+            </Grid>
+          )
+        })}
+      </Grid>
+    )
+  }
+
+  // Render list view
+  const renderListView = (items, isSearchResults = false) => {
+    return (
+      <List sx={{ bgcolor: "#1a1a2e", borderRadius: 1 }}>
+        {items.map(([name, details], index) => (
+          <Box key={index}>
+            <ListItem
+              disablePadding
+              secondaryAction={
+                details.type === "file" && (
+                  <Tooltip title="Download">
+                    <IconButton
+                      edge="end"
+                      aria-label="download"
+                      onClick={() => downloadFile(name)}
+                      sx={{
+                        color: "#64b5f6",
+                        "&:hover": {
+                          color: "white",
+                        },
+                      }}
+                    >
+                      <DownloadIcon />
+                    </IconButton>
+                  </Tooltip>
+                )
+              }
+            >
+              <ListItemButton
+                onClick={() => {
+                  if (details.type === "folder") {
+                    if (isSearchResults) {
+                      navigateTo(details.path.slice(0, -1))
+                      setTimeout(() => openFolder(details.path[details.path.length - 1]), 100)
+                    } else {
+                      openFolder(name)
+                    }
+                  } else {
+                    // For files, do nothing as we have the download button
+                  }
+                }}
+                sx={{
+                  "&:hover": {
+                    bgcolor: "#334155",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  {details.type === "folder" ? (
+                    <FolderIcon sx={{ color: "#ffca28" }} />
+                  ) : (
+                    <FileIcon sx={{ color: "#90caf9" }} />
+                  )}
+                </ListItemIcon>
+                <ListItemText
+                  primary={name}
+                  secondary={
+                    <>
+                      {details.type === "file" && details.size}
+                      {isSearchResults && (
+                        <Typography
+                          variant="caption"
+                          component="div"
+                          sx={{
+                            color: "#90caf9",
+                            fontSize: "0.7rem",
+                          }}
+                        >
+                          Path: {details.path.slice(0, -1).join(" / ")}
+                        </Typography>
+                      )}
+                    </>
+                  }
+                  primaryTypographyProps={{
+                    sx: {
+                      color: "white",
+                    },
+                  }}
+                  secondaryTypographyProps={{
+                    sx: {
+                      color: "#90caf9",
+                    },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+            {index < items.length - 1 && <Divider sx={{ bgcolor: "#334155", opacity: 0.3 }} />}
+          </Box>
+        ))}
+      </List>
+    )
+  }
 
   return (
-    <div className="s3-manager">
-      <h1 className="text-left text-2xl pb-4 mt-2 text-white">Project File Upload</h1>
-      {renderBreadcrumbs()}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        color: "white",
+        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+        boxSizing: "border-box",
+        margin: 0,
+        padding: 0,
+      }}
+    >
 
-      <div className="options-box">
-        {/* <button
-          className="action-button"
-          onClick={() => setShowCreateProject(true)}
-          disabled={isLoading}
-        >
-          <i className="fas fa-project-diagram"></i> Create Project
-        </button> */}
-        {/* <button
-          className="action-button"
-          onClick={() => setShowCreateFolder(true)}
-          disabled={isLoading}
-        >
-          <i className="fas fa-folder-plus"></i> Create Folder
-        </button> */}
-        <button
-          className="action-button"
-          onClick={() => setShowCreateFile(true)}
-          disabled={isLoading}
-        >
-          <i className="fas fa-file-upload"></i> Upload File
-        </button>
-        <button
-          className="action-button delete-button"
-          onClick={deleteItem}
-          disabled={!selectedItem || isLoading}
-        >
-          <i className="fas fa-trash-alt"></i> Delete
-        </button>
-        <button
-          className="action-button"
-          onClick={fetchFolderContents}
-          disabled={isLoading}
-        >
-          <i className="fas fa-sync-alt"></i> Refresh
-        </button>
-      </div>
+        {/* Search Bar */}
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search folders and files..."
+          value={searchTerm}
+          type="search"
+          onChange={(e) => handleSearch(e.target.value)}
+          sx={{
+            mb: 3,
+            "& .MuiOutlinedInput-root": {
+              bgcolor: "#1a1a2e",
+              color: "white",
+              "& fieldset": {
+                borderColor: "#334155",
+              },
+              "&:hover fieldset": {
+                borderColor: "#4d96da",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#64b5f6",
+              },
+            },
+            "& .MuiInputLabel-root": {
+              color: "#90caf9",
+            },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "#90caf9" }} />
+              </InputAdornment>
+            ),
+            endAdornment:
+              isSearching && loading ? (
+                <InputAdornment position="end">
+                  <CircularProgress size={24} color="inherit" />
+                </InputAdornment>
+              ) : null,
+          }}
+        />
 
-      {selectedItem && (
-        <div className="selected-item-path">
-          <p>Selected Item: {selectedItem.fullPath}</p>
-        </div>
-      )}
+        {/* Breadcrumbs Navigation */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            mb: 3,
+            bgcolor: "#1a1a2e",
+            borderRadius: 1,
+            overflowX: "auto",
+            "&::-webkit-scrollbar": {
+              height: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#132f4c",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#334155",
+              borderRadius: "4px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#4d96da",
+            },
+          }}
+        >
+          <IconButton onClick={goBack} disabled={currentPath.length <= 1} sx={{ color: "white", mr: 1 }}>
+            <ArrowBackIcon />
+          </IconButton>
 
-      {showCreateProject && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Create Project</h3>
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="Project Name"
-            />
-            <div className="modal-buttons">
-              <button className="modal-button" onClick={() => createProjectFolder(projectName)}>
-                Create Project
-              </button>
-              <button
-                className="modal-button cancel"
-                onClick={() => setShowCreateProject(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          <IconButton onClick={goHome} sx={{ color: "white", mr: 1 }}>
+            <HomeIcon />
+          </IconButton>
 
-      {showCreateFolder && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Create Folder</h3>
-            <input
-              type="text"
-              value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              placeholder="Folder Name"
-            />
-            <div className="modal-buttons">
-              <button className="modal-button" onClick={createFolder}>
-                Create
-              </button>
-              <button
-                className="modal-button cancel"
-                onClick={() => setShowCreateFolder(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          <Breadcrumbs
+            separator="›"
+            aria-label="breadcrumb"
+            sx={{
+              mt: '13px',
+              color: "#90caf9",
+              "& .MuiBreadcrumbs-separator": {
+                color: "#64b5f6",
+              },
+            }}
+          >
+            {currentPath.map((segment, index) => {
+              const isLast = index === currentPath.length - 1
+              const pathToHere = currentPath.slice(0, index + 1)
 
-      {showCreateFile && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Upload File</h3>
-            <div {...getRootProps()} className="dropzone">
-              <input {...getInputProps()} />
-              <p>Drag & drop files here, or click to select files</p>
-              {isLoading && (
-                <>
-                  <div>Uploading... Progress: {progress}%</div>
-                  <progress value={progress} max={100}></progress>
-                </>
+              return isLast ? (
+                <Typography key={index} color="white" fontWeight="bold">
+                  {segment}
+                </Typography>
+              ) : (
+                <Link
+                  key={index}
+                  component="button"
+                  underline="hover"
+                  color="#90caf9"
+                  onClick={() => navigateTo(pathToHere)}
+                  sx={{
+                    "&:hover": {
+                      color: "white",
+                    },
+                  }}
+                >
+                  {segment}
+                </Link>
+              )
+            })}
+          </Breadcrumbs>
+
+          {/* View Mode Toggle */}
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="view mode"
+            size="small"
+            sx={{
+              mr:'9px',
+              ml: "auto",
+              "& .MuiToggleButton-root": {
+                color: "#90caf9",
+                borderColor: "#334155",
+                "&.Mui-selected": {
+                  color: "white",
+                  bgcolor: "#334155",
+                },
+                "&:hover": {
+                  bgcolor: "rgba(45, 109, 163, 0.2)",
+                },
+              },
+            }}
+          >
+            <ToggleButton value="list" aria-label="list view">
+              <ListViewIcon />
+            </ToggleButton>
+            <ToggleButton value="grid" aria-label="grid view">
+              <GridViewIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
+        {/* Content Area */}
+        <Paper
+          sx={{
+            bgcolor: "#1a1a2e",
+            p: 2,
+            borderRadius: 1,
+            minHeight: "400px",
+          }}
+        >
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : isSearching ? (
+            // Search Results
+            <>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Search Results for "{searchTerm}"
+              </Typography>
+
+              {searchResults.length === 0 ? (
+                <Typography color="#90caf9">No results found</Typography>
+              ) : viewMode === "grid" ? (
+                renderGridView(
+                  searchResults.map((item) => [
+                    item.name,
+                    {
+                      type: item.type,
+                      size: item.size,
+                      path: item.path,
+                    },
+                  ]),
+                  true,
+                )
+              ) : (
+                renderListView(
+                  searchResults.map((item) => [
+                    item.name,
+                    {
+                      type: item.type,
+                      size: item.size,
+                      path: item.path,
+                    },
+                  ]),
+                  true,
+                )
               )}
-            </div>
-            <div className="modal-buttons">
-              <button className="modal-button" onClick={onDrop}>
-                Upload
-              </button>
-              <button
-                className="modal-button cancel"
-                onClick={() => setShowCreateFile(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </>
+          ) : (
+            <>
+              <Typography variant="h6" sx={{ color:"#fff" }}>
+                Folder: {currentPath[currentPath.length - 1]}
+              </Typography>
 
-      {/* <div className="folder-list">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
-            {folders.map((folder) => renderFolderItem(folder))}
-            {files.map((file) => renderFileItem(file))}
-          </>
-        )}
-      </div> */}
-
-      <div className="container">
-        <button className="back-btn" onClick={goBack} disabled={history.length === 0}>
-          🔙 Back
-        </button>
-
-        <h2 className="folder-title">Folder: {currentPath}</h2>
-
-        <div className="grid-container">
-  {data.folders.map((folder) => (
-    <div key={folder} className="card folder" onDoubleClick={() => handleFolderClick(folder)}>
-      <span title={folder}>📁 {folder}</span>
-    </div>
-  ))}
-
-  {data.files.map((file) => (
-    <div key={file} className="card file">
-      <span title={file}>📄 {file}</span>
-
-      {/* Add a download button for each file */}
-      <button
-        className="download-button"
-        onClick={() => handleFileDownload(file)}
-      >
-        Download
-      </button>
-    </div>
-  ))}
-</div>
-
-      </div>
-    </div>
-  );
+              {Object.keys(currentItems).length === 0 ? (
+                <Typography color="#90caf9">This folder is empty</Typography>
+              ) : viewMode === "grid" ? (
+                renderGridView(Object.entries(currentItems))
+              ) : (
+                renderListView(Object.entries(currentItems))
+              )}
+            </>
+          )}
+        </Paper>
+    </Box>
+  )
 }
-
-export default S3Manager;

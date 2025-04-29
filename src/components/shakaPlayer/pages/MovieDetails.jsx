@@ -21,7 +21,6 @@ const getCrewImageURL = (firstName, lastName, title) => {
   // Convert names to lowercase, trim spaces, and replace multiple spaces with a single '+'
   const sanitizedFirstName = firstName.trim().toLowerCase().replace(/\s+/g, '+');  // Convert to lowercase and handle spaces
   const sanitizedLastName = lastName.trim().toLowerCase().replace(/\s+/g, '+');    // Same for last name
-
   // Construct the URL using sanitized first and last names
   return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/cast+and+crew+details/${sanitizedFirstName}+${sanitizedLastName}.jpg`;
 };
@@ -163,7 +162,6 @@ const MovieDetails = () => {
   };
 
 
-
   return (
     <div className="min-h-screen bg-black">
       <PlayerMenu />
@@ -245,7 +243,6 @@ const MovieDetails = () => {
           </div>
         </div>
       )}
-
 
       {/* Show Movie Video when playing */}
       {isMoviePlaying && movieUrl && (

@@ -18,7 +18,10 @@ import Loader from '../loader/Loader.jsx';
 
 
 function ProjectsForm() {
+
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+   const { orgName } = user.user;
+
   // Access user data from UserContext
 
   const [srtFiles, setSrtFiles] = useState([]);
@@ -31,7 +34,9 @@ function ProjectsForm() {
 
 
   const { projectName, movieName } = useProjectInfo();
+  
   const [formData, setFormData] = useState({
+    
     projectInfo: {
       s3SourcePosterUrl: '',
       s3SourceBannerUrl: '',
@@ -53,6 +58,7 @@ function ProjectsForm() {
     rightsInfo: [],
     userId: user?.userId || '',
   });
+  console.log("form data from specs:", formData)
   const [errors, setErrors] = useState({
     projectInfoErrors: {},
     submitterInfoErrors: {},
@@ -68,7 +74,7 @@ function ProjectsForm() {
 
 
   const { userData } = useContext(UserContext);
-  const orgName = userData ? userData.orgName : '';
+ 
 
   // useEffect(() => {
   //   console.log('Updated srtFiles:', srtFiles);
@@ -147,6 +153,8 @@ function ProjectsForm() {
 
 
   const handleInputChange = useCallback((section, data) => {
+    console.log("inside hanlde input change:", section, data);
+    
     setFormData((prevData) => {
       if (prevData[section] !== data) {
         return {
@@ -156,6 +164,7 @@ function ProjectsForm() {
       }
       return prevData;
     });
+    
   }, []);
 
 
@@ -209,7 +218,7 @@ console.log(tempErrors);
 
 
   const transferFileToLocation = async () => {
-    const orgName = userData ? userData.orgName : '';
+    const { orgName } = user.user;
     // const projectFolder = projectName || 'defaultProjectFolder';
     const projectFolder = formData.projectInfo.projectName;
 
@@ -259,7 +268,6 @@ console.log(tempErrors);
       return { success: false, error: error.message };
     }
   };
-
 
 
 
@@ -345,19 +353,130 @@ console.log(tempErrors);
   };
 
 
+
+
+
+
+
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault();
+  //   setIsFormSubmitted(true);
+  //   console.log('Form submission started');
+
+  //   if (!userData || !userData.orgName) {
+  //     alert('Organization name is not available.');
+  //     return;
+  //   }
+
+  //   const orgName = userData.orgName;  // Now orgName is guaranteed to be available
+  //   console.log("orgName before file upload:", orgName);
+
+  //   const userId = user?.userId || '';
+  //   const errors = validateForm();
+  //   if (errors !== true) {
+  //     alert('Please fix the errors before submitting.');
+  //     return;
+  //   }
+
+  //   try {
+  //     const { projectPoster, projectBanner, trailerFile: projectTrailer, projectName, orgName: organizationName } = formData.projectInfo;
+
+  //     const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
+  //     const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
+  //     const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
+
+  //     if (shouldUploadPoster || shouldUploadBanner || shouldUploadTrailer) {
+  //       // Use organizationName from formData if available, otherwise fall back to orgName from userData
+  //       const orgNameToUse = organizationName || orgName;
+
+  //       console.log("Uploading files with orgName:", orgNameToUse);
+
+  //       const uploadedFiles = await uploadFilesToS3(
+  //         {
+  //           projectPoster: shouldUploadPoster ? projectPoster : null,
+  //           projectBanner: shouldUploadBanner ? projectBanner : null,
+  //           projectTrailer: shouldUploadTrailer ? projectTrailer : null,
+  //         },
+  //         projectName,
+  //         orgNameToUse
+  //       );
+
+  //       if (uploadedFiles.projectPosterUrl) formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
+  //       if (uploadedFiles.projectBannerUrl) formData.projectInfo.s3SourceBannerUrl = uploadedFiles.projectBannerUrl;
+  //       if (uploadedFiles.projectTrailerUrl) formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
+  //     }
+  //   } catch (uploadError) {
+  //     console.error('Error during upload:', uploadError);
+  //     alert('File upload failed: ' + uploadError.message);
+  //     return;
+  //   }
+
+  //   const updatedFormData = {
+  //     projectInfo: {
+  //       ...formData.projectInfo,
+  //       projectName,
+  //       userId,
+  //       posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
+  //       bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
+  //       trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
+  //       movieFileName: formData.projectInfo.movieFileName || ''
+  //     },
+  //     creditsInfo: { ...formData.creditsInfo, projectName, userId },
+  //     specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
+  //     screeningsInfo: { ...formData.screeningsInfo, projectName, userId },
+  //     rightsInfo: { ...formData.rightsInfo, projectName, userId },
+  //     srtInfo: {
+  //       srtFiles: formData.srtInfo.map(pair => pair.srtFile),
+  //       infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
+  //       projectName,
+  //       userId
+  //     }
+  //   };
+
+  //   try {
+  //     const response = await fetch('http://localhost:3000/api/projectForm', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       credentials: 'include',
+  //       body: JSON.stringify(updatedFormData),
+  //     });
+
+  //     const result = await response.json();
+
+  //     if (!response.ok) throw new Error(result.message);
+
+  //     dispatch(setProjectFolderSuccess(projectName));
+  //     alert('✅ Project saved successfully!');
+
+  //     const transferResult = await transferFileToLocation();
+  //     if (transferResult.success) {
+  //       alert('✅ File transfer successful!');
+  //     } else {
+  //       alert(`⚠️ File transfer failed: ${transferResult.error}`);
+  //     }
+
+  //   } catch (error) {
+  //     console.error('❌ Error saving project:', error);
+  //     alert('Error saving project: ' + error.message);
+  //     dispatch(setProjectFolderFailure(error));
+  //   }
+  // };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsFormSubmitted(true);
     setIsUploading(true); // 🔥 Start loader
     console.log('Form submission started');
   
-    if (!userData || !userData.orgName) {
+    if (!orgName) {
       alert('Organization name is not available.');
       setIsUploading(false);
       return;
     }
   
-    const orgName = userData.orgName;
+  
     const userId = user?.userId || '';
     const errors = validateForm();
   
@@ -370,6 +489,7 @@ console.log(tempErrors);
       setIsUploading(false);
       return;
     }
+    console.log("project name",projectName);
   
     try {
       // Uploading files
@@ -402,29 +522,39 @@ console.log(tempErrors);
         if (bannerUrl) formData.projectInfo.s3SourceBannerUrl = bannerUrl;
         if (trailerUrl) formData.projectInfo.s3SourceTrailerUrl = trailerUrl;
       }
-  
-      // Form submission
-      const updatedFormData = {
-        projectInfo: {
-          ...formData.projectInfo,
-          projectName,
-          userId,
-          posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
-          bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
-          trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
-          movieFileName: formData.projectInfo.movieFileName || ''
-        },
-        creditsInfo: { ...formData.creditsInfo, projectName, userId },
-        specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
-        rightsInfo: { ...formData.rightsInfo, projectName, userId },
-        srtInfo: {
-          srtFiles: formData.srtInfo.map(pair => pair.srtFile),
-          infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
-          projectName,
-          userId
-        }
-      };
-  
+
+    } catch (uploadError) {
+      console.error('Error during upload:', uploadError);
+      alert('File upload failed: ' + uploadError.message);
+      return;
+    }
+
+    console.log("projectName:", projectName);
+console.log("formData.projectInfo.projectName:", formData.projectInfo.projectName);
+    const updatedFormData = {
+      projectInfo: {
+        ...formData.projectInfo,
+        projectName: formData.projectInfo.projectName,
+        userId,
+        posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
+        bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
+        trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
+        movieFileName: formData.projectInfo.movieFileName || ''
+      },
+      creditsInfo: { ...formData.creditsInfo, projectName, userId },
+      specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
+      // screeningsInfo: { ...formData.screeningsInfo, projectName, userId },
+      rightsInfo: { ...formData.rightsInfo, projectName, userId },
+      srtInfo: {
+        srtFiles: formData.srtInfo.map(pair => pair.srtFile),
+        infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
+        projectName,
+        userId
+      }
+    };
+    console.log('Submitting full form data:', updatedFormData);
+
+    try {
       const response = await fetch('http://localhost:3000/api/projectForm', {
         method: 'POST',
         headers: {
@@ -453,7 +583,11 @@ console.log(tempErrors);
     } catch (error) {
       console.error('❌ Error during submission:', error);
       alert('Error saving project: ' + error.message);
-      dispatch(setProjectFolderFailure(error));
+      dispatch(setProjectFolderFailure({
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      }));
     } finally {
       setIsUploading(false); // 🔁 End loader
     }
@@ -501,6 +635,7 @@ console.log(tempErrors);
         <SpecificationsInfo
           onInputChange={(data) => handleInputChange('specificationsInfo', data)}
           formData={formData.specificationsInfo}
+          setFormData={setFormData}
           errors={isFormSubmitted ? errors.specificationsInfoErrors : {}}
           setSpecsErrors={(errors) =>
             setErrors((prev) => ({
@@ -546,6 +681,7 @@ console.log(tempErrors);
         Save Project
       </button>
     </form>
+    
   );
 }
 

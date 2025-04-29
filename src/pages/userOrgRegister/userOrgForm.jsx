@@ -8,6 +8,7 @@ import PrimaryContactDetails from "./components/PrimaryContactDetails"
 import UserDetails from "./components/UserDetails"
 import DocumentUpload from "./components/DocumentUpload"
 import OrganizationDetails from "./components/OrganizationDetails"
+import axios from "axios"
 
 const formSchema = z
     .object({
@@ -104,10 +105,12 @@ function UserOrgManagement() {
                 console.log(`${key}:`, value)
             }
 
-            // Submit the form data to your API
-            // In a real application, you would use fetch or axios here
-            // Simulating API call with timeout
-            await new Promise((resolve) => setTimeout(resolve, 1500))
+            const response = await axios.post(
+                "https://www.mediashippers.com/api/organization/register",
+                formData,
+              );
+          
+              console.log("Response from server:", response.data);
 
             setIsSuccess(true)
         } catch (error) {

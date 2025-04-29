@@ -189,7 +189,7 @@ function Register() {
             </p>
           </form>
         </div>
-      </div>
+      </div> 
     </div>
   );
 }
