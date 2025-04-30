@@ -1,432 +1,1006 @@
-import React, { useState } from 'react'
-import "./index.css"
-import 'bootstrap/dist/css/bootstrap.min.css';
-import HomeDesign from "../../assets/HomeDesign.png"
-// import Arrow from "../../assets/Arrow.png"
-import aws from "../../assets/aws.png"
-import azure from "../../assets/azure.png"
-import gcp from "../../assets/gcp.png"
-import Submit from '../../components/submit/Submit';
-import mediaShippers from '../../assets/mediaShippers.png'
-import BlueButton from '../../components/blueButton/BlueButton';
-import ImageCarousel from '../../components/imageCarousel/imageCarousel';
-import arrowblue from '../../assets/arrowblue.png'
-import Arrow6 from '../../assets/Arrow 6.png';
-import ServicesAccordion from '../../components/servicesAccordion/servicesAccordion';
-import contentOperation from '../../assets/contentOperation.png'
+"use client"
+import { useState } from "react"
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  IconButton,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  createTheme,
+  ThemeProvider,
+  Menu,
+  MenuItem,
+  Link as MuiLink,
+  CssBaseline,
+  Grid
+} from "@mui/material"
+import MenuIcon from "@mui/icons-material/Menu"
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
+import FacebookIcon from "@mui/icons-material/Facebook"
+import TwitterIcon from "@mui/icons-material/Twitter"
+import InstagramIcon from "@mui/icons-material/Instagram"
+import PinterestIcon from "@mui/icons-material/Pinterest"
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord"
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
+// import "./App.css"
+import logo from "../../assets/mediaShippers.png"
+import backgroundImage from "../../assets/earth-city-bg.jpeg"
+import buyer from "../../assets/Buyer2.png"
+import seller from "../../assets/Seller.png"
+import shippers from "../../assets/Shippers.png"
 
-import instagram from "../../assets/instagram.png";
-import linkedin from "../../assets/linkedin.png";
-import youtube from "../../assets/youtube.png";
-
-import axios from 'axios';
-
-
+import LinkedInIcon from "@mui/icons-material/LinkedIn"
+import LocationOnIcon from "@mui/icons-material/LocationOn"
+import EmailIcon from "@mui/icons-material/Email"
+import { useNavigate } from "react-router-dom"
 function Home() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [organization, setOrganization] = useState('');
-  const [region, setRegion] = useState('');
-  const [phone, setPhone] = useState('');
-  const [selectedService, setSelectedService] = useState('');
-  const [message, setMessage] = useState('');
+  // Define theme directly in the component
 
-  const [isSubmitting, setIsSubmitting] = useState(false);  // State to handle loading during form submission
-  const [error, setError] = useState(null);  // To capture errors
-  const [successMessage, setSuccessMessage] = useState(null);
-
-  
-
-  const handleServiceChange = (event) => {
-    setSelectedService(event.target.value);
-  };
-
-
-  const validate = () => {
-    let isValid = true;
-    let errorMessage = '';
-
-    if (!name) {
-      errorMessage += 'Name is required.\n';
-      isValid = false;
-    }
-    if (!email) {
-      errorMessage += 'Email is required.\n';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errorMessage += 'Email is invalid.\n';
-    }
-    if (!organization) {
-      errorMessage += 'Organization Name is required.\n';
-      isValid = false;
-    }
-    if (!phone) {
-      errorMessage += 'Phone Number is required.\n';
-      isValid = false;
-    } else if (!/^\d+$/.test(phone)) {  // Check if phone number is numeric
-      errorMessage += 'Phone Number must be numeric.\n';
-      isValid = false;
-    }
-    if (!selectedService) {
-      errorMessage += 'Service selection is required.\n';
-      isValid = false;
-    }
-    if (!message) {
-      errorMessage += 'Message is required.\n';
-      isValid = false;
-    }
-
-    if (!isValid) {
-      setError(errorMessage.trim());
-    }
-
-    return isValid;
-  };
-
-  // Create an Axios instance with default configuration
-const apiInstance = axios.create({
-  baseURL: '',
-});
-
-// Function to cancel the request if needed
-function cancelRequest() {
-  apiInstance.cancel('User cancelled the request');
-}
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault(); // Prevent form's default behavior (page reload)
-
-  //   // Validate the form data
-  //   if (!validate()) return;
-
-  //   // Set loading state
-  //   setIsSubmitting(true);
-  //   setError(null); // Clear previous error
-  //   setSuccessMessage(null); // Clear success message
-
-  //   // Collect form data into an object
-  //   const formData = {
-  //     name,
-  //     email,
-  //     organization,
-  //     phone,
-  //     selectedService,
-  //     message,
-  //   };
-
-  //   try {
-  //     // Make the POST request to your backend API
-  //     const response = await fetch('/api/submitform', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json', // Set the content type to JSON
-  //       },
-  //       body: JSON.stringify(formData), // Convert form data to JSON
-  //     });
-
-  //     const data = await response.json(); // Parse response data
-
-  //     if (response.ok) {
-  //       // If submission is successful, show success message and reset form
-  //       setSuccessMessage('Form submitted successfully!');
-  //       setName('');
-  //       setEmail('');
-  //       setOrganization('');
-  //       setPhone('');
-  //       setSelectedService('');
-  //       setMessage('');
-  //     } else {
-  //       setError(data.message || 'Error submitting form');
-  //     }
-  //   } catch (error) {
-  //     setError('There was an error submitting the form');
-  //     console.error('Form submission error:', error);
-  //   } finally {
-  //     // Reset loading state after submission
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
-
-  const services = [
-    'Delivery to OTT Streaming Platforms',
-    'Delivery to Film Festivals',
-    'Delivery to Censor Board',
-    'Dubbing Services',
-    'Subtitling Services',
-    'QC and Compliance Services',
-    'Distribution Services'
-  ];
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault(); // Prevent form's default behavior
-  
-  //   // Validate the form data (with async validation if needed)
-  //   if (!validate()) return;
-  
-  //   // Set loading state and reset error/success states
-  //   setIsSubmitting(true);
-  //   setError(null);
-  //   setSuccessMessage(null);
-  
-  //   // Collect form data into an object
-  //   const formData = { name, email, organization, phone, selectedService, message };
-  
-  //   try {
-  //     // Use the fetch API efficiently
-  //     const response = await fetch('/api/submitform', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(formData), // Send only necessary data
-  //     });
-  
-  //     const data = await response.json(); // Parse the JSON response
-  
-  //     if (response.ok) {
-  //       // Handle success (clear the form)
-  //       setSuccessMessage('Form submitted successfully!');
-  //       setName('');
-  //       setEmail('');
-  //       setOrganization('');
-  //       setPhone('');
-  //       setSelectedService('');
-  //       setMessage('');
-  //     } else {
-  //       // Handle server errors
-  //       setError(data.message || 'Error submitting form');
-  //     }
-  //   } catch (error) {
-  //     // Handle any other errors
-  //     setError('There was an error submitting the form');
-  //     console.error('Form submission error:', error);
-  //   } finally {
-  //     setIsSubmitting(false); // Reset loading state
-  //   }
-  // };
-  
-
-
- // Inside your Form component (Frontend)
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!validate()) return;
-
-  setIsSubmitting(true);
-  setError(null);
-  setSuccessMessage(null);
-
-  // Normalize the selected service to ensure it matches the expected value
-  const normalizedService = selectedService.trim();
-
-  // Collect form data into an object
-  const formData = { name, email, organization, phone, selectedService: normalizedService, message };
-
-  try {
-    const response = await fetch('/api/submitform', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+  const navigate = useNavigate();
+  const theme = createTheme({
+    palette: {
+      mode: "dark",
+      primary: {
+        main: "#FF6B00",
       },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setSuccessMessage('Form submitted successfully!');
-      setName('');
-      setEmail('');
-      setOrganization('');
-      setPhone('');
-      setSelectedService('');
-      setMessage('');
-    } else {
-      setError(data.message || 'Error submitting form');
-    }
-  } catch (error) {
-    setError('There was an error submitting the form');
-    console.error('Form submission error:', error);
-  } finally {
-    setIsSubmitting(false);
+      secondary: {
+        main: "#FFFFFF",
+      },
+      background: {
+        default: "#000000",
+        paper: "#121212",
+      },
+    },
+    typography: {
+      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    },
+  })
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+  const [anchorEl, setAnchorEl] = useState(null)
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget)
   }
-};
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleLoginRedirect = () => {
+    console.log("login clicked")
+    navigate('/login'); // <-- your login path
+  };
+
+  const ServiceIcon = (type) => {
+    const iconStyle = {
+      width: "50px",
+      height: "50px",
+      filter: "invert(1)",
+      opacity: 0.8,
+      marginBottom: "15px",
+    }
+
+    // Using simple div with background for icons
+    return (
+      <Box
+        sx={{
+          width: "50px",
+          height: "50px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: "15px",
+        }}
+      >
+        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" style={iconStyle}>
+          {type === "ingestion" && (
+            <path d="M10 10 L40 10 L40 40 L10 40 Z M20 20 L30 20 L30 30 L20 30 Z" stroke="white" strokeWidth="2" />
+          )}
+          {type === "transcoding" && (
+            <path d="M10 10 L40 10 L40 40 L10 40 Z M15 20 L35 20 M15 30 L35 30" stroke="white" strokeWidth="2" />
+          )}
+          {type === "dubbing" && (
+            <path
+              d="M15 15 C20 10, 30 10, 35 15 M10 25 L40 25 M15 35 C20 40, 30 40, 35 35"
+              stroke="white"
+              strokeWidth="2"
+            />
+          )}
+          {type === "metadata" && (
+            <path d="M10 10 L40 10 L40 40 L10 40 Z M15 20 L35 20 M15 30 L25 30" stroke="white" strokeWidth="2" />
+          )}
+          {type === "secure" && <path d="M25 10 L40 20 L25 30 L10 20 Z M25 30 L25 45" stroke="white" strokeWidth="2" />}
+          {type === "delivery" && (
+            <path d="M10 15 L40 15 L40 35 L10 35 Z M15 25 L35 25 M25 15 L25 35" stroke="white" strokeWidth="2" />
+          )}
+        </svg>
+      </Box>
+    )
+  }
+
+  // Service Card Component
+  const ServiceCard = ({
+    icon,
+    title,
+    description,
+
+
+  }) => {
+    return (
+      <Box sx={{ marginBottom: "20px", width: "100%" }}>
+        <ServiceIcon type={icon} />
+        <Typography
+          variant="h6"
+          component="h3"
+          sx={{
+            color: "white",
+            fontWeight: "bold",
+            fontSize: "18px",
+            marginBottom: "10px",
+          }}
+        >
+          {title}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "#aaa",
+            fontSize: "14px",
+            lineHeight: 1.5,
+            marginBottom: "15px",
+            maxWidth: "100%",
+          }}
+        >
+          {description}
+        </Typography>
+        <Button
+          variant="outlined"
+          endIcon={<ArrowForwardIcon />}
+          sx={{
+            color: "white",
+            borderColor: "#444",
+            textTransform: "none",
+            padding: "5px 15px",
+            fontSize: "14px",
+            "&:hover": {
+              borderColor: "#666",
+              backgroundColor: "rgba(255,255,255,0.05)",
+            },
+          }}
+        >
+          View Details
+        </Button>
+      </Box>
+    )
+  }
+
+
 
   return (
-    <div>
-      {/* homepage main section */}
-      <div className='section' style={{ marginBottom: '0px' }}>
-        <div className='container-fluid home-container'>
-          <div className='row'>
-            <div className='col-md-8  d-flex justify-content-center align-items-center'>
-              {/* Content for the left side */}
-              <ImageCarousel />
-            </div>
-            <div className='col-md-4'>
-              {/* Content for the right side */}
-              <div className='d-flex align-items-center justify-content-center h-auto mt-5'>
-                <div className="contact-right-section flex-grow-1 d-flex">
-                
-                <form className="form-container glass-effect" style={{ flex: 1 }} onSubmit={handleSubmit}>
-  <h1 className='align-items-center text-xxl'>Inquiry Form</h1>
-  {/* Form Fields */}
-  <div className="form-group pt-1">
-    <input
-      type="text"
-      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-      placeholder="Enter Name"
-      value={name}
-      onChange={(e) => setName(e.target.value)}
-    />
-  </div>
-  <div className="form-group pt-1">
-    <input
-      type="email"
-      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-      placeholder="Enter Email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-    />
-  </div>
-  <div className="form-group pt-1">
-    <input
-      type="text"
-      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-      placeholder="Enter Organization Name"
-      value={organization}
-      onChange={(e) => setOrganization(e.target.value)}
-    />
-  </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            // background: "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7))",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Background Image */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: -1,
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1,
+              },
+            }}
+          >
+            <img
+              src={backgroundImage || "/placeholder.svg"}
+              alt="Earth and city background"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          </Box>
+          {/* Navigation */}
+          <AppBar position="static" sx={{ backgroundColor: "transparent", padding: "10px 0", boxShadow: "none" }}>
+            <Container maxWidth="xl">
+              <Toolbar disableGutters>
+                <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+                  <img
+                    src={logo || "/placeholder.svg"}
+                    alt="Media Shippers Logo"
+                    style={{ height: "50px", marginRight: "10px" }}
+                  />
+                </Box>
+                {isMobile ? (
+                  <>
+                    <IconButton
+                      size="large"
+                      edge="end"
+                      color="inherit"
+                      aria-label="menu"
+                      onClick={handleMenu}
+                      sx={{ color: "white" }}
+                    >
+                      <MenuIcon />
+                    </IconButton>
+                    <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                    
+                      <Button onClick={handleLoginRedirect}>Login</Button>
+                    </Menu>
+                  </>
+                ) : (
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                  
+                    <Button
+                      variant="contained"
+                      onClick={handleLoginRedirect}
+                      endIcon={<ArrowForwardIcon />}
+                      sx={{
+                        ml: 3,
+                        backgroundColor: "#FF6B00",
+                        "&:hover": { backgroundColor: "#E05F00" },
+                        borderRadius: 0,
+                        px: 3,
+                      }}
+                    >
+                      Login
+                    </Button>
+                  </Box>
+                )}
+              </Toolbar>
+            </Container>
+          </AppBar>
+          {/* Social Media Sidebar */}
+          <Box
+            sx={{
+              position: "fixed",
+              left: 20,
+              top: "50%",
+              transform: "translateY(-50%)",
+              display: { xs: "none", md: "flex" },
+              flexDirection: "column",
+              gap: 2,
+              zIndex: 10,
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                writingMode: "vertical-rl",
+                transform: "rotate(180deg)",
+                mb: 2,
+                color: "white",
+                letterSpacing: 1,
+              }}
+            >
+              Follow
+            </Typography>
+            <IconButton sx={{ color: "white" }}>
+              <FacebookIcon />
+            </IconButton>
+            <IconButton sx={{ color: "white" }}>
+              <TwitterIcon />
+            </IconButton>
+            <IconButton sx={{ color: "white" }}>
+              <InstagramIcon />
+            </IconButton>
+            <IconButton sx={{ color: "white" }}>
+              <PinterestIcon />
+            </IconButton>
+          </Box>
+          {/* Navigation Dots */}
+          <Box
+            sx={{
+              position: "fixed",
+              right: 20,
+              top: "50%",
+              transform: "translateY(-50%)",
+              display: { xs: "none", md: "flex" },
+              flexDirection: "column",
+              gap: 1,
+              zIndex: 10,
+            }}
+          >
+            <FiberManualRecordIcon sx={{ color: "white", fontSize: 16 }} />
+            <FiberManualRecordIcon sx={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }} />
+            <FiberManualRecordIcon sx={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }} />
+          </Box>
+          {/* Hero Content */}
+          <Container maxWidth="lg" sx={{ pt: { xs: 10, md: 15 }, pb: 10, position: "relative", zIndex: 2 }}>
+            <Box sx={{ maxWidth: "800px" }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: "#FF6B00",
+                  mb: 2,
+                  fontWeight: 500,
+                  letterSpacing: 1,
+                  textAlign: "left"
+                }}
+              >
+                WORLD OF MEDIA MARKETPLACE
+              </Typography>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: { xs: "3rem", sm: "4rem", md: "6rem" },
+                  fontWeight: 700,
+                  color: "white",
+                  lineHeight: 1.1,
+                  mb: 2,
+                  textAlign: "left"
+                }}
+              >
+                MEDIA
+                <br />
+                SHIPPERS
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "white",
+                  mb: 6,
+                  maxWidth: "600px",
+                  fontWeight: 400,
 
-  <div className="form-group pt-1">
-    <input
-      type="tel"
-      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-      placeholder="Enter Phone Number"
-      value={phone}
-      onChange={(e) => setPhone(e.target.value)}
-    />
-  </div>
+                }}
+              >
+                Spread your interesting stories from every corner to every screen
+              </Typography>
 
-  <div className="form-group pt-1">
-    <select
-      id="service"
-      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-      style={{
-        color: selectedService ? 'black' : '#6B7280',
-        width: '23pc',
-      }}
-      value={selectedService}
-      onChange={(e) => setSelectedService(e.target.value)}
-    >
-      <option value="" disabled>Select your Service</option>
-      {services.map((service, index) => (
-        <option key={index} value={service}>{service}</option>
-      ))}
-    </select>
-  </div>
-
-  <div className="form-group mb-4 pt-1">
-    <textarea
-      className="form-textarea px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-300"
-      rows="4"
-      placeholder="Enter your message here"
-      value={message}
-      onChange={(e) => setMessage(e.target.value)}
-    />
-  </div>
-
-  {/* Error or Success Messages */}
-  {error && (
-    <div className="alert alert-danger custom-alert">
-      <strong></strong> {error}
-    </div>
-  )}
-  {successMessage && (
-    <div className="alert alert-success custom-alert">
-      <strong>Success:</strong> {successMessage}
-    </div>
-  )}
-
-  {/* Submit Button */}
-  <div className="flex">
-    <button 
-      type="submit" 
-      disabled={isSubmitting} 
-      className="submit-btn"
-    >
-      {isSubmitting ? 'Submitting...' : 'Submit'}
-    </button>
-  </div>
-</form>
-
-                </div>
-              </div>
+            </Box>
+          </Container>
+        </Box>
+      </Box>
 
 
-            </div>
-          </div>
-        </div>
-      </div>
-  
-          {/* Service accordion starts */}
+      {/* About Buyer Section */}
+      <Box
+        sx={{
+          backgroundColor: "#0a0a0a",
+          position: "relative",
+          py: { xs: 6, md: 10 },
+          px: { xs: 2, md: 6 }, // ✅ Added horizontal padding
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: { xs: 4, md: 8 },
+              alignItems: "flex-start", // ✅ Align content to top, not center
+            }}
+          >
+            {/* Left side - Image */}
+            <Box sx={{ flex: 1 }}>
+              <img
+                src={buyer || "/placeholder.svg"}
+                alt="Person browsing Media Shippers marketplace"
+                style={{
+                  width: "90%", // ✅ Reduced width by 10%
+                  height: "auto",
+                  maxWidth: "540px", // (600 * 0.9)
+                  borderRadius: "4px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                  display: "block",
+                  margin: "0 auto", // ✅ Center the image horizontally
+                }}
+              />
+            </Box>
 
-      <ServicesAccordion />
+            {/* Right side - Content */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#FF6B00",
+                  mb: 3,
+                  fontWeight: 600,
+                  letterSpacing: "1px",
+                  textAlign: "left", // ✅ Align text to left
+                }}
+              >
+                ABOUT BUYER
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 4,
+                  fontWeight: 400,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Discover, Deal, and Deliver Smarter At Media Shippers, we make finding great stories easy — and closing
+                deals even easier...
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 3,
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                Search Smarter — Instantly filter by genre, territory, availability, and delivery readiness...
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                Deal with Confidence — Request titles, negotiate terms, and finalize tri-party agreements...
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+
+        {/* Scroll to top button */}
+        <IconButton
+          sx={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            backgroundColor: "white",
+            "&:hover": {
+              backgroundColor: "#f0f0f0",
+            },
+          }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <ArrowUpwardIcon />
+        </IconButton>
+      </Box>
 
 
-      {/* Services accordion ends */}
+      {/* About seller Section */}
+      <Box
+        sx={{
+          backgroundColor: "#0a0a0a",
+          position: "relative",
+          py: { xs: 6, md: 10 },
+          px: { xs: 2, md: 6 }, // Horizontal padding added
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: { xs: 4, md: 8 },
+              alignItems: "flex-start", // Align vertically at the top
+            }}
+          >
+            {/* Left side - Image */}
+
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#FF6B00",
+                  mb: 3,
+                  fontWeight: 600,
+                  letterSpacing: "1px",
+                  textAlign: "left",
+                }}
+              >
+                ABOUT SELLER
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 4,
+                  fontWeight: 400,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Unlock New Opportunities with Media Shippers. At Media Shippers, we believe your creative energy should fuel stories — not paperwork. We're your trusted partner in getting your content to the right screens, faster and smarter...
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 3,
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                Upload and manage your content availability, rights, territories, and delivery details in one sleek dashboard.
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                Get discovered by a growing network of global Buyers actively seeking premium content for their platforms.
+              </Typography>
+            </Box>
 
 
 
-      <div className="section pb-10">
-      <div className="dotted-line-break-grey"></div>
-  <div className='container mx-auto px-4 py-2 flex flex-col items-center'>
-    
-    {/* Logo Section */}
-    <div className="flex justify-center items-center mb-8 ml-12">
-  <img
-    className="contact-logo-image"
-    src={mediaShippers}
-    alt="Logo"
-    style={{ width: '60%' }}
-  />
-</div>
-    
- {/* Social Media Icons */}
-{/* <div className="social-media-icons-wrapper">
-  <div className="d-flex justify-content-center align-items-center">
-    <div className="me-3">
-      <img src={instagram} alt="Instagram Logo" className="social-icon" />
-    </div>
-    <div className="me-3">
-      <img src={linkedin} alt="LinkedIn Logo" className="social-icon" />
-    </div>
-    <div className="me-3">
-      <img src={youtube} alt="YouTube Logo" className="social-icon" />
-    </div>
-  </div>
-</div> */}
+            {/* Right side - Content */}
+            <Box sx={{ flex: 1 }}>
+              <img
+                src={seller || "/placeholder.svg"}
+                alt="Person browsing Media Shippers marketplace"
+                style={{
+                  width: "90%", // 10% smaller
+                  height: "auto",
+                  maxWidth: "540px",
+                  borderRadius: "4px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                  display: "block",
+                  margin: "0 auto", // Center the image
+                }}
+              />
+            </Box>
+          </Box>
+        </Container>
 
-    
-    </div>
-</div>
+        {/* Scroll to top button */}
+        <IconButton
+          sx={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            backgroundColor: "white",
+            "&:hover": {
+              backgroundColor: "#f0f0f0",
+            },
+          }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <ArrowUpwardIcon />
+        </IconButton>
+      </Box>
 
 
-  
-      {/* Home page contact form section end */}
-      {/* <!-- Footer --> */}
-      <footer className="bg-custom-blue text-white py-4">
-        <div className="container mx-auto text-center">
-          <p className="text-sm">© 2024 Shipmedia. All rights reserved.</p>
-          {/* <p class="text-sm">1234 Street Address, City, State, 12345</p>
-      <p class="text-sm">Follow us on 
-        <a href="#" class="underline">Social Media</a>
-      </p> */}
-        </div>
-      </footer>
-    </div>
+
+      {/* About shippers Section */}
+      <Box
+        sx={{
+          backgroundColor: "#0a0a0a",
+          position: "relative",
+          py: { xs: 6, md: 10 },
+          px: { xs: 2, md: 6 }, // Left-right padding added
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: { xs: 4, md: 8 },
+              alignItems: "center",
+            }}
+          >
+            {/* Left side - Image */}
+            <Box sx={{ flex: 1 }}>
+              <img
+                src={shippers || "/placeholder.svg"}
+                alt="Person browsing Media Shippers marketplace"
+                style={{
+                  width: "90%", // Reduced by 10%
+                  height: "auto",
+                  maxWidth: "540px",
+                  borderRadius: "4px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                  display: "block",
+                  margin: "0 auto", // Centered
+                }}
+              />
+            </Box>
+
+            {/* Right side - Content */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: "#FF6B00",
+                  mb: 3,
+                  fontWeight: 600,
+                  letterSpacing: "1px",
+                  textAlign: "left",
+                }}
+              >
+                ABOUT SHIPPERS
+              </Typography>
+
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 4,
+                  fontWeight: 400,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                we’re a full-service platform designed to simplify and supercharge the entire content licensing journey.
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 3,
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                🌎 <strong>Discover</strong> — Explore a curated catalog of films, series, and documentaries from trusted global Sellers. Instantly filter by rights, regions, and delivery status — all updated in real-time.
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 3,
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                🤝 <strong>Deal-Making</strong> — Ensuring transparent, secure, and efficient negotiations, backed by platform moderation and audit trails.
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  mb: 3,
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                📄 <strong>Legal Management</strong> — From drafting to signing, we facilitate tri-party agreements between Seller, Buyer, and Media Shippers — ensuring clarity, compliance, and speed at every step.
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#9ba9b4",
+                  fontWeight: 300,
+                  textAlign: "left",
+                }}
+              >
+                💰 <strong>Financial Services</strong> — We manage revenue processing, monthly title-wise statements, invoicing, and payment collections.
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+
+        {/* Scroll to top button */}
+        <IconButton
+          sx={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            backgroundColor: "white",
+            "&:hover": {
+              backgroundColor: "#f0f0f0",
+            },
+          }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <ArrowUpwardIcon />
+        </IconButton>
+      </Box>
+
+      {/* services */}
+
+      <Box
+          sx={{
+            padding: "40px 20px",
+            width: "100%",
+          }}
+        >
+          <Container maxWidth="lg">
+            {/* Services Header */}
+            <Box sx={{ marginBottom: "30px" }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: "#ff6b35",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  letterSpacing: "1px",
+                  marginBottom: "5px",
+                }}
+              >
+                SERVICES
+              </Typography>
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "32px",
+                }}
+              >
+                My Services
+              </Typography>
+            </Box>
+
+            {/* Services Grid - 3 rows with 2 columns */}
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "30px", marginBottom: "40px" }}>
+              {/* Row 1 */}
+              <Box>
+                <ServiceCard
+                  icon="ingestion"
+                  title="Asset Ingestion & Validation"
+                  description="We accept a wide variety of formats and securely ingest your video masters, QC reports, artwork, and metadata. Rigorous quality control checks ensure files meet platform and buyer specifications — minimizing rejection risks and costly rework."
+                />
+              </Box>
+              <Box>
+                <ServiceCard
+                  icon="transcoding"
+                  title="Transcoding & Packaging"
+                  description="Need HLS, MPEG-DASH, ProRes, IMF, or custom deliverables? We transcode, package, and prepare your content according to the exact technical requirements of each Buyer or platform — globally."
+                />
+              </Box>
+
+              {/* Row 2 */}
+              <Box>
+                <ServiceCard
+                  icon="dubbing"
+                  title="Dubbing, Subtitling & Localization"
+                  description="Our network of vetted subtitling and dubbing partners ensures you have seamless multi-language versions ready for any market. We also facilitate AI+Human hybrid services for faster turnarounds without sacrificing quality or cultural nuance."
+                />
+              </Box>
+              <Box>
+                <ServiceCard
+                  icon="metadata"
+                  title="Metadata & Artwork Management"
+                  description="From synopses to cast lists and key art — we gather, format, and validate all supporting materials. Media Shippers ensures every asset package is complete, compliant, and ready for final delivery."
+                />
+              </Box>
+
+              {/* Row 3 */}
+              <Box>
+                <ServiceCard
+                  icon="secure"
+                  title="Secure Delivery & Tracking"
+                  description="We use secure file delivery methods (Aspera, Signiant, SFTP, or your preferred platform) and provide full tracking until the Buyer acknowledges successful receipt."
+                />
+              </Box>
+              <Box>
+                <ServiceCard
+                  icon="delivery"
+                  title="Delivery Readiness Certification"
+                  description="Before dispatching, our internal checklist ensures: QC Passed, Metadata Complete, Deliverables Verified, Buyer Specifications Matched."
+                />
+              </Box>
+            </Box>
+
+          </Container>
+        </Box>
+
+      {/* footer */}
+
+      <Box
+        sx={{
+          bgcolor: "#000",
+          padding: "60px 20px 20px",
+          position: "relative",
+        }}
+      >
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {/* Logo Section */}
+            <Grid item xs={12} md={4} sx={{ textAlign: isMobile ? "center" : "left" }}>
+              <Box
+                component="img"
+                src={logo}
+                alt="Media Shippers Logo"
+                sx={{
+                  maxWidth: "250px",
+                  marginBottom: "20px",
+                  filter: "brightness(1.2)",
+                }}
+              />
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#aaa",
+                  fontSize: "14px",
+                  maxWidth: "300px",
+                  margin: isMobile ? "0 auto" : "0",
+                }}
+              >
+                Media Shippers- We help Browse, Order, Pack & Ship Content
+              </Typography>
+            </Grid>
+
+            {/* Follow Me Section */}
+            <Grid item xs={12} md={4} sx={{ textAlign: isMobile ? "center" : "left" }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "18px",
+                  marginBottom: "20px",
+                }}
+              >
+                Follow Me
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#aaa",
+                  fontSize: "14px",
+                  marginBottom: "15px",
+                }}
+              >
+                Connect me with social media
+              </Typography>
+              <Box sx={{ display: "flex", gap: "10px", justifyContent: isMobile ? "center" : "flex-start" }}>
+                <IconButton size="small" sx={{ color: "#aaa" }}>
+                  <FacebookIcon />
+                </IconButton>
+                <IconButton size="small" sx={{ color: "#aaa" }}>
+                  <TwitterIcon />
+                </IconButton>
+                <IconButton size="small" sx={{ color: "#aaa" }}>
+                  <InstagramIcon />
+                </IconButton>
+                <IconButton size="small" sx={{ color: "#aaa" }}>
+                  <LinkedInIcon />
+                </IconButton>
+              </Box>
+            </Grid>
+
+            {/* Contact Us Section */}
+            <Grid item xs={12} md={4} sx={{ textAlign: isMobile ? "center" : "left" }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "18px",
+                  marginBottom: "20px",
+                }}
+              >
+                Contact Us
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "15px",
+                  justifyContent: isMobile ? "center" : "flex-start",
+                }}
+              >
+                <LocationOnIcon sx={{ color: "#ff6b35", marginRight: "10px" }} />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#aaa",
+                    fontSize: "14px",
+                  }}
+                >
+                  New Jersey, Los Angeles, India
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: isMobile ? "center" : "flex-start",
+                }}
+              >
+                <EmailIcon sx={{ color: "#ff6b35", marginRight: "10px" }} />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#aaa",
+                    fontSize: "14px",
+                  }}
+                >
+                  ashwini@entertainmenttechnologists.com
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Copyright Section */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderTop: "1px solid #333",
+              marginTop: "40px",
+              paddingTop: "20px",
+              flexDirection: isMobile ? "column" : "row",
+              gap: isMobile ? "10px" : "0",
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#aaa",
+                fontSize: "14px",
+              }}
+            >
+              © 2025{" "}
+              <Box component="span" sx={{ color: "#ff6b35" }}>
+                Media Shippers
+              </Box>{" "}
+              All Rights Reserved.
+            </Typography>
+            <Box sx={{ display: "flex", gap: "20px" }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#aaa",
+                  fontSize: "14px",
+                }}
+              >
+                Privacy Policy
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#aaa",
+                  fontSize: "14px",
+                }}
+              >
+                Terms & Condition
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
+
+        {/* Back to Top Button */}
+        <IconButton
+          sx={{
+            position: "absolute",
+            right: "20px",
+            bottom: "20px",
+            bgcolor: "rgba(255,255,255,0.1)",
+            color: "white",
+            "&:hover": {
+              bgcolor: "rgba(255,255,255,0.2)",
+            },
+          }}
+        >
+          <ArrowForwardIcon sx={{ transform: "rotate(-45deg)" }} />
+        </IconButton>
+      </Box>
+    </ThemeProvider>
   )
 }
-
 export default Home

@@ -225,7 +225,7 @@ function ConditionalNavbar() {
   const showNavbar = showNavbarRoutes.includes(location.pathname);
 
   if (showNavbar) {
-    return <Navbar />;
+    return null;
   } else {
     return null;
   }

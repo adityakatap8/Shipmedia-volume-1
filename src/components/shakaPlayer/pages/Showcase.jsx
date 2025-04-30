@@ -40,6 +40,7 @@ import {
   Star as StarIcon,
   KeyboardArrowDown as ArrowDownIcon,
 } from "@mui/icons-material"
+import Loader from '../../loader/Loader.jsx'
 
 
 
@@ -164,7 +165,9 @@ export default function MovieGrid() {
   const [projectIds, setProjectIds] = useState([]);
   console.log("projectIds", projectIds)
   const [movieDataMap, setMovieDataMap] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+
+ 
+  const [loading, setLoading] = useState(true);
 
 
 
@@ -269,7 +272,8 @@ export default function MovieGrid() {
     if (!projectIds.length) return;
 
     const fetchMovieData = async () => {
-      setIsLoading(true);
+      setLoading(true);
+    
       const dataMap = {};
 
       try {
@@ -315,12 +319,13 @@ export default function MovieGrid() {
           description: "Failed to load project details.",
         });
       } finally {
-        setIsLoading(false);
+        setLoading(false);  // Set loading to false when the fetch is done (success or error)
       }
     };
 
     fetchMovieData();
   }, [projectIds]);
+  
 
 
   const fetchProjectInfoForProjects = async (projects) => {
@@ -974,6 +979,10 @@ export default function MovieGrid() {
   }
 
   return (
+    <>
+      {loading ? (
+        <Loader />  // Show loader when loading is true
+      ) : (
     <Box sx={styles.root}>
       <Box sx={styles.search}>
         <Box sx={styles.searchIcon}>
@@ -1415,6 +1424,8 @@ export default function MovieGrid() {
 
 
     </Box>
+      )}
+    </>
   )
 }
 
