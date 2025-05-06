@@ -23,7 +23,7 @@ export const UserProvider = ({ children }) => {
 
       try {
         console.log('Fetching user data...');
-        const response = await fetch('http://localhost:3000/api/auth/user', {
+        const response = await fetch('https://www.mediashippers.com/api/auth/user', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`

@@ -19,6 +19,7 @@ import BrowseFestival from '../../components/browseFestival/BrowseFestival';
 import UserManagement from '../../components/userManagement/managementPanel/userManagement';
 import UserOrgManagement from '../userOrgRegister/userOrgForm';
 import DealDashboard from '../deals/dealDashboard';
+import CartPage from '../cart/CartPage';
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
@@ -39,3 +40,4 @@ export const browseFestival = () => <BrowseFestival />
 export const userManagement = () => <UserManagement />
 export const userOrganizationManagement = () => <UserOrgManagement />
 export const dealDashboard = () => <DealDashboard />
+export const cartPage = () => <CartPage />

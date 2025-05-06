@@ -29,7 +29,8 @@ import {
   projectsDashboard,
   viewAndEditForm,
   userOrganizationManagement,
-  dealDashboard
+  dealDashboard,
+  cartPage
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -207,6 +208,10 @@ function App() {
                 <Route path="/deals" element={
               <ProtectedRoute>
                 <DashboardLayout>{dealDashboard()}</DashboardLayout></ProtectedRoute>} />
+
+                <Route path="/cart" element={
+              <ProtectedRoute>
+                <DashboardLayout>{cartPage()}</DashboardLayout></ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>

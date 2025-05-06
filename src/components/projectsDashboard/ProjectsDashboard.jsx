@@ -127,7 +127,7 @@ function ProjectDashboard() {
           console.log("Making API call with token...");
   
           axios
-            .get(`http://localhost:3000/api/projects/${userData.userId}`, {
+            .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
               },
@@ -682,7 +682,7 @@ export default ProjectDashboard
 //           console.log("Making API call with token...");
   
 //           axios
-//             .get(`http://localhost:3000/api/projects/${userData.userId}`, {
+//             .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
 //               headers: {
 //                 'Authorization': `Bearer ${token}`,
 //               },
@@ -727,7 +727,7 @@ export default ProjectDashboard
 //       setLoading(true);
 
 //       // Make request with cookies included
-//       axios.get(`http://localhost:3000/api/projects/${parsedUserData.userId}`, {
+//       axios.get(`https://www.mediashippers.com/api/projects/${parsedUserData.userId}`, {
 //         withCredentials: true,
 //         headers: {
 //           Authorization: `Bearer ${Cookies.get("token")}`,
@@ -766,7 +766,7 @@ export default ProjectDashboard
 //       // Step 1: Create the project folder in S3
 //       axios
 //         .post(
-//           `http://localhost:3000/api/folders/create-project-folder`,
+//           `https://www.mediashippers.com/api/folders/create-project-folder`,
 //           {
 //             orgName: orgName,
 //             projectName: projectName,
@@ -794,7 +794,7 @@ export default ProjectDashboard
 //           // Step 2: Create subfolders
 //           axios
 //             .post(
-//               `http://localhost:3000/api/folders/create-subfolders`,
+//               `https://www.mediashippers.com/api/folders/create-subfolders`,
 //               {
 //                 orgName: orgName,
 //                 projectName: projectName,
@@ -814,7 +814,7 @@ export default ProjectDashboard
 //               // Step 3: Create project info in DB
 //               axios
 //                 .post(
-//                   `http://localhost:3000/api/projectsInfo/createProjectInfo`,
+//                   `https://www.mediashippers.com/api/projectsInfo/createProjectInfo`,
 //                   {
 //                     projectName: projectName,
 //                     projectTitle: movieName,

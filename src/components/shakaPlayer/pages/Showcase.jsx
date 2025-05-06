@@ -236,7 +236,7 @@ export default function MovieGrid() {
     if (!user?.userId || !token) return;
 
     axios
-      .get(`http://localhost:3000/api/projects/${user.userId}`, {
+      .get(`https://www.mediashippers.com/api/projects/${user.userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -280,7 +280,7 @@ export default function MovieGrid() {
         for (const projectId of projectIds) {
           try {
             const response = await axios.get(
-              `http://localhost:3000/api/project-form/data/${projectId}`,
+              `https://www.mediashippers.com/api/project-form/data/${projectId}`,
               {
                 withCredentials: true,
                 headers: {
@@ -334,7 +334,7 @@ export default function MovieGrid() {
 
       const projectInfoResponses = await Promise.all(
         projects.map((project) =>
-          axios.get(`http://localhost:3000/api/folders/project-info/${project._id}`, {
+          axios.get(`https://www.mediashippers.com/api/folders/project-info/${project._id}`, {
             withCredentials: true, // Send cookies with the request (including JWT cookie)
             headers: {
               'Authorization': `Bearer ${token}`, // Add token in header
@@ -905,7 +905,7 @@ export default function MovieGrid() {
     if (!user?.userId || !token) return;
 
     axios
-      .get(`http://localhost:3000/api/projects/${user.userId}`, {
+      .get(`https://www.mediashippers.com/api/projects/${user.userId}`, {
         headers: {
           Authorization: `Bearer ${token}`, // add the token to the Authorization header
         },
@@ -931,7 +931,7 @@ export default function MovieGrid() {
 
   //     const projectInfoResponses = await Promise.all(
   //       projects.map((project) =>
-  //         axios.get(`http://localhost:3000/api/folders/project-info/${project._id}`, {
+  //         axios.get(`https://www.mediashippers.com/api/folders/project-info/${project._id}`, {
   //           withCredentials: true, // Send cookies with the request (including JWT cookie)
   //           headers: {
   //             'Authorization': `Bearer ${token}`, // Add token in header

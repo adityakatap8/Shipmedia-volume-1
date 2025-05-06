@@ -27,7 +27,7 @@ function ViewAndEditForm() {
     const fetchUserDetails = async () => {
       if (projectData?.projectInfoData?.userId) {
         try {
-          const response = await axios.get(`http://localhost:3000/api/users/${projectData.projectInfoData.userId}`, {
+          const response = await axios.get(`https://www.mediashippers.com/api/users/${projectData.projectInfoData.userId}`, {
             withCredentials: true
           });
 
@@ -47,7 +47,7 @@ function ViewAndEditForm() {
   useEffect(() => {
     const fetchProjectData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/project-form/data/${projectId}`, {
+        const response = await axios.get(`https://www.mediashippers.com/api/project-form/data/${projectId}`, {
           withCredentials: true,
             headers: {
               'Authorization': `Bearer ${token}`, // Add token in header

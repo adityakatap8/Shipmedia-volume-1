@@ -28,15 +28,18 @@ import {
   Upload as UploadIcon,
   Videocam as VideocamIcon,
   AccountCircle as AccountCircleIcon,
+  ShoppingCart,
 } from "@mui/icons-material"
 import { Link as RouterLink, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuthToken } from '../../redux/authSlice/authSlice';
+import logoIcon from "../../assets/LOGO UPSCALE.png"
+import CartIcon from "../cartIcon/CartIcon";
 
 export function Navebar1({
   onLogout = () => console.log("Logout clicked"),
 }) {
-  const {user} = useSelector((state) => state.auth.user);
+  const { user } = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [hasNotifications, setHasNotifications] = React.useState(true)
@@ -56,16 +59,16 @@ export function Navebar1({
   // Get menu items based on user role
   const getMenuItems = () => {
     if (!user) return [];
-    
+
     switch (user.role) {
       case 'Admin':
         return allMenuItems;
       case 'Buyer':
-        return allMenuItems.filter(item => 
+        return allMenuItems.filter(item =>
           item.name === 'Home' || item.name === 'Deals'
         );
       case 'Seller':
-        return allMenuItems.filter(item => 
+        return allMenuItems.filter(item =>
           item.name !== 'Account'
         );
       default:
@@ -218,110 +221,111 @@ export function Navebar1({
 
   return (
     <AppBar position="sticky" style={appBarStyle}>
-        <Toolbar disableGutters style={{ height: 64 }}>
+      <Toolbar disableGutters style={{ height: 64 }}>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={handleDrawerToggle}
+          style={{ ...iconButtonStyle, marginRight: 16, display: { xs: "flex", md: "none" } }}
+          sx={{ display: { xs: "flex", md: "none" } }}
+        >
+          <MenuIcon />
+        </IconButton>
+
+        <RouterLink to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+          <Typography variant="h6" noWrap style={logoTextStyle}>
+            {/* <span style={orangeSpanStyle}>Media</span>Shippers */}
+            <img src={logoIcon} alt="Logo" style={{ maxWidth: "100%", height: "50px" }} />
+          </Typography>
+        </RouterLink>
+
+        <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, justifyContent: "flex-end", gap: 1 }}>
+          {menuItems.map((item) => (
+            <Button
+              key={item.name}
+              component={RouterLink}
+              to={item.href}
+              style={navLinkStyle}
+              sx={{ "&:hover": navLinkHoverStyle }}
+            >
+              {item.name}
+            </Button>
+          ))}
+        </Box>
+
+        <Box style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            style={{ ...iconButtonStyle, marginRight: 16, display: { xs: "flex", md: "none" } }}
-            sx={{ display: { xs: "flex", md: "none" } }}
+            onClick={handleNotificationClick}
+            style={iconButtonStyle}
+            sx={{ "&:hover": iconButtonHoverStyle }}
           >
-            <MenuIcon />
+            <Badge color="error" variant="dot" invisible={!hasNotifications}>
+              <NotificationsIcon fontSize="small" />
+            </Badge>
           </IconButton>
-
-          <RouterLink to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-            <Typography variant="h6" noWrap style={logoTextStyle}>
-              <span style={orangeSpanStyle}>Media</span>Shippers
-            </Typography>
-          </RouterLink>
-
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, justifyContent: "flex-end", gap: 1 }}>
-            {menuItems.map((item) => (
-              <Button
-                key={item.name}
-                component={RouterLink}
-                to={item.href}
-                style={navLinkStyle}
-                sx={{ "&:hover": navLinkHoverStyle }}
-              >
-                {item.name}
-              </Button>
-            ))}
-          </Box>
-
-          <Box style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <IconButton
-              color="inherit"
-              onClick={handleNotificationClick}
-              style={iconButtonStyle}
-              sx={{ "&:hover": iconButtonHoverStyle }}
-            >
-              <Badge color="error" variant="dot" invisible={!hasNotifications}>
-                <NotificationsIcon fontSize="small" />
-              </Badge>
-            </IconButton>
-
-            <IconButton
-              onClick={handleMenuOpen}
-              size="small"
-              style={avatarButtonStyle}
-              sx={{ "&:hover": avatarButtonHoverStyle }}
-            >
-              <Avatar
-                alt={user?.name}
-                src="/diverse-online-profiles.png"
-                style={{ width: 32, height: 32, backgroundColor: "#334155" }}
-              >
-                {user?.name?.charAt(0)}
-              </Avatar>
-            </IconButton>
-          </Box>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            PaperProps={{
-              style: menuPaperStyle,
-              sx: { "& .MuiMenuItem-root:hover": menuItemHoverStyle },
-            }}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            <CartIcon cartCount={3} />
+          <IconButton
+            onClick={handleMenuOpen}
+            size="small"
+            style={avatarButtonStyle}
+            sx={{ "&:hover": avatarButtonHoverStyle }}
           >
-            <Box style={{ padding: "8px 16px" }}>
-              <Typography variant="subtitle1" style={{ fontWeight: 500 }}>
-                {user?.name}
-              </Typography>
-              <Typography variant="body2" style={emailTextStyle}>
-                {user?.email}
-              </Typography>
-              <Typography variant="body2" style={{ ...emailTextStyle, color: '#ff7043' }}>
-                {user?.role}
-              </Typography>
-            </Box>
-            <Divider style={dividerStyle} />
-            <MenuItem onClick={handleMenuClose}>
-              <ListItemIcon style={listItemIconStyle}>
-                <PersonIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Profile</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
-              <ListItemIcon style={listItemIconStyle}>
-                <SettingsIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Settings</ListItemText>
-            </MenuItem>
-            <Divider style={dividerStyle} />
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon style={listItemIconStyle}>
-                <LogoutIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Logout</ListItemText>
-            </MenuItem>
-          </Menu>
-        </Toolbar>
+            <Avatar
+              alt={user?.name}
+              src="/diverse-online-profiles.png"
+              style={{ width: 32, height: 32, backgroundColor: "#334155" }}
+            >
+              {user?.name?.charAt(0)}
+            </Avatar>
+          </IconButton>
+        </Box>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          PaperProps={{
+            style: menuPaperStyle,
+            sx: { "& .MuiMenuItem-root:hover": menuItemHoverStyle },
+          }}
+          transformOrigin={{ horizontal: "right", vertical: "top" }}
+          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        >
+          <Box style={{ padding: "8px 16px" }}>
+            <Typography variant="subtitle1" style={{ fontWeight: 500 }}>
+              {user?.name}
+            </Typography>
+            <Typography variant="body2" style={emailTextStyle}>
+              {user?.email}
+            </Typography>
+            <Typography variant="body2" style={{ ...emailTextStyle, color: '#ff7043' }}>
+              {user?.role}
+            </Typography>
+          </Box>
+          <Divider style={dividerStyle} />
+          <MenuItem onClick={handleMenuClose}>
+            <ListItemIcon style={listItemIconStyle}>
+              <PersonIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Profile</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleMenuClose}>
+            <ListItemIcon style={listItemIconStyle}>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Settings</ListItemText>
+          </MenuItem>
+          <Divider style={dividerStyle} />
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon style={listItemIconStyle}>
+              <LogoutIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Logout</ListItemText>
+          </MenuItem>
+        </Menu>
+      </Toolbar>
 
       <Drawer
         variant="temporary"

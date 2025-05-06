@@ -70,7 +70,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     const userId = userData?.userId;
     if (userId && projectName) {
       try {
-        const response = await axios.get(`http://localhost:3000/api/projectInfo/${userId}`, {
+        const response = await axios.get(`https://www.mediashippers.com/api/projectInfo/${userId}`, {
           params: { projectName }
         });
         console.log('Project Data:', response.data);

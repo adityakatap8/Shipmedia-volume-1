@@ -66,7 +66,7 @@ export default function S3Browser() {
     setLoading(true);
     try {
       const path = currentPath.join('/');
-      const response = await axios.post('/api/folders/s3-list', 
+      const response = await axios.post('https://www.mediashippers.com/api/folders/s3-list', 
         { path },
         {
           headers: {
@@ -75,15 +75,14 @@ export default function S3Browser() {
           }
         }
       );
-
       if (response.data) {
         setCurrentItems({
           ...response.data.folders.reduce((acc, folder) => {
             acc[folder] = { type: "folder", children: {} };
             return acc;
           }, {}),
-          ...response.data.files.reduce((acc, file) => {
-            acc[file.name] = { type: "file", size: file.size };
+          ...response.data.files.reduce((acc, fileName) => {
+            acc[fileName] = { type: "file" };
             return acc;
           }, {})
         });
@@ -128,7 +127,7 @@ export default function S3Browser() {
   const downloadFile = async (fileName) => {
     try {
       const fullFilePath = `s3://${currentPath.join('/')}/${fileName}`;
-      const response = await axios.post('/api/folders/download-files', 
+      const response = await axios.post('https://www.mediashippers.com/api/folders/download-files', 
         { files: [fullFilePath] },
         {
           headers: {
