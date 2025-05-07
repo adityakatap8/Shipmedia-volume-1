@@ -45,7 +45,22 @@ import Loader from '../../loader/Loader.jsx'
 
 
 export default function MovieGrid() {
-  const { orgName } = useSelector((state) => state.auth.user.user)
+
+  const { toast } = useToast();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [projectData, setProjectData] = useState([]);
+  const [specificationsData, setSpecificationsData] = useState([]);
+  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
+  const [trailerUrl, setTrailerUrl] = useState('');
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+
+  const { orgName,_id: userId, role } = useSelector((state) => state.auth.user.user)
+  
+  console.log("user from redux", user)
   // Sample movie data with ratings added
   const movies = [
     {
@@ -134,16 +149,68 @@ export default function MovieGrid() {
   const token = Cookies.get('token'); // 🔐 Add this at the top of your component, just below useState declarations
 
 
-  const { toast } = useToast();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [projectData, setProjectData] = useState([]);
-  const [specificationsData, setSpecificationsData] = useState([]);
-  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
-  const [trailerUrl, setTrailerUrl] = useState('');
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+ 
+  useEffect(() => {
+    console.log("all details hit");
+
+    // Fetch userId and role from Redux (already done outside)
+    const token = Cookies.get("token");
+    console.log("UserId and role", userId, role);
+    
+    if (!userId || !role || !token) return;
+
+    // Fetch all project data from the backend
+    const fetchAllProjectData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `https://www.mediashippers.com/api/project-form/all-details?userId=${userId}&role=${role}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+
+        const projects = response.data?.projects || [];
+
+        console.log("Respone from get alldata", response.data)
+
+        // Set the full project data (including formData)
+        setProjectData(projects);
+
+        // Optionally extract and set poster/trailer/specification info if needed
+        const formattedSpecs = projects.map((project) => ({
+          projectId: project._id,
+          projectTitle: project.projectTitle,
+          projectPoster: project.posterFileName,
+          trailerFile: project.trailerFileName,
+        }));
+        setSpecificationsData(formattedSpecs);
+
+        // Save project IDs and user IDs if needed
+        setProjectIds(projects.map((p) => p._id));
+        allUserIds.current = [...new Set(projects.map((p) => p.userId))];
+
+        console.log("✅ All project + form data loaded");
+      } catch (error) {
+        console.error("❌ Error fetching merged data:", error.response?.data || error.message);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load full project details.",
+        });
+      }finally {
+        setLoading(false); // Set loading to false once data is loaded (or if an error occurs)
+      }
+    };
+
+    fetchAllProjectData();
+  }, [userId, role, token, toast]);
+
+
 
 
   // Filter states
@@ -162,9 +229,9 @@ export default function MovieGrid() {
   const [sortAnchorEl, setSortAnchorEl] = useState(null)
 
 
-  const [projectIds, setProjectIds] = useState([]);
-  console.log("projectIds", projectIds)
-  const [movieDataMap, setMovieDataMap] = useState({});
+  const [allData, setallData] = useState([]);
+ 
+ 
 
  
   const [loading, setLoading] = useState(true);
@@ -176,35 +243,38 @@ export default function MovieGrid() {
   // Extract unique genres and years
   const allGenres = Array.from(
     new Set(
-      Object.values(movieDataMap)
-        .flatMap((project) => project.specificationsInfoData?.genres || []) // Get genres from specificationsInfoData
+      Object.values(projectData)
+        .flatMap((project) => project?.formData?.specificationsInfo?.genres || []) // Get genres from specificationsInfoData
         .map((genre) => genre.toLowerCase()) // Convert to lowercase to avoid case issues
     )
   );
 
 
 
-
+console.log("movie data map", projectData)
   const allYears = [...new Set(
-    Object.values(movieDataMap)
+    Object.values(projectData)
       .map((project) => {
-        const date = project?.specificationsInfoData?.completionDate;
-        const parsedYear = date && !isNaN(new Date(date)) ? new Date(date).getFullYear() : null;
+        const date = project?.formData?.specificationsInfo?.completionDate;
+        const parsedYear = date ? new Date(date).getFullYear() : null;
         return parsedYear;
       })
       .filter((year) => typeof year === "number")
-  )].sort((a, b) => b - a); // Descending order
-
-  console.log('Raw Dates:', Object.values(movieDataMap).map(p => p?.specificationsInfoData?.completionDate));
+  )].sort((a, b) => b - a); // Sort years in descending order
+  
+  
+  console.log('Raw Dates:', Object.values(projectData).map(p => p?.formData?.specificationsInfo?.completionDate));
   console.log('Extracted Years:', allYears);
+  
+  
 
 
 
   // Count movies for each filter
-  // Calculate the genre counts based on movieDataMap
+  // Calculate the genre counts based on projectData
   const genreCounts = allGenres.reduce((acc, genre) => {
     // Count how many projects have the given genre
-    const count = Object.values(movieDataMap).reduce((total, project) => {
+    const count = Object.values(projectData).reduce((total, project) => {
       if (project.specificationsInfoData?.genres?.includes(genre)) {
         total++;
       }
@@ -216,7 +286,7 @@ export default function MovieGrid() {
 
 
   const yearCounts = allYears.reduce((acc, year) => {
-    acc[year] = Object.values(movieDataMap).filter((project) => {
+    acc[year] = Object.values(projectData).filter((project) => {
       const date = project?.specificationsInfoData?.completionDate;
       const projectYear = date && !isNaN(new Date(date)) ? new Date(date).getFullYear() : null;
       return projectYear === year;
@@ -230,137 +300,8 @@ export default function MovieGrid() {
 
   const allUserIds = useRef([]);
 
-  useEffect(() => {
-    const token = Cookies.get('token');
 
-    if (!user?.userId || !token) return;
-
-    axios
-      .get(`https://www.mediashippers.com/api/projects/${user.userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log("response====", response.data)
-        setProjectData(response.data);
-        fetchProjectInfoForProjects(response.data);
-
-        // Collect unique userIds
-        const userIds = response.data.map(project => project.userId);
-        const uniqueUserIds = [...new Set(userIds)];
-        allUserIds.current = uniqueUserIds;
-        console.log('All unique user IDs:', allUserIds.current);
-
-        // Collect project IDs for next useEffect
-        const ids = response.data.map(project => project._id); // or project.projectId depending on your schema
-        setProjectIds(ids);
-      })
-      .catch((err) => {
-        console.error('Error fetching projects:', err.response?.data || err.message);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to fetch projects.',
-        });
-      });
-  }, [user?.userId, toast]);
-
-  // 🚀 Second useEffect: Fetch data based on collected projectIds
-  useEffect(() => {
-    if (!projectIds.length) return;
-
-    const fetchMovieData = async () => {
-      setLoading(true);
-    
-      const dataMap = {};
-
-      try {
-        for (const projectId of projectIds) {
-          try {
-            const response = await axios.get(
-              `https://www.mediashippers.com/api/project-form/data/${projectId}`,
-              {
-                withCredentials: true,
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-
-            console.log("response=====>", response)
-
-            if (response.status === 200) {
-              console.log(`🎬 Data for project ${projectId}:`, response.data);
-              dataMap[projectId] = response.data;
-            } else {
-              console.warn(`⚠️ Failed to load data for project ${projectId}`);
-            }
-          } catch (err) {
-            console.error(`❌ Error fetching data for project ${projectId}:`, err);
-          }
-        }
-
-        setMovieDataMap(dataMap);
-
-        // 🔍 Optionally, log current user's data if project belongs to them
-        const currentUserProjects = Object.entries(dataMap).filter(
-          ([_, data]) => data.userId === user.userId
-        );
-        console.log(`🎯 Current user's project data:`, currentUserProjects);
-
-      } catch (error) {
-        console.error("Error fetching movie data for projects:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load project details.",
-        });
-      } finally {
-        setLoading(false);  // Set loading to false when the fetch is done (success or error)
-      }
-    };
-
-    fetchMovieData();
-  }, [projectIds]);
   
-
-
-  const fetchProjectInfoForProjects = async (projects) => {
-    try {
-      const token = Cookies.get("token"); // Make sure js-cookie is imported
-
-      const projectInfoResponses = await Promise.all(
-        projects.map((project) =>
-          axios.get(`https://www.mediashippers.com/api/folders/project-info/${project._id}`, {
-            withCredentials: true, // Send cookies with the request (including JWT cookie)
-            headers: {
-              'Authorization': `Bearer ${token}`, // Add token in header
-              'Content-Type': 'application/json',
-            },
-          })
-        )
-      );
-
-      const projectInfos = projectInfoResponses.map((response) => ({
-        projectId: response.data?._id,
-        projectTitle: response.data?.projectTitle,
-        projectPoster: response.data?.projectPoster,
-        trailerFile: response.data?.trailerFile,
-      }));
-
-      setSpecificationsData(projectInfos);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch project info data for projects.",
-      });
-      console.error("Fetch error:", error.response?.data || error.message);
-    }
-  };
 
 
 
@@ -898,66 +839,6 @@ export default function MovieGrid() {
   ];
 
 
-  // Fetch project data
-  useEffect(() => {
-    const token = Cookies.get('token'); // get the token from cookies
-
-    if (!user?.userId || !token) return;
-
-    axios
-      .get(`https://www.mediashippers.com/api/projects/${user.userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // add the token to the Authorization header
-        },
-        withCredentials: true, // include credentials if needed for CORS
-      })
-      .then((response) => {
-        setProjectData(response.data);
-        fetchProjectInfoForProjects(response.data);
-      })
-      .catch((err) => {
-        console.error('Error fetching projects:', err.response?.data || err.message);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to fetch projects.',
-        });
-      });
-  }, [user?.userId, toast]);
-
-  // const fetchProjectInfoForProjects = async (projects) => {
-  //   try {
-  //     const token = Cookies.get("token"); // Make sure js-cookie is imported
-
-  //     const projectInfoResponses = await Promise.all(
-  //       projects.map((project) =>
-  //         axios.get(`https://www.mediashippers.com/api/folders/project-info/${project._id}`, {
-  //           withCredentials: true, // Send cookies with the request (including JWT cookie)
-  //           headers: {
-  //             'Authorization': `Bearer ${token}`, // Add token in header
-  //             'Content-Type': 'application/json',
-  //           },
-  //         })
-  //       )
-  //     );
-
-  //     const projectInfos = projectInfoResponses.map((response) => ({
-  //       projectId: response.data?._id,
-  //       projectTitle: response.data?.projectTitle,
-  //       projectPoster: response.data?.projectPoster,
-  //       trailerFile: response.data?.trailerFile,
-  //     }));
-
-  //     setSpecificationsData(projectInfos);
-  //   } catch (error) {
-  //     toast({
-  //       variant: "destructive",
-  //       title: "Error",
-  //       description: "Failed to fetch project info data for projects.",
-  //     });
-  //     console.error("Fetch error:", error.response?.data || error.message);
-  //   }
-  // };
 
 
   // Get display text for sort option
@@ -1362,19 +1243,22 @@ export default function MovieGrid() {
         </Box>
       </Drawer>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-        {Object.values(movieDataMap).map((project) => {
+        {Object.values(projectData).map((project) => {
           console.log("🔍 Project data in map:", project); // Add log here
 
-          const title = project?.projectInfoData?.projectTitle || "Untitled Project";
-          const poster = project?.projectInfoData?.posterFileName;
+          const title = project?.projectTitle || "Untitled Project";
+          const poster = project?.posterFileName;
           const logoImageURL = poster
-            ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${encodeURIComponent(title)}/film+stills/${poster}`
+            ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${(title)}/film stills/${poster}`
             : defaultPoster;
+            console.log("poster filen name", poster)
+            console.log("logo image url", logoImageURL)
+            console.log("orgname", orgName)
 
-          const genre = project?.specificationsInfoData?.genres || "Unknown Genre";
-          const completionDate = project?.specificationsInfoData?.completionDate;
+          const genre = project?.formData?.specificationsInfo?.genres || "Unknown Genre";
+          const completionDate = project?.formData?.specificationsInfo?.completionDate;
           const year = completionDate ? new Date(completionDate).getFullYear() : "N/A";
-          const rating = project?.rating || 0;
+          const rating = project?.formData?.specificationsInfo?.rating || 0;
 
           return (
             <Box key={project._id} sx={responsiveStyles.movieItem}>
@@ -1401,7 +1285,7 @@ export default function MovieGrid() {
                     <Button
                       variant="contained"
                       sx={styles.checkoutButton}
-                      onClick={() => navigate(`/movie/${project.projectInfoData?._id}`)}
+                      onClick={() => navigate(`/movie/${project._id}`)}
                     >
                       View Details
                     </Button>

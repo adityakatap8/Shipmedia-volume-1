@@ -139,12 +139,13 @@ border: 1px solid white;
 border-radius: 40px;
 position: absolute;
 top: 60px;
-right: -30px;
+right: 18.5rem;
 width: auto;
 height: auto;
 padding: 10px 20px;
 font-size: 30px;
 font-weight: 600;
+margin-top: 100px;
 }
 
 .video-player{

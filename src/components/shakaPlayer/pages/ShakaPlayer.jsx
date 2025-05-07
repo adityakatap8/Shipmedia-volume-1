@@ -109,7 +109,7 @@ const ShakaPlayer = ({
       </Button> */}
       <div className="h-screen flex items-center justify-center">
         <div className="w-auto h-auto">
-          <div className="relative w-full aspect-video video-player" style={{ zIndex: 1 }}>
+          <div className="relative w-1/2 aspect-video mx-auto video-player" style={{ zIndex: 1 }}>
             <video
               ref={videoRef}
               className="w-full h-full object-contain"
@@ -117,6 +117,7 @@ const ShakaPlayer = ({
               autoPlay
             />
           </div>
+
 
           {showControls && !isEnded && (
             <div
