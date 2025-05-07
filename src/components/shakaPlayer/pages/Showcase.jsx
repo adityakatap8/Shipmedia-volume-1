@@ -251,7 +251,7 @@ export default function MovieGrid() {
 
 
 
-console.log("movie data map", projectData)
+
   const allYears = [...new Set(
     Object.values(projectData)
       .map((project) => {
@@ -275,24 +275,29 @@ console.log("movie data map", projectData)
   const genreCounts = allGenres.reduce((acc, genre) => {
     // Count how many projects have the given genre
     const count = Object.values(projectData).reduce((total, project) => {
-      if (project.specificationsInfoData?.genres?.includes(genre)) {
+      const genres = project?.formData?.specificationsInfo?.genres;
+      
+      if (genres && genres.toLowerCase().includes(genre)) {
         total++;
       }
       return total;
     }, 0);
+    
     acc[genre] = count; // Store count for each genre
     return acc;
   }, {});
+  
 
 
   const yearCounts = allYears.reduce((acc, year) => {
     acc[year] = Object.values(projectData).filter((project) => {
-      const date = project?.specificationsInfoData?.completionDate;
+      const date = project?.formData?.specificationsInfo?.completionDate;
       const projectYear = date && !isNaN(new Date(date)) ? new Date(date).getFullYear() : null;
       return projectYear === year;
     }).length;
     return acc;
   }, {});
+  
   
   
 
@@ -661,7 +666,7 @@ console.log("movie data map", projectData)
       backgroundColor: "#111",
       color: "#fff",
       width: "320px",
-      height: "100%",
+      height: "auto",
       padding: "24px",
     },
     drawerHeader: {
