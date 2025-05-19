@@ -112,7 +112,7 @@ export default function DealDashboard() {
 
     const fetchDeals = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/deal/deals-with-counts/${user._id}`)
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`)
             const data = await response.data
             setDealsData(data.deals)
             setDealCounts(data.counts) // Assuming the API returns counts for each status
@@ -126,7 +126,7 @@ export default function DealDashboard() {
     // Fetch chat history for a specific user
     const getChatHistory = async (dealId) => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/deal/${dealId}/message-history`);
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}/message-history`);
             return response.data.history; // Return chat history
         } catch (error) {
             console.error("Error fetching chat history:", error);
@@ -152,7 +152,7 @@ export default function DealDashboard() {
     // Get unread message count for the current user
     const getUnreadMessageCount = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/deal/unread-count/${user._id}`);
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/unread-count/${user._id}`);
             return response.data.unreadCount; // Return unread message count
         } catch (error) {
             console.error("Error fetching unread message count:", error);
@@ -163,7 +163,7 @@ export default function DealDashboard() {
     // Mark messages as read for a specific user
     const markMessagesAsRead = async (userId) => {
         try {
-            await axios.post(`http://localhost:3000/api/chat/mark-as-read`, { userId });
+            await axios.post(`https://www.mediashippers.com/api/chat/mark-as-read`, { userId });
         } catch (error) {
             console.error("Error marking messages as read:", error);
         }

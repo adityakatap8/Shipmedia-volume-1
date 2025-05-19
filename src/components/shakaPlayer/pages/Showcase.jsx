@@ -883,7 +883,7 @@ export default function MovieGrid() {
     });
 
     try {
-      const response = await axios.post('http://localhost:3000/api/cart/add-to-cart', {
+      const response = await axios.post('https://www.mediashippers.com/api/cart/add-to-cart', {
         userId,
         movies,
       });

@@ -73,7 +73,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     const userId = userData?.userId;
     if (userId && projectName) {
       try {
-        const response = await axios.get(`http://localhost:3000/api/projectInfo/${userId}`, {
+        const response = await axios.get(`https://www.mediashippers.com/api/projectInfo/${userId}`, {
           params: { projectName }
         });
         console.log('Project Data:', response.data);
@@ -386,7 +386,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     const fetchProjectCount = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:3000/api/projectsInfo/userProjects/${userId}`
+          `https://www.mediashippers.com/api/projectsInfo/userProjects/${userId}`
         );
 
         const projectCount = res.data?.count || 0;

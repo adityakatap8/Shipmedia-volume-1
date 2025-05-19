@@ -257,7 +257,7 @@ function ProjectsForm() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/folders/transfer-file`, {
+      const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -335,7 +335,7 @@ function ProjectsForm() {
     formData.append('orgName', orgName);
 
     try {
-      const response = await fetch('http://localhost:3000/api/files/upload-file', {
+      const response = await fetch('https://www.mediashippers.com/api/files/upload-file', {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -455,7 +455,7 @@ function ProjectsForm() {
   //   };
 
   //   try {
-  //     const response = await fetch('http://localhost:3000/api/projectForm', {
+  //     const response = await fetch('https://www.mediashippers.com/api/projectForm', {
   //       method: 'POST',
   //       headers: {
   //         'Content-Type': 'application/json',
@@ -579,7 +579,7 @@ function ProjectsForm() {
     console.log('Submitting full form data:', updatedFormData);
 
     try {
-      const response = await fetch('http://localhost:3000/api/projectForm', {
+      const response = await fetch('https://www.mediashippers.com/api/projectForm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

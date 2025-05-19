@@ -172,7 +172,7 @@ export default function DealDashboard() {
 
   const fetchDealDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/deal/${dealId}`)
+      const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}`)
       console.log("response", response)
       const deal = response.data.deal
       setDeal(deal)
