@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import "./index.css"
+import "./index.css";
 import { currencies } from './countries';
 import { countries } from './countries';
 import { DayPicker } from 'react-day-picker';
 import { format } from 'date-fns';
+import { Autocomplete, TextField } from '@mui/material';
+
 const SpecificationsInfo = ({
     onInputChange,
     formData,
@@ -11,9 +13,6 @@ const SpecificationsInfo = ({
     errors,
     setSpecsErrors
 }) => {
-
-
-
     const [projectType, setProjectType] = useState('');
     const [runtime, setRuntime] = useState('');
     const [countryOfOrigin, setCountryOfOrigin] = useState('');
@@ -32,40 +31,93 @@ const SpecificationsInfo = ({
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [genres, setGenres] = useState('');
     const [completionDate, setCompletionDate] = useState('');
-
-
-    const [selectedCountry, setSelectedCountry] = useState("");
-
+    const [selectedCountry, setSelectedCountry] = useState('');
     const [value, setValue] = React.useState(null);
-
     const [isStudentProject, setIsStudentProject] = useState(false);
-
-
     const [filmColor, setFilmColor] = useState(formData?.specificationsInfo?.filmColor || '');
     const [studentProjectValue, setStudentProjectValue] = useState(formData?.specificationsInfo?.studentProject || '');
     const [isFirstTimeFilmmaker, setIsFirstTimeFilmmaker] = useState(formData?.specificationsInfo?.isFirstTimeFilmmaker || false);
-
     const [rating, setRating] = useState('');
+    const [numberOfEpisodes, setNumberOfEpisodes] = useState('');
+    const [numberOfSeasons, setNumberOfSeasons] = useState('');
 
+
+
+    const genresOptions = [
+        { name: 'Action', id: 1 },
+        { name: 'Adventure', id: 2 },
+        { name: 'Animation', id: 3 },
+        { name: 'Comedy', id: 4 },
+        { name: 'Drama', id: 5 },
+        { name: 'Fantasy', id: 6 },
+        { name: 'Historical', id: 7 },
+        { name: 'Horror', id: 8 },
+        { name: 'Musical', id: 9 },
+        { name: 'Mystery', id: 10 },
+        { name: 'Romance', id: 11 },
+        { name: 'Sci-Fi', id: 12 },
+        { name: 'Thriller', id: 13 },
+        { name: 'War', id: 14 },
+        { name: 'Western', id: 15 },
+        { name: 'Crime', id: 16 },
+        { name: 'Documentary', id: 17 },
+        { name: 'Family', id: 18 },
+        { name: 'Film-Noir', id: 19 },
+        { name: 'Reality', id: 20 },
+        { name: 'Animation/Cartoon', id: 21 },
+        { name: 'Biography', id: 22 },
+        { name: 'Sports', id: 23 },
+        { name: 'Experimental', id: 24 },
+        { name: 'Short Film', id: 25 },
+        { name: 'Indie', id: 26 },
+        { name: 'LGBTQ+', id: 27 },
+        { name: 'Cult', id: 28 },
+        { name: 'Noir', id: 29 },
+        { name: 'Psychological', id: 30 },
+    ];
+
+    const languageList = [
+        "Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Azerbaijani", "Basque", "Belarusian",
+        "Bengali", "Bosnian", "Bulgarian", "Burmese", "Catalan", "Cebuano", "Chinese", "Corsican",
+        "Croatian", "Czech", "Danish", "Dutch", "English", "Esperanto", "Estonian", "Finnish",
+        "French", "Frisian", "Galician", "Georgian", "German", "Greek", "Gujarati", "Haitian Creole",
+        "Hausa", "Hawaiian", "Hebrew", "Hindi", "Hmong", "Hungarian", "Icelandic", "Igbo", "Indonesian",
+        "Irish", "Italian", "Japanese", "Javanese", "Kannada", "Kazakh", "Khmer", "Kinyarwanda",
+        "Korean", "Kurdish", "Kyrgyz", "Lao", "Latin", "Latvian", "Lithuanian", "Luxembourgish",
+        "Macedonian", "Malagasy", "Malay", "Malayalam", "Maltese", "Maori", "Marathi", "Mongolian",
+        "Nepali", "Norwegian", "Nyanja", "Odia", "Pashto", "Persian", "Polish", "Portuguese", "Punjabi",
+        "Romanian", "Russian", "Samoan", "Scots Gaelic", "Serbian", "Sesotho", "Shona", "Sindhi",
+        "Sinhala", "Slovak", "Slovenian", "Somali", "Spanish", "Sundanese", "Swahili", "Swedish",
+        "Tagalog", "Tajik", "Tamil", "Tatar", "Telugu", "Thai", "Turkish", "Turkmen", "Ukrainian",
+        "Urdu", "Uyghur", "Uzbek", "Vietnamese", "Welsh", "Xhosa", "Yiddish", "Yoruba", "Zulu"
+    ];
+
+    const [selectedGenres, setSelectedGenres] = useState([]);
+
+    const handleSelectionChange = (selectedList, field) => {
+        if (field === 'genres') {
+            setSelectedGenres(selectedList);
+        }
+    };
 
     useEffect(() => {
         onInputChange({
             projectType,
             completionDate,
             language,
-            genres,
-            rating
+            genres: selectedGenres,
+            rating,
+            numberOfEpisodes,
+            numberOfSeasons,
+            runtime: getFormattedRuntime()
         });
     }, [
         projectType, runtime, completionDate, countryOfOrigin,
         countryOfFilming, language, shootingFormat, aspectRatio,
-        genres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming, rating
+        genres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming, numberOfEpisodes,
+        rating, numberOfSeasons
     ]);
 
-
-
-
-    // Handle the input change
     const handleInputChange = (event) => {
         const target = event.target;
         const value = target.type === 'checkbox' ? target.checked : target.value;
@@ -75,28 +127,36 @@ const SpecificationsInfo = ({
             case 'radio':
                 if (value !== projectType) {
                     setProjectType(value);
-                    console.log('Project type selected:', value);
                 }
                 break;
+
             case 'number':
                 switch (targetId) {
                     case 'runtime_hours':
-                        setRuntime(value);
+                        setTime(prevTime => ({ ...prevTime, hours: parseInt(value) || 0 }));
                         break;
                     case 'runtime_minutes':
-                        setTime(prevTime => ({ ...prevTime, minutes: parseInt(value) }));
+                        setTime(prevTime => ({ ...prevTime, minutes: parseInt(value) || 0 }));
                         break;
                     case 'runtime_seconds':
-                        setTime(prevTime => ({ ...prevTime, seconds: parseInt(value) }));
+                        setTime(prevTime => ({ ...prevTime, seconds: parseInt(value) || 0 }));
                         break;
+                    case 'number_of_episodes':
+                        setNumberOfEpisodes(value);
+                        break;
+                    case 'number_of_seasons':
+                        setNumberOfSeasons(value);
+                        break;
+
                     default:
-                        console.warn('Unknown number input field');
+                        console.warn('Unknown number input field:', targetId);
                 }
                 break;
+
             default:
                 switch (targetId) {
                     case 'completion-date':
-                        setCompletionDate(value); // Update completion date
+                        setCompletionDate(value);
                         break;
                     case 'production_budget':
                         setBudget(value.replace(/[^0-9]/g, ''));
@@ -134,39 +194,20 @@ const SpecificationsInfo = ({
                     case 'rating':
                         setRating(value);
                         break;
-
+                    default:
+                        console.warn('Unknown text input field:', targetId);
                 }
         }
-
-        // Log state changes
-        console.log('State changes:', {
-            projectType,
-            completionDate,
-            language,
-            genres,
-            rating
-        });
-
-        // Call the parent's onInputChange function with the updated data
-      
     };
-
-
 
 
     const handleBudgetChange = (e) => {
         const value = e.target.value;
-
-        // Remove any non-digit characters
         const numericValue = value.replace(/[^0-9]/g, '');
-
-        // Only set the value if it's a positive number or an empty string
         if (numericValue >= 0 || numericValue === '') {
             setBudget(numericValue);
         }
     };
-
-
 
     const getFormattedRuntime = () => {
         const { hours, minutes, seconds } = time;
@@ -174,13 +215,12 @@ const SpecificationsInfo = ({
     };
 
 
-
     return (
         <div className="section-four text-left pt-16 pb-8">
             <div className="row submitter-row">
                 <div className="submitter-container">
                     <h1 className="header-numbered">
-                        <span>2</span>
+                        <span>3</span>
                         Specifications
                     </h1>
                 </div>
@@ -199,65 +239,88 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="animation"
-                                checked={projectType === "animation"}
-                                id="project_type_animation"
-                                onChange={(e) => handleInputChange(e, "animation")}
+                                value="feature_film"
+                                checked={projectType === "feature_film"}
+                                id="project_type_feature_film"
+                                onChange={(e) => handleInputChange(e, "feature_film")}
                             />
-                            <label htmlFor="project_type_animation">Animation</label>
+                            <label htmlFor="project_type_feature_film">Feature Film</label>
                         </div>
 
                         <div className="input optional radio">
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="experimental"
-                                checked={projectType === "experimental"}
-                                id="project_type_experimental"
-                                onChange={(e) => handleInputChange(e, "experimental")}
+                                value="tv_show"
+                                checked={projectType === "tv_show"}
+                                id="project_type_tv_show"
+                                onChange={(e) => handleInputChange(e, "tv_show")}
                             />
-                            <label htmlFor="project_type_experimental">Experimental</label>
+                            <label htmlFor="project_type_tv_show">TV Show</label>
                         </div>
 
                         <div className="input optional radio">
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="music_video"
-                                checked={projectType === "music_video"}
-                                id="project_type_music_video"
-                                onChange={(e) => handleInputChange(e, "music_video")}
+                                value="docu_series"
+                                checked={projectType === "docu_series"}
+                                id="project_type_docu_series"
+                                onChange={(e) => handleInputChange(e, "docu_series")}
                             />
-                            <label htmlFor="project_type_music_video">Music Video</label>
+                            <label htmlFor="project_type_docu_series">Docu Series</label>
                         </div>
 
                         <div className="input optional radio">
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="student"
-                                checked={projectType === "student"}
-                                id="project_type_student"
-                                onChange={(e) => handleInputChange(e, "student")}
+                                value="web_series"
+                                checked={projectType === "web_series"}
+                                id="project_type_web_series"
+                                onChange={(e) => handleInputChange(e, "web_series")}
                             />
-                            <label htmlFor="project_type_student">Student</label>
+                            <label htmlFor="project_type_web_series">Web Series</label>
                         </div>
 
                         <div className="input optional radio">
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="web_new_media"
-                                checked={projectType === "web_new_media"}
-                                id="project_type_web_new_media"
-                                onChange={(e) => handleInputChange(e, "web_new_media")}
+                                value="kids_content"
+                                checked={projectType === "kids_content"}
+                                id="project_type_kids_content"
+                                onChange={(e) => handleInputChange(e, "kids_content")}
                             />
-                            <label htmlFor="project_type_web_new_media">
-                                Web / New Media
-                            </label>
+                            <label htmlFor="project_type_kids_content">Kids Content</label>
                         </div>
                     </div>
+
                     <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+                        <div className="input optional radio">
+                            <input
+                                type="radio"
+                                name="project_type"
+                                value="vertical_drama"
+                                checked={projectType === "vertical_drama"}
+                                id="project_type_vertical_drama"
+                                onChange={(e) => handleInputChange(e, "vertical_drama")}
+                            />
+                            <label htmlFor="project_type_vertical_drama">Vertical Drama</label>
+                        </div>
+
+                        <div className="input optional radio">
+                            <input
+                                type="radio"
+                                name="project_type"
+                                value="micro_drama"
+                                checked={projectType === "micro_drama"}
+                                id="project_type_micro_drama"
+                                onChange={(e) => handleInputChange(e, "micro_drama")}
+                            />
+                            <label htmlFor="project_type_micro_drama">Micro Drama</label>
+                        </div>
+
                         <div className="input optional radio">
                             <input
                                 type="radio"
@@ -274,52 +337,27 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="feature"
-                                checked={projectType === "feature"}
-                                id="project_type_feature"
-                                onChange={(e) => handleInputChange(e, "feature")}
+                                value="short_film"
+                                checked={projectType === "short_film"}
+                                id="project_type_short_film"
+                                onChange={(e) => handleInputChange(e, "short_film")}
                             />
-                            <label htmlFor="project_type_feature">Feature</label>
+                            <label htmlFor="project_type_short_film">Short Film</label>
                         </div>
 
                         <div className="input optional radio">
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="short"
-                                checked={projectType === "short"}
-                                id="project_type_short"
-                                onChange={(e) => handleInputChange(e, "short")}
+                                value="animation"
+                                checked={projectType === "animation"}
+                                id="project_type_animation"
+                                onChange={(e) => handleInputChange(e, "animation")}
                             />
-                            <label htmlFor="project_type_short">Short</label>
-                        </div>
-
-                        <div className="input optional radio">
-                            <input
-                                type="radio"
-                                name="project_type"
-                                value="television"
-                                checked={projectType === "television"}
-                                id="project_type_television"
-                                onChange={(e) => handleInputChange(e, "television")}
-                            />
-                            <label htmlFor="project_type_television">Television</label>
-                        </div>
-
-                        <div className="input optional radio">
-                            <input
-                                type="radio"
-                                name="project_type"
-                                value="other"
-                                checked={projectType === "other"}
-                                id="project_type_other"
-                                onChange={(e) => handleInputChange(e, "other")}
-                            />
-                            <label htmlFor="project_type_other">
-                                Other
-                            </label>
+                            <label htmlFor="project_type_animation">Animation</label>
                         </div>
                     </div>
+
                 </div>
                 <div className="form-sectionTwo">
 
@@ -330,16 +368,29 @@ const SpecificationsInfo = ({
                         </div>
                         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
                             <div className="input optional form-field-input">
-                                <input
-                                    type="text"
-                                    value={genres}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter genres"
-                                    id="genres"
+                                <Autocomplete
+                                    multiple
+                                    options={genresOptions}
+                                    value={selectedGenres}
+                                    onChange={(event, newValue) => handleSelectionChange(newValue, 'genres')}
+                                    getOptionLabel={(option) => option.name}
+                                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+
+                                            placeholder="Genres"
+                                            variant="outlined"
+                                            fullWidth
+                                            sx={{ backgroundColor: 'white', borderRadius: '4px' }}
+                                        />
+                                    )}
                                 />
                             </div>
                         </div>
                     </div>
+
+
 
                     <div className="form-section">
                         <div className="form-label grid-3 span-12-phone">
@@ -347,13 +398,20 @@ const SpecificationsInfo = ({
                         </div>
                         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
                             <div className="input optional form-field-input">
-                                <input
-                                    type="text"
+                                <select
+                                    id="language"
                                     value={language}
                                     onChange={handleInputChange}
-                                    placeholder="Enter language"
-                                    id="language"
-                                />
+                                    className="language-dropdown text-black"
+                                >
+                                    <option value="">Select a language</option>
+                                    {languageList.map((lang) => (
+                                        <option key={lang} value={lang}>
+                                            {lang}
+                                        </option>
+                                    ))}
+                                </select>
+
                             </div>
                         </div>
                     </div>
@@ -366,18 +424,27 @@ const SpecificationsInfo = ({
 
                             <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone" style={{ width: "10px" }}>
                                 <div className="input optional form-field-input">
-                                    <input
-                                        type="date"
+                                    <select
+                                        id="completion-date"
                                         value={completionDate}
                                         onChange={handleInputChange}
-                                        id="completion-date"
-                                        style={{ width: "220px" }}
-                                    />
+                                        style={{ width: "220px", padding: '10px', borderRadius: "10px", color: 'black', backgroundColor: 'white' }}
+                                    >
+                                        <option value="">Select Year</option>
+                                        {Array.from({ length: 100 }, (_, i) => {
+                                            const year = new Date().getFullYear() - i;
+                                            return (
+                                                <option key={year} value={year}>
+                                                    {year}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
                                 </div>
                             </div>
                         </div>
-
                     </div>
+
 
                     <div className="form-sectionThree">
                         <div className="form-section">
@@ -395,7 +462,7 @@ const SpecificationsInfo = ({
                                         style={{ width: "220px", padding: '10px', borderRadius: "10px" }}
                                     >
                                         <option value="">Select rating</option>
-                                    
+
                                         <option value="G">G</option>
                                         <option value="PG">PG</option>
                                         <option value="PG-13">PG-13</option>
@@ -407,6 +474,111 @@ const SpecificationsInfo = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* Number of Episodes */}
+                    <div className="form-section">
+                        <div className="form-label grid-3 span-12-phone">Number of Episodes</div>
+                        <div className="form-field radio-buttons span-6 span-12-phone">
+                            <input
+                                type="number"
+                                id="number_of_episodes"
+                                value={numberOfEpisodes}
+                                onChange={handleInputChange}
+                                placeholder="Enter number of episodes"
+                                style={{
+                                    width: '220px',
+                                    padding: '10px',
+                                    borderRadius: '10px',
+                                    color: 'black',
+                                    backgroundColor: 'white',
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Number of Seasons */}
+                    <div className="form-section">
+                        <div className="form-label grid-3 span-12-phone">Number of Seasons</div>
+                        <div className="form-field radio-buttons span-6 span-12-phone">
+                            <input
+                                type="number"
+                                id="number_of_seasons"
+                                value={numberOfSeasons}
+                                onChange={handleInputChange}
+                                placeholder="Enter number of seasons"
+                                style={{
+                                    width: '220px',
+                                    padding: '10px',
+                                    borderRadius: '10px',
+                                    color: 'black',
+                                    backgroundColor: 'white',
+                                }}
+                            />
+                        </div>
+                    </div>
+
+
+                    {/* Runtime */}
+                    <div className="form-section">
+                        <div className="form-label grid-3 span-12-phone">Duration (HH:MM:SS)</div>
+                        <div className="form-field radio-buttons span-6 span-12-phone" style={{ display: 'inline', gap: '10px' }}>
+                            <input
+                                type="number"
+                                id="runtime_hours"
+                                value={time.hours}
+                                onChange={handleInputChange}
+                                placeholder="HH"
+                                style={{
+                                    width: '60px',
+                                    padding: '10px',
+                                    borderRadius: '10px',
+                                    color: 'black',
+                                    backgroundColor: 'white',
+                                    textAlign: 'center',
+                                    margin: '10px'// Optional: centers the text inside the input
+                                }}
+                                min={0}
+                            />
+                            <input
+                                type="number"
+                                id="runtime_minutes"
+                                value={time.minutes}
+                                onChange={handleInputChange}
+                                placeholder="MM"
+                                style={{
+                                    width: '60px',
+                                    padding: '10px',
+                                    borderRadius: '10px',
+                                    color: 'black',
+                                    backgroundColor: 'white',
+                                    textAlign: 'center', // Optional: centers the text inside the input
+                                    margin: '10px'
+                                }}
+                                min={0}
+                                max={59}
+                            />
+                            <input
+                                type="number"
+                                id="runtime_seconds"
+                                value={time.seconds}
+                                onChange={handleInputChange}
+                                placeholder="SS"
+                                style={{
+                                    width: '60px',
+                                    padding: '10px',
+                                    borderRadius: '10px',
+                                    color: 'black',
+                                    backgroundColor: 'white',
+                                    textAlign: 'center', // Optional: centers the text inside the input
+                                    margin: '10px'
+                                }}
+                                min={0}
+                                max={59}
+                            />
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
         </div>

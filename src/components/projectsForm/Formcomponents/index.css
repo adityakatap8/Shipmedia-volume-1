@@ -670,3 +670,19 @@ input[type="text"] {
 .rating-field-input option {
   color: #000; /* Black text color for the options */
 }
+
+
+
+.add-platform-btn,
+.remove-platform-btn {
+  padding: 10px 15px;
+  background-color: #1d4ed8;
+  color: white;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.remove-platform-btn {
+  background-color: #ef4444;
+}

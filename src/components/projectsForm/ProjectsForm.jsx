@@ -14,13 +14,14 @@ import { useProjectInfo } from '../../contexts/projectInfoContext.jsx';
 import SrtFileUpload from './Formcomponents/SrtFileUpload.jsx';
 import Cookies from 'js-cookie';
 import Loader from '../loader/Loader.jsx';
+import DubbedFiles from './Formcomponents/DubbedFiles.jsx';
 
 
 
 function ProjectsForm() {
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-   const { orgName } = user.user;
+  const { orgName } = user.user;
 
   // Access user data from UserContext
 
@@ -34,9 +35,9 @@ function ProjectsForm() {
 
 
   const { projectName, movieName } = useProjectInfo();
-  
+
   const [formData, setFormData] = useState({
-    
+
     projectInfo: {
       s3SourcePosterUrl: '',
       s3SourceBannerUrl: '',
@@ -74,7 +75,7 @@ function ProjectsForm() {
 
 
   const { userData } = useContext(UserContext);
- 
+
 
   // useEffect(() => {
   //   console.log('Updated srtFiles:', srtFiles);
@@ -153,19 +154,39 @@ function ProjectsForm() {
 
 
   const handleInputChange = useCallback((section, data) => {
-    console.log("inside hanlde input change:", section, data);
-    
+    console.log("📥 Inside handleInputChange:", section, data);
+
     setFormData((prevData) => {
-      if (prevData[section] !== data) {
-        return {
-          ...prevData,
-          [section]: { ...prevData[section], ...data },
-        };
+      // Update the form data with the new data
+      const updatedSection = { ...prevData[section], ...data };
+      const updatedFormData = {
+        ...prevData,
+        [section]: updatedSection,
+      };
+
+      // If we're updating projectInfo, log the poster, banner, and trailer URLs
+      if (section === "projectInfo") {
+        const posterUrl = updatedSection.projectPosterUrl || updatedSection.posterUrl;
+        const bannerUrl = updatedSection.projectBannerUrl || updatedSection.bannerUrl;
+        const trailerUrl = updatedSection.projectTrailerUrl || updatedSection.trailerUrl;
+
+        // Log the URLs if they exist
+        if (posterUrl) {
+          console.log("🎞️ Poster URL:", posterUrl);
+        }
+        if (bannerUrl) {
+          console.log("🖼️ Banner URL:", bannerUrl);
+        }
+        if (trailerUrl) {
+          console.log("🎬 Trailer URL:", trailerUrl);
+        }
       }
-      return prevData;
+
+      return updatedFormData;
     });
-    
   }, []);
+
+
 
 
   const setRightsInfoErrors = (errors) => {
@@ -194,7 +215,7 @@ function ProjectsForm() {
       // screeningsErrors: {},
       rightsInfoErrors: {},
     };
-console.log(tempErrors);
+    console.log(tempErrors);
 
     if (!formData.projectInfo.projectTitle) {
       isValid = false;
@@ -236,11 +257,11 @@ console.log(tempErrors);
     }
 
     try {
-      const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
+      const response = await fetch(`http://localhost:3000/api/folders/transfer-file`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -277,7 +298,7 @@ console.log(tempErrors);
     const parts = String(url).split('/');
     return parts[parts.length - 1];
   };
-  
+
 
 
 
@@ -314,16 +335,16 @@ console.log(tempErrors);
     formData.append('orgName', orgName);
 
     try {
-      const response = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+      const response = await fetch('http://localhost:3000/api/files/upload-file', {
         method: 'POST',
         body: formData,
         credentials: 'include',
         headers: {
-          
+
           'Authorization': `Bearer ${token}`, // Authorization header with Bearer token
         },
       });
-   
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText);
@@ -434,7 +455,7 @@ console.log(tempErrors);
   //   };
 
   //   try {
-  //     const response = await fetch('https://www.mediashippers.com/api/projectForm', {
+  //     const response = await fetch('http://localhost:3000/api/projectForm', {
   //       method: 'POST',
   //       headers: {
   //         'Content-Type': 'application/json',
@@ -469,39 +490,39 @@ console.log(tempErrors);
     setIsFormSubmitted(true);
     setIsUploading(true); // 🔥 Start loader
     console.log('Form submission started');
-  
+
     if (!orgName) {
       alert('Organization name is not available.');
       setIsUploading(false);
       return;
     }
-  
-  
+
+
     const userId = user?.userId || '';
     const errors = validateForm();
-  
+
     if (errors !== true) {
       const errorMessages = Object.entries(errors)
         .map(([field, message]) => `${field}: ${message}`)
         .join('\n');
-  
+
       alert('Form validation failed:\n' + errorMessages);
       setIsUploading(false);
       return;
     }
-    console.log("project name",projectName);
-  
+    console.log("project name", projectName);
+
     try {
       // Uploading files
       const { projectPoster, projectBanner, trailerFile: projectTrailer, projectName, orgName: organizationName } = formData.projectInfo;
       const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
       const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
       const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
-  
+
       let uploadedFiles = {};
       if (shouldUploadPoster || shouldUploadBanner || shouldUploadTrailer) {
         const orgNameToUse = organizationName || orgName;
-  
+
         uploadedFiles = await uploadFilesToS3(
           {
             projectPoster: shouldUploadPoster ? projectPoster : null,
@@ -511,7 +532,7 @@ console.log(tempErrors);
           projectName,
           orgNameToUse
         );
-  
+
         if (uploadedFiles.projectPosterUrl) formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
         if (uploadedFiles.projectBannerUrl) formData.projectInfo.s3SourceBannerUrl = uploadedFiles.projectBannerUrl;
         if (uploadedFiles.projectTrailerUrl) formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
@@ -530,15 +551,18 @@ console.log(tempErrors);
     }
 
     console.log("projectName:", projectName);
-console.log("formData.projectInfo.projectName:", formData.projectInfo.projectName);
+    console.log("formData.projectInfo.projectName:", formData.projectInfo.projectName);
     const updatedFormData = {
       projectInfo: {
         ...formData.projectInfo,
         projectName: formData.projectInfo.projectName,
         userId,
         posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
+        projectPosterS3Url: formData.projectInfo.projectPosterS3Url,
         bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
+        projectBannerS3Url: formData.projectInfo.projectBannerS3Url,
         trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
+        trailerUrl: formData.projectInfo.trailerUrl,
         movieFileName: formData.projectInfo.movieFileName || ''
       },
       creditsInfo: { ...formData.creditsInfo, projectName, userId },
@@ -555,7 +579,7 @@ console.log("formData.projectInfo.projectName:", formData.projectInfo.projectNam
     console.log('Submitting full form data:', updatedFormData);
 
     try {
-      const response = await fetch('https://www.mediashippers.com/api/projectForm', {
+      const response = await fetch('http://localhost:3000/api/projectForm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -564,22 +588,22 @@ console.log("formData.projectInfo.projectName:", formData.projectInfo.projectNam
         credentials: 'include',
         body: JSON.stringify(updatedFormData),
       });
-  
+
       const result = await response.json();
       if (!response.ok) throw new Error(result.message);
-  
+
       dispatch(setProjectFolderSuccess(projectName));
       alert('✅ Project saved successfully!');
-  
+
       const transferResult = await transferFileToLocation();
       if (transferResult.success) {
         alert('✅ File transfer successful!');
-        navigate('/showcase-projects');
+        // navigate('/showcase-projects');
       } else {
         alert(`⚠️ File transfer failed: ${transferResult.error}`);
         navigate('/projects-form');
       }
-  
+
     } catch (error) {
       console.error('❌ Error during submission:', error);
       alert('Error saving project: ' + error.message);
@@ -592,13 +616,13 @@ console.log("formData.projectInfo.projectName:", formData.projectInfo.projectNam
       setIsUploading(false); // 🔁 End loader
     }
   };
-  
+
 
 
 
   return (
     <form className="container-fluid projects-form-container">
-      {isUploading && <Loader />} 
+      {isUploading && <Loader />}
       <div className='text-white'>
         <h1>{user.userId}</h1>
         {/* Display orgName below userId */}
@@ -632,6 +656,25 @@ console.log("formData.projectInfo.projectName:", formData.projectInfo.projectNam
 
         />
 
+<SrtFileUpload
+          onSrtFileChange={handleSrtFileChange}
+          onInfoDocsFileChange={handleInfoDocsChange}
+        />
+
+        <DubbedFiles
+          onInputChange={(data) => handleInputChange('dubbedFiles', data)}
+          formData={formData.dubbedFiles}
+          setFormData={setFormData}
+          errors={isFormSubmitted ? errors.dubbedFilesErrors : {}}
+          setDubbedFilesErrors={(errors) =>
+            setErrors((prev) => ({
+              ...prev,
+              dubbedFilesErrors: errors,
+            }))
+          }
+        />
+
+
         <SpecificationsInfo
           onInputChange={(data) => handleInputChange('specificationsInfo', data)}
           formData={formData.specificationsInfo}
@@ -646,10 +689,7 @@ console.log("formData.projectInfo.projectName:", formData.projectInfo.projectNam
         />
 
 
-        <SrtFileUpload
-          onSrtFileChange={handleSrtFileChange}
-          onInfoDocsFileChange={handleInfoDocsChange}
-        />
+
 
 
 
@@ -681,7 +721,7 @@ console.log("formData.projectInfo.projectName:", formData.projectInfo.projectNam
         Save Project
       </button>
     </form>
-    
+
   );
 }
 
