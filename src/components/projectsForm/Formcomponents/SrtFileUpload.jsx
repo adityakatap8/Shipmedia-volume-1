@@ -85,6 +85,7 @@ function SrtFileUpload({ onSrtFileChange, onInfoDocsFileChange }) {
       <div className="form-section">
         <div className="form-label grid-3 span-12-phone">
           <h3>Information Documents Upload</h3>
+          <p className="text-md font-light text-white-500">(censor certificate, rights ownership certificate)</p>
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">

@@ -154,7 +154,7 @@ const CreditsInfo = ({ onInputChange }) => {
             <div className="row submitter-row">
                 <div className="submitter-container">
                     <h1 className="header-numbered">
-                        <span>4</span> Credits
+                        <span>5</span> Credits
                     </h1>
                 </div>
             </div>
