@@ -265,7 +265,7 @@ export function Navebar1({
               <NotificationsIcon fontSize="small" />
             </Badge>
           </IconButton>
-            <CartIcon cartCount={3} />
+            <CartIcon />
           <IconButton
             onClick={handleMenuOpen}
             size="small"

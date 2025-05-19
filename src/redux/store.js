@@ -3,13 +3,15 @@ import authReducer from './authSlice/authSlice.js';
 import projectReducer from './projectSlice/projectSlice.js';
 import userSlice from './userSlice/userSlice.js';
 import projectInfoSlice from './projectInfoSlice/projectInfoSlice.js';
+import cartReducer from './cartSlice/cartSlice.js'; // Import the cart slice
 
 const store = configureStore({
   reducer: {
     auth: authReducer, 
     project: projectReducer,
     user: userSlice,
-    projectinfo: projectInfoSlice,  // Ensure this matches the slice name in your dispatches
+    projectinfo: projectInfoSlice, 
+    cart: cartReducer // Ensure this matches the slice name in your dispatches
   },
 });
 

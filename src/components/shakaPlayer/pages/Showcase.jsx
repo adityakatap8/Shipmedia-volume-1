@@ -6,7 +6,7 @@ import axios from "axios";
 
 import Search from "./Search.jsx";
 import Categories from "./Categories.jsx";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import defaultPoster from '../../../assets/Logo-holder.png';
 import defaultBanner from '../../../assets/Banner-Holder.png';
 import { UserContext } from '../../../contexts/UserContext.jsx';
@@ -30,6 +30,8 @@ import {
   Divider,
   Popover,
   Rating,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material"
 import {
   Search as SearchIcon,
@@ -39,14 +41,17 @@ import {
   Close as CloseIcon,
   Star as StarIcon,
   KeyboardArrowDown as ArrowDownIcon,
+  CheckBox,
 } from "@mui/icons-material"
 import Loader from '../../loader/Loader.jsx'
+import { setCartMovies } from "../../../redux/cartSlice/cartSlice.js";
 
 
 
 export default function MovieGrid() {
 
   const { toast } = useToast();
+  const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [projectData, setProjectData] = useState([]);
   const [specificationsData, setSpecificationsData] = useState([]);
@@ -56,10 +61,14 @@ export default function MovieGrid() {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]); // State to track selected items
+  console.log("selected items", selectedItems)
+  const [selectAll, setSelectAll] = useState(false); // State to track "Select All" checkbox
 
 
-  const { orgName,_id: userId, role } = useSelector((state) => state.auth.user.user)
-  
+  const { orgName, _id:
+    userId, role } = useSelector((state) => state.auth.user.user)
+
   console.log("user from redux", user)
   // Sample movie data with ratings added
   const movies = [
@@ -149,14 +158,14 @@ export default function MovieGrid() {
   const token = Cookies.get('token'); // 🔐 Add this at the top of your component, just below useState declarations
 
 
- 
+
   useEffect(() => {
     console.log("all details hit");
 
     // Fetch userId and role from Redux (already done outside)
     const token = Cookies.get("token");
     console.log("UserId and role", userId, role);
-    
+
     if (!userId || !role || !token) return;
 
     // Fetch all project data from the backend
@@ -202,7 +211,7 @@ export default function MovieGrid() {
           title: "Error",
           description: "Failed to load full project details.",
         });
-      }finally {
+      } finally {
         setLoading(false); // Set loading to false once data is loaded (or if an error occurs)
       }
     };
@@ -230,10 +239,10 @@ export default function MovieGrid() {
 
 
   const [allData, setallData] = useState([]);
- 
- 
 
- 
+
+
+
   const [loading, setLoading] = useState(true);
 
 
@@ -261,12 +270,12 @@ export default function MovieGrid() {
       })
       .filter((year) => typeof year === "number")
   )].sort((a, b) => b - a); // Sort years in descending order
-  
-  
+
+
   console.log('Raw Dates:', Object.values(projectData).map(p => p?.formData?.specificationsInfo?.completionDate));
   console.log('Extracted Years:', allYears);
-  
-  
+
+
 
 
 
@@ -276,17 +285,17 @@ export default function MovieGrid() {
     // Count how many projects have the given genre
     const count = Object.values(projectData).reduce((total, project) => {
       const genres = project?.formData?.specificationsInfo?.genres;
-      
+
       if (genres && genres.toLowerCase().includes(genre)) {
         total++;
       }
       return total;
     }, 0);
-    
+
     acc[genre] = count; // Store count for each genre
     return acc;
   }, {});
-  
+
 
 
   const yearCounts = allYears.reduce((acc, year) => {
@@ -297,16 +306,16 @@ export default function MovieGrid() {
     }).length;
     return acc;
   }, {});
-  
-  
-  
+
+
+
 
 
 
   const allUserIds = useRef([]);
 
 
-  
+
 
 
 
@@ -450,7 +459,7 @@ export default function MovieGrid() {
       },
       width: "50%",
       margin: '0 auto',
-      marginBottom:"30px"
+      marginBottom: "30px"
     },
     searchIcon: {
       padding: "0 16px",
@@ -510,7 +519,7 @@ export default function MovieGrid() {
         transform: "translateY(-8px)",
         boxShadow: "0 12px 20px -10px rgba(123, 181, 231, 0.3)",
         padding: "5px",
-     
+
       },
     },
     cardMedia: {
@@ -532,7 +541,7 @@ export default function MovieGrid() {
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: "15px",
-      marginLeft:'10px'
+      marginLeft: '10px'
     },
     genreChip: {
       backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -543,7 +552,7 @@ export default function MovieGrid() {
     yearText: {
       color: "#aaa",
       fontSize: "14px",
-      marginRight:'10px'
+      marginRight: '10px'
     },
     priceText: {
       fontWeight: "bold",
@@ -573,8 +582,8 @@ export default function MovieGrid() {
       display: "flex",
       alignItems: "center",
       borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-      marginBottom:"30px",
-      paddingBottom:"30px"
+      marginBottom: "30px",
+      paddingBottom: "30px"
     },
     filterButton: {
       backgroundColor: "rgba(255, 255, 255, 0.08)",
@@ -681,7 +690,7 @@ export default function MovieGrid() {
       color: "#7ab5e7",
     },
     drawerSection: {
-      marginBottom: "24px",
+      marginBottom: "14px",
     },
     drawerSectionTitle: {
       fontSize: "15px",
@@ -733,7 +742,7 @@ export default function MovieGrid() {
       flexWrap: "wrap",
       gap: "8px",
       marginBottom: "16px",
-      
+
     },
     selectedFilterChip: {
       backgroundColor: "rgba(123, 181, 231, 0.2)",
@@ -864,341 +873,411 @@ export default function MovieGrid() {
     }
   }
 
+  const handleAddToCart = async () => {
+    const movies = selectedItems.map((itemId) => {
+      const project = projectData.find((project) => project._id === itemId);
+      return {
+        movieId: project._id,
+        title: project.projectTitle,
+      };
+    });
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/cart/add-to-cart', {
+        userId,
+        movies,
+      });
+
+      if (response.status === 200) {
+        console.log('Movies added to cart:', response.data);
+        toast({
+          variant: 'success',
+          title: 'Success',
+          description: 'Movies added to cart successfully!',
+        });
+        dispatch(setCartMovies(response.data)); 
+        navigate('/cart');
+      } else {
+        throw new Error('Unexpected response status');
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error('Error:', error.response.data.message);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: error.response.data.message,
+        });
+      } else {
+        console.error('Failed to add movies to cart:', error.message);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to add movies to cart.',
+        });
+      }
+    }
+  };
+
+  const handleSelectAll = (event) => {
+    const isChecked = event.target.checked;
+    setSelectAll(isChecked);
+
+    if (isChecked) {
+      // Select all items
+      const allIds = projectData.map((project) => project._id);
+      setSelectedItems(allIds);
+    } else {
+      // Deselect all items
+      setSelectedItems([]);
+    }
+  };
+
+  const handleCheckboxChange = (id) => {
+    if (selectedItems.includes(id)) {
+      // Remove the item if already selected
+      setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
+    } else {
+      // Add the item to the selected list
+      setSelectedItems([...selectedItems, id]);
+    }
+  };
+
   return (
     <>
       {loading ? (
         <Loader />  // Show loader when loading is true
       ) : (
-    <Box sx={styles.root}>
-      <Box sx={styles.search}>
-        <Box sx={styles.searchIcon}>
-          <SearchIcon />
-        </Box>
-        <InputBase
-          placeholder="Search movies..."
-          sx={{
-            ...styles.inputRoot,
-            "& .MuiInputBase-input": styles.inputInput,
-          }}
-          inputProps={{ "aria-label": "search" }}
-        />
-      </Box>
-
-      {/* Compact Filter Bar */}
-      <Box sx={styles.compactFilterSection} gap={1}>
-        {/* Sort Button */}
-        <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
-          Sort: {getSortDisplayText()}
-        </Button>
-        <Popover
-          open={Boolean(sortAnchorEl)}
-          anchorEl={sortAnchorEl}
-          onClose={handleSortClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-          PaperProps={{
-            style: { backgroundColor: "#111" },
-          }}
-        >
-          <Box sx={styles.popoverContent}>
-            <Typography sx={styles.popoverTitle}>Sort By</Typography>
-            <Box sx={styles.sortContainer}>
-              <Box
-                sx={sortOption === "featured" ? styles.sortItemActive : styles.sortItem}
-                onClick={() => handleSortChange("featured")}
-              >
-                Featured
-              </Box>
-
-              <Box
-                sx={sortOption === "rating" ? styles.sortItemActive : styles.sortItem}
-                onClick={() => handleSortChange("rating")}
-              >
-                Top Rated
-              </Box>
-              <Box
-                sx={sortOption === "year" ? styles.sortItemActive : styles.sortItem}
-                onClick={() => handleSortChange("year")}
-              >
-                Newest
-              </Box>
-              <Box
-                sx={sortOption === "title" ? styles.sortItemActive : styles.sortItem}
-                onClick={() => handleSortChange("title")}
-              >
-                Title A-Z
-              </Box>
+        <Box sx={styles.root}>
+          <Box sx={styles.search}>
+            <Box sx={styles.searchIcon}>
+              <SearchIcon />
             </Box>
-          </Box>
-        </Popover>
-
-        {/* Genre Button */}
-        <Button
-          sx={selectedGenres.length > 0 ? styles.filterButtonActive : styles.filterButton}
-          onClick={handleGenreClick}
-          endIcon={<ArrowDownIcon fontSize="small" />}
-        >
-          Genre
-          {selectedGenres.length > 0 && (
-            <Badge
-              badgeContent={selectedGenres.length}
-              color="primary"
+            <InputBase
+              placeholder="Search movies..."
               sx={{
-                marginLeft: "4px",
-                "& .MuiBadge-badge": {
-                  backgroundColor: "#7ab5e7",
-                  color: "#000",
-                  fontWeight: "bold",
-                },
+                ...styles.inputRoot,
+                "& .MuiInputBase-input": styles.inputInput,
               }}
+              inputProps={{ "aria-label": "search" }}
             />
-          )}
-        </Button>
-        <Popover
-          open={Boolean(genreAnchorEl)}
-          anchorEl={genreAnchorEl}
-          onClose={handleGenreClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-          PaperProps={{
-            style: { backgroundColor: "#111" },
-          }}
-        >
-          <Box sx={styles.popoverContent}>
-            <Typography sx={styles.popoverTitle}>
+          </Box>
+
+          {/* Compact Filter Bar */}
+          <Box sx={styles.compactFilterSection} gap={1}>
+            {/* Sort Button */}
+            <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
+              Sort: {getSortDisplayText()}
+            </Button>
+            <Popover
+              open={Boolean(sortAnchorEl)}
+              anchorEl={sortAnchorEl}
+              onClose={handleSortClose}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>Sort By</Typography>
+                <Box sx={styles.sortContainer}>
+                  <Box
+                    sx={sortOption === "featured" ? styles.sortItemActive : styles.sortItem}
+                    onClick={() => handleSortChange("featured")}
+                  >
+                    Featured
+                  </Box>
+
+                  <Box
+                    sx={sortOption === "rating" ? styles.sortItemActive : styles.sortItem}
+                    onClick={() => handleSortChange("rating")}
+                  >
+                    Top Rated
+                  </Box>
+                  <Box
+                    sx={sortOption === "year" ? styles.sortItemActive : styles.sortItem}
+                    onClick={() => handleSortChange("year")}
+                  >
+                    Newest
+                  </Box>
+                  <Box
+                    sx={sortOption === "title" ? styles.sortItemActive : styles.sortItem}
+                    onClick={() => handleSortChange("title")}
+                  >
+                    Title A-Z
+                  </Box>
+                </Box>
+              </Box>
+            </Popover>
+
+            {/* Genre Button */}
+            <Button
+              sx={selectedGenres.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={handleGenreClick}
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
               Genre
               {selectedGenres.length > 0 && (
-                <Button size="small" sx={styles.clearButton} onClick={() => setSelectedGenres([])}>
-                  Clear
-                </Button>
-              )}
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-              {allGenres.map((genre) => (
-                <Chip
-                  key={genre}
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {genre}
-                      <Box component="span" sx={styles.countBadge}>
-                        {genreCounts[genre] || 0} {/* Default to 0 if no count exists */}
-                      </Box>
-                    </Box>
-                  }
-                  onClick={() => handleGenreFilter(genre)}
-                  sx={selectedGenres.includes(genre) ? styles.popoverChipActive : styles.popoverChip}
+                <Badge
+                  badgeContent={selectedGenres.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
                 />
-              ))}
-            </Box>
-
-          </Box>
-        </Popover>
-
-        {/* Year Button */}
-        <Button
-          sx={selectedYears.length > 0 ? styles.filterButtonActive : styles.filterButton}
-          onClick={handleYearClick}
-          endIcon={<ArrowDownIcon fontSize="small" />}
-        >
-          Year
-          {selectedYears.length > 0 && (
-            <Badge
-              badgeContent={selectedYears.length}
-              color="primary"
-              sx={{
-                marginLeft: "4px",
-                "& .MuiBadge-badge": {
-                  backgroundColor: "#7ab5e7",
-                  color: "#000",
-                  fontWeight: "bold",
-                },
+              )}
+            </Button>
+            <Popover
+              open={Boolean(genreAnchorEl)}
+              anchorEl={genreAnchorEl}
+              onClose={handleGenreClose}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
               }}
-            />
-          )}
-        </Button>
-        <Popover
-          open={Boolean(yearAnchorEl)}
-          anchorEl={yearAnchorEl}
-          onClose={handleYearClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-          PaperProps={{
-            style: { backgroundColor: "#111" },
-          }}
-        >
-          <Box sx={styles.popoverContent}>
-            <Typography sx={styles.popoverTitle}>
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>
+                  Genre
+                  {selectedGenres.length > 0 && (
+                    <Button size="small" sx={styles.clearButton} onClick={() => setSelectedGenres([])}>
+                      Clear
+                    </Button>
+                  )}
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {allGenres.map((genre) => (
+                    <Chip
+                      key={genre}
+                      label={
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          {genre}
+                          <Box component="span" sx={styles.countBadge}>
+                            {genreCounts[genre] || 0} {/* Default to 0 if no count exists */}
+                          </Box>
+                        </Box>
+                      }
+                      onClick={() => handleGenreFilter(genre)}
+                      sx={selectedGenres.includes(genre) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+
+              </Box>
+            </Popover>
+
+            {/* Year Button */}
+            <Button
+              sx={selectedYears.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={handleYearClick}
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
               Year
               {selectedYears.length > 0 && (
-                <Button size="small" sx={styles.clearButton} onClick={() => setSelectedYears([])}>
-                  Clear
-                </Button>
-              )}
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-              {allYears.map((year) => (
-                <Chip
-                  key={year}
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {year}
-                      <Box component="span" sx={styles.countBadge}>
-                        {yearCounts[year]}
-                      </Box>
-                    </Box>
-                  }
-                  onClick={() => handleYearFilter(year)}
-                  sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
+                <Badge
+                  badgeContent={selectedYears.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
                 />
-              ))}
-            </Box>
-          </Box>
-        </Popover>
-
-        {/* Advanced Filters Button */}
-        <Button
-          sx={styles.advancedFilterButton}
-          onClick={() => setAdvancedFiltersOpen(true)}
-          startIcon={<TuneIcon fontSize="small" />}
-        >
-          More Filters
-          {activeFiltersCount > 0 && (
-            <Badge
-              badgeContent={activeFiltersCount}
-              color="primary"
-              sx={{
-                marginLeft: "4px",
-                "& .MuiBadge-badge": {
-                  backgroundColor: "#7ab5e7",
-                  color: "#000",
-                  fontWeight: "bold",
-                },
+              )}
+            </Button>
+            <Popover
+              open={Boolean(yearAnchorEl)}
+              anchorEl={yearAnchorEl}
+              onClose={handleYearClose}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
               }}
-            />
-          )}
-        </Button>
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>
+                  Year
+                  {selectedYears.length > 0 && (
+                    <Button size="small" sx={styles.clearButton} onClick={() => setSelectedYears([])}>
+                      Clear
+                    </Button>
+                  )}
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {allYears.map((year) => (
+                    <Chip
+                      key={year}
+                      label={
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          {year}
+                          <Box component="span" sx={styles.countBadge}>
+                            {yearCounts[year]}
+                          </Box>
+                        </Box>
+                      }
+                      onClick={() => handleYearFilter(year)}
+                      sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Popover>
 
-        {/* Selected Filters */}
-        {allSelectedFilters.length > 0 && (
-          <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap", marginLeft: "8px" }}>
-            {allSelectedFilters.slice(0, 3).map((filter, index) => (
-              <Chip
-                key={`${filter.type}-${filter.value}`}
-                label={filter.value}
-                onDelete={() => removeFilter(filter)}
-                deleteIcon={<CloseIcon fontSize="small" />}
-                sx={styles.selectedFilterChip}
-                size="small"
-              />
-            ))}
-            {allSelectedFilters.length > 3 && (
-              <Chip
-                label={`+${allSelectedFilters.length - 3} more`}
-                sx={styles.selectedFilterChip}
-                size="small"
-                onClick={() => setAdvancedFiltersOpen(true)}
-              />
+            {/* Advanced Filters Button */}
+            <Button
+              sx={styles.advancedFilterButton}
+              onClick={() => setAdvancedFiltersOpen(true)}
+              startIcon={<TuneIcon fontSize="small" />}
+            >
+              More Filters
+              {activeFiltersCount > 0 && (
+                <Badge
+                  badgeContent={activeFiltersCount}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              )}
+            </Button>
+
+            {/* Selected Filters */}
+            {allSelectedFilters.length > 0 && (
+              <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap", marginLeft: "8px" }}>
+                {allSelectedFilters.slice(0, 3).map((filter, index) => (
+                  <Chip
+                    key={`${filter.type}-${filter.value}`}
+                    label={filter.value}
+                    onDelete={() => removeFilter(filter)}
+                    deleteIcon={<CloseIcon fontSize="small" />}
+                    sx={styles.selectedFilterChip}
+                    size="small"
+                  />
+                ))}
+                {allSelectedFilters.length > 3 && (
+                  <Chip
+                    label={`+${allSelectedFilters.length - 3} more`}
+                    sx={styles.selectedFilterChip}
+                    size="small"
+                    onClick={() => setAdvancedFiltersOpen(true)}
+                  />
+                )}
+              </Box>
             )}
           </Box>
-        )}
-      </Box>
 
-      {/* Advanced Filters Drawer */}
-      <Drawer anchor="right" open={advancedFiltersOpen} onClose={() => setAdvancedFiltersOpen(false)}>
-        <Box sx={styles.drawerContent}>
-          <Box sx={styles.drawerHeader}>
-            <Typography sx={styles.drawerTitle}>Advanced Filters</Typography>
-            <IconButton onClick={() => setAdvancedFiltersOpen(false)} sx={{ color: "#fff" }}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
+          {/* Advanced Filters Drawer */}
+          <Drawer anchor="right" open={advancedFiltersOpen} onClose={() => setAdvancedFiltersOpen(false)}>
+            <Box sx={styles.drawerContent}>
+              <Box sx={styles.drawerHeader}>
+                <Typography sx={styles.drawerTitle}>Advanced Filters</Typography>
+                <IconButton onClick={() => setAdvancedFiltersOpen(false)} sx={{ color: "#fff" }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
 
-          {/* Selected Filters */}
-          {allSelectedFilters.length > 0 && (
-            <Box sx={styles.selectedFiltersContainer}>
-              {allSelectedFilters.map((filter, index) => (
-                <Chip
-                  key={`${filter.type}-${filter.value}`}
-                  label={filter.value}
-                  onDelete={() => removeFilter(filter)}
-                  deleteIcon={<CloseIcon fontSize="small" />}
-                  sx={styles.selectedFilterChip}
-                />
-              ))}
+              {/* Selected Filters */}
               {allSelectedFilters.length > 0 && (
-                <Button sx={styles.clearButton} onClick={clearFilters}>
-                  Clear All
-                </Button>
+                <Box sx={styles.selectedFiltersContainer}>
+                  {allSelectedFilters.map((filter, index) => (
+                    <Chip
+                      key={`${filter.type}-${filter.value}`}
+                      label={filter.value}
+                      onDelete={() => removeFilter(filter)}
+                      deleteIcon={<CloseIcon fontSize="small" />}
+                      sx={styles.selectedFilterChip}
+                    />
+                  ))}
+                  {allSelectedFilters.length > 0 && (
+                    <Button sx={styles.clearButton} onClick={clearFilters}>
+                      Clear All
+                    </Button>
+                  )}
+                </Box>
               )}
-            </Box>
-          )}
 
-          <Divider sx={{ backgroundColor: "rgba(255, 255, 255, 0.1)", margin: "16px 0" }} />
+              <Divider sx={{ backgroundColor: "rgba(255, 255, 255, 0.1)", margin: "16px 0" }} />
 
-          {/* Genre Filter */}
-          <Box sx={styles.drawerSection}>
-            <Typography sx={styles.drawerSectionTitle}>Genre</Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-              {allGenres.map((genre) => (
-                <Chip
-                  key={genre}
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {genre}
-                      <Box component="span" sx={styles.countBadge}>
-                        {genreCounts[genre]}
-                      </Box>
-                    </Box>
-                  }
-                  onClick={() => handleGenreFilter(genre)}
-                  sx={selectedGenres.includes(genre) ? styles.popoverChipActive : styles.popoverChip}
-                />
-              ))}
-            </Box>
-          </Box>
+              {/* Genre Filter */}
+              <Box sx={styles.drawerSection}>
+                <Typography sx={styles.drawerSectionTitle}>Genre</Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {allGenres.map((genre) => (
+                    <Chip
+                      key={genre}
+                      label={
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          {genre}
+                          <Box component="span" sx={styles.countBadge}>
+                            {genreCounts[genre]}
+                          </Box>
+                        </Box>
+                      }
+                      onClick={() => handleGenreFilter(genre)}
+                      sx={selectedGenres.includes(genre) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
 
-          {/* Year Filter */}
-          <Box sx={styles.drawerSection}>
-            <Typography sx={styles.drawerSectionTitle}>Year</Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-              {allYears.map((year) => (
-                <Chip
-                  key={year}
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {year}
-                      <Box component="span" sx={styles.countBadge}>
-                        {yearCounts[year]}
-                      </Box>
-                    </Box>
-                  }
-                  onClick={() => handleYearFilter(year)}
-                  sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
-                />
-              ))}
-            </Box>
-          </Box>
+              {/* Year Filter */}
+              <Box sx={styles.drawerSection}>
+                <Typography sx={styles.drawerSectionTitle}>Year</Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {allYears.map((year) => (
+                    <Chip
+                      key={year}
+                      label={
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          {year}
+                          <Box component="span" sx={styles.countBadge}>
+                            {yearCounts[year]}
+                          </Box>
+                        </Box>
+                      }
+                      onClick={() => handleYearFilter(year)}
+                      sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
 
-          {/* Price Range Filter */}
-          {/* <Box sx={styles.drawerSection}>
+              {/* Price Range Filter */}
+              {/* <Box sx={styles.drawerSection}>
             <Typography sx={styles.drawerSectionTitle}>Price Range</Typography>
             <Box sx={{ padding: "0 10px" }}>
               <Slider
@@ -1218,101 +1297,129 @@ export default function MovieGrid() {
             </Box>
           </Box> */}
 
-          {/* Rating Filter */}
-          <Box sx={styles.drawerSection}>
-            <Typography sx={styles.drawerSectionTitle}>Minimum Rating</Typography>
-            <Box sx={{ padding: "0 10px" }}>
-              <Slider
-                value={ratingFilter}
-                onChange={handleRatingChange}
-                valueLabelDisplay="auto"
-                min={0}
-                max={5}
-                step={0.5}
-                sx={styles.slider}
-                valueLabelFormat={(value) => `${value} Stars`}
-              />
-              <Box sx={styles.ratingContainer}>
-                <Rating
-                  value={ratingFilter}
-                  precision={0.5}
-                  onChange={handleRatingChange}
-                  emptyIcon={<StarIcon style={{ opacity: 0.3 }} fontSize="inherit" />}
-                />
-                <Typography sx={styles.ratingValue}>
-                  {ratingFilter > 0 ? `${ratingFilter}+ Stars` : "Any Rating"}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      </Drawer>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-        {Object.values(projectData).map((project) => {
-          console.log("🔍 Project data in map:", project); // Add log here
-
-          const title = project?.projectTitle || "Untitled Project";
-          const poster = project?.posterFileName;
-          const logoImageURL = poster
-            ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${(title)}/film stills/${poster}`
-            : defaultPoster;
-            console.log("poster filen name", poster)
-            console.log("logo image url", logoImageURL)
-            console.log("orgname", orgName)
-
-          const genre = project?.formData?.specificationsInfo?.genres || "Unknown Genre";
-          const completionDate = project?.formData?.specificationsInfo?.completionDate;
-          const year = completionDate ? new Date(completionDate).getFullYear() : "N/A";
-          const rating = project?.formData?.specificationsInfo?.rating || 0;
-
-          return (
-            <Box key={project._id} sx={responsiveStyles.movieItem}>
-              <Card sx={styles.card} elevation={0}>
-                <CardMedia sx={styles.cardMedia} image={logoImageURL} title={title} />
-                <CardContent sx={styles.cardContent}>
-                  <Typography gutterBottom variant="h6" component="div" sx={styles.movieTitle}>
-                    {title}
-                  </Typography>
-                  <Box sx={styles.genreYearContainer}>
-                    <Chip label={genre} size="small" sx={styles.genreChip} />
-                    <Typography variant="body2" sx={styles.yearText}>
-                      {year}
+              {/* Rating Filter */}
+              <Box sx={styles.drawerSection}>
+                <Typography sx={styles.drawerSectionTitle}>Minimum Rating</Typography>
+                <Box sx={{ padding: "0 10px" }}>
+                  <Slider
+                    value={ratingFilter}
+                    onChange={handleRatingChange}
+                    valueLabelDisplay="auto"
+                    min={0}
+                    max={5}
+                    step={0.5}
+                    sx={styles.slider}
+                    valueLabelFormat={(value) => `${value} Stars`}
+                  />
+                  <Box sx={styles.ratingContainer}>
+                    <Rating
+                      value={ratingFilter}
+                      precision={0.5}
+                      onChange={handleRatingChange}
+                      emptyIcon={<StarIcon style={{ opacity: 0.3 }} fontSize="inherit" />}
+                    />
+                    <Typography sx={styles.ratingValue}>
+                      {ratingFilter > 0 ? `${ratingFilter}+ Stars` : "Any Rating"}
                     </Typography>
                   </Box>
-                  {/* <Rating
-                    value={rating}
-                    precision={0.5}
-                    size="small"
-                    readOnly
-                    sx={{ marginTop: "4px", marginBottom: "8px" }}
-                  /> */}
-                  <Box sx={{ display: 'flex', gap:2, mt: 1, ml:1 }}>
-                    <Button
-                      variant="contained"
-                      sx={styles.checkoutButton}
-                      onClick={() => navigate(`/movie/${project._id}`)}
-                    >
-                      View Details
-                    </Button>
-                    <Button
-                      variant="contained"
-                      sx={styles.checkoutButton}
-                      onClick={() => handleAddToCart(project)}
-                    >
-                      Add to Cart
-                    </Button>
-                  </Box>
-
-
-                </CardContent>
-              </Card>
+                </Box>
+              </Box>
             </Box>
-          );
-        })}
-      </Box>
+          </Drawer>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                  sx={{
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "rgba(123, 181, 231, 0.1)", // Background color on hover
+                    },
+                  }}
+                />
+              }
+              label="Select All"
+            />
+            <Badge
+              badgeContent={selectedItems.length}
+              color="primary"
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "#7ab5e7",
+                  color: "#000",
+                  fontWeight: "bold",
+                },
+              }}
+            >
+              <Button variant="contained" size="small" onClick={handleAddToCart}>Add To Cart</Button>
+            </Badge>
+          </div>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+            {Object.values(projectData).map((project) => {
+              console.log("🔍 Project data in map:", project); // Add log here
+
+              const title = project?.projectTitle || "Untitled Project";
+              const poster = project?.posterFileName;
+              const logoImageURL = poster
+                ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${(title)}/film stills/${poster}`
+                : defaultPoster;
+              console.log("poster filen name", poster)
+              console.log("logo image url", logoImageURL)
+              console.log("orgname", orgName)
+
+              const genre = project?.formData?.specificationsInfo?.genres || "Unknown Genre";
+              const completionDate = project?.formData?.specificationsInfo?.completionDate;
+              const year = completionDate ? new Date(completionDate).getFullYear() : "N/A";
+              const rating = project?.formData?.specificationsInfo?.rating || 0;
+              const isChecked = selectedItems.includes(project._id);
+
+              return (
+                <Box key={project._id} sx={responsiveStyles.movieItem}>
+                  <Card sx={{ ...styles.card, position: 'relative' }} elevation={0}>
+                    <Checkbox
+                      sx={{
+                        position: 'absolute',
+                        top: 1,
+                        right: 1,
+                        color: '#fff',
+                        '&.Mui-checked': {
+                          color: '#7ab5e7',
+                        },
+                      }}
+                      checked={isChecked}
+                      onChange={() => handleCheckboxChange(project._id)}
+                    />
+                    <CardMedia sx={styles.cardMedia} image={logoImageURL} title={title} />
+                    <CardContent sx={styles.cardContent}>
+                      <Typography gutterBottom variant="h6" component="div" sx={styles.movieTitle}>
+                        {title}
+                      </Typography>
+                      <Box sx={styles.genreYearContainer}>
+                        <Chip label={genre} size="small" sx={styles.genreChip} />
+                        <Typography variant="body2" sx={styles.yearText}>
+                          {year}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 2, mt: 1, ml: 1 }}>
+                        <Button
+                          variant="contained"
+                          sx={styles.checkoutButton}
+                          onClick={() => navigate(`/movie/${project._id}`)}
+                        >
+                          View Details
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Box>
+              );
+            })}
+          </Box>
 
 
-    </Box>
+        </Box>
       )}
     </>
   )
