@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
     Box,
     Typography,
@@ -24,6 +24,7 @@ import {
     IconButton,
     Tooltip,
     Fade,
+    Dialog,
 } from "@mui/material"
 import {
     Search,
@@ -37,88 +38,28 @@ import {
     MoreVert,
     Visibility,
     Edit,
+    Message,
 } from "@mui/icons-material"
-
-// Sample data for the deals
-const dealsData = [
-    {
-        id: 1,
-        name: "Documentary Footage Collection",
-        date: "Apr 20, 2023",
-        buyer: "Michael Brown",
-        seller: "RealLife Media",
-        amount: 650.0,
-        status: "Pending",
-        items: 1,
-    },
-    {
-        id: 2,
-        name: "4K Cinematic Video Assets",
-        date: "Apr 18, 2023",
-        buyer: "Jane Smith",
-        seller: "FilmCraft Productions",
-        amount: 550.0,
-        status: "Pending",
-        items: 1,
-    },
-    {
-        id: 3,
-        name: "Premium Stock Photos Collection",
-        date: "Apr 15, 2023",
-        buyer: "John Doe",
-        seller: "VisualArts Studio",
-        amount: 350.0,
-        status: "Active",
-        items: 1,
-    },
-    {
-        id: 4,
-        name: "Vector Graphics Bundle",
-        date: "Apr 14, 2023",
-        buyer: "Sarah Williams",
-        seller: "DesignMasters",
-        amount: 250.0,
-        status: "Active",
-        items: 1,
-    },
-    {
-        id: 5,
-        name: "3D Model Collection",
-        date: "Apr 12, 2023",
-        buyer: "David Wilson",
-        seller: "3D Masters",
-        amount: 420.0,
-        status: "Active",
-        items: 1,
-    },
-    {
-        id: 6,
-        name: "Professional Audio Production Pack",
-        date: "Apr 10, 2023",
-        buyer: "Alex Johnson",
-        seller: "SoundWave Studios",
-        amount: 300.0,
-        status: "Completed",
-        items: 1,
-    },
-    {
-        id: 7,
-        name: "Motion Graphics Templates",
-        date: "Apr 8, 2023",
-        buyer: "Emily Chen",
-        seller: "Motion Studios",
-        amount: 330.0,
-        status: "Cancelled",
-        items: 1,
-    },
-]
+import axios from "axios"
+import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
 
 export default function DealDashboard() {
+    const navigate = useNavigate()
+    const { user } = useSelector((state) => state.auth.user)
     const [viewMode, setViewMode] = useState("table")
     const [tabValue, setTabValue] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
     const [sortOrder, setSortOrder] = useState("descending")
     const [sortField, setSortField] = useState("date")
+    const [dealsData, setDealsData] = useState([]);
+    const [dealcounts, setDealCounts] = useState({});
+    const [chatOpen, setChatOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [messageText, setMessageText] = useState("");
+    const [chatHistory, setChatHistory] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [dealId, setDealId] = useState("");
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue)
@@ -126,57 +67,32 @@ export default function DealDashboard() {
 
     // Filter deals based on tab selection and search term
     const getFilteredDeals = () => {
-        let filtered = [...dealsData]
+        let filtered = [...dealsData];
 
         // Filter by tab
-        if (tabValue === 1) {
-            filtered = filtered.filter((deal) => deal.status === "Active")
+        if (tabValue === 0) {
+            filtered = filtered
+        } else if (tabValue === 1) {
+            filtered = filtered.filter((deal) => deal.senderId === user._id);
         } else if (tabValue === 2) {
-            filtered = filtered.filter((deal) => deal.status === "Pending")
+            filtered = filtered.filter((deal) => deal.assignedTo === user._id);
         } else if (tabValue === 3) {
-            filtered = filtered.filter((deal) => deal.status === "Completed")
+            filtered = filtered.filter((deal) => deal.status === "pending");
         } else if (tabValue === 4) {
-            filtered = filtered.filter((deal) => deal.status === "Cancelled")
+            filtered = filtered.filter((deal) => deal.status === "closed");
+        } else if (tabValue === 5) {
+            filtered = filtered.filter((deal) => deal.status === "cancelled");
         }
 
-        // Filter by search term
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            filtered = filtered.filter(
-                (deal) =>
-                    deal.name.toLowerCase().includes(term) ||
-                    deal.buyer.toLowerCase().includes(term) ||
-                    deal.seller.toLowerCase().includes(term),
-            )
-        }
+        // Debugging: Log the filtered deals
+        console.log("Filtered Deals:", filtered);
 
-        // Sort deals
-        filtered.sort((a, b) => {
-            if (sortField === "date") {
-                return new Date(b.date).getTime() - new Date(a.date).getTime()
-            } else if (sortField === "amount") {
-                return b.amount - a.amount
-            } else {
-                return a.name.localeCompare(b.name)
-            }
-        })
-
-        if (sortOrder === "ascending") {
-            filtered.reverse()
-        }
-
-        return filtered
-    }
+        return filtered;
+    };
 
     const filteredDeals = getFilteredDeals()
+    console.log("Filtered Deals:", filteredDeals)
 
-    // Calculate statistics
-    const totalDeals = dealsData.length
-    const activeDeals = dealsData.filter((deal) => deal.status === "Active").length
-    const completedDeals = dealsData.filter((deal) => deal.status === "Completed").length
-    const totalValue = dealsData.reduce((sum, deal) => sum + deal.amount, 0).toFixed(2)
-    const pendingDeals = dealsData.filter((deal) => deal.status === "Pending").length
-    const cancelledDeals = dealsData.filter((deal) => deal.status === "Cancelled").length
 
     // Get status chip color
     const getStatusColor = (status) => {
@@ -193,6 +109,105 @@ export default function DealDashboard() {
                 return { bg: "rgba(158, 158, 158, 0.2)", color: "#9e9e9e" }
         }
     }
+
+    const fetchDeals = async () => {
+        try {
+            const response = await axios.get(`http://localhost:3000/api/deal/deals-with-counts/${user._id}`)
+            const data = await response.data
+            setDealsData(data.deals)
+            setDealCounts(data.counts) // Assuming the API returns counts for each status
+            // Assuming the API returns an array of deals
+            // setDeals(data.deals) // Uncomment this line if you want to set the deals from the API response
+        } catch (error) {
+            console.error("Error fetching deals:", error)
+        }
+    }
+
+    // Fetch chat history for a specific user
+    const getChatHistory = async (dealId) => {
+        try {
+            const response = await axios.get(`http://localhost:3000/api/deal/${dealId}/message-history`);
+            return response.data.history; // Return chat history
+        } catch (error) {
+            console.error("Error fetching chat history:", error);
+            return [];
+        }
+    };
+
+    // Send a message to a specific user
+    const sendMessage = async (receiverId, message) => {
+        try {
+            const response = await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/message`, {
+                senderId: user._id,
+                receiverId,
+                message,
+            });
+            return response.data; // Return the sent message
+        } catch (error) {
+            console.error("Error sending message:", error);
+            return null;
+        }
+    };
+
+    // Get unread message count for the current user
+    const getUnreadMessageCount = async () => {
+        try {
+            const response = await axios.get(`http://localhost:3000/api/deal/unread-count/${user._id}`);
+            return response.data.unreadCount; // Return unread message count
+        } catch (error) {
+            console.error("Error fetching unread message count:", error);
+            return 0;
+        }
+    };
+
+    // Mark messages as read for a specific user
+    const markMessagesAsRead = async (userId) => {
+        try {
+            await axios.post(`http://localhost:3000/api/chat/mark-as-read`, { userId });
+        } catch (error) {
+            console.error("Error marking messages as read:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDeals();
+    }, [])
+
+    const handleOpenChat = async (dealId) => {
+        setChatOpen(true);
+        setDealId(dealId);
+        const history = await getChatHistory(dealId);
+        setChatHistory(history);
+
+        //   await markMessagesAsRead(user._id);
+
+        const count = await getUnreadMessageCount();
+        setUnreadCount(count);
+    };
+
+    const handleCloseChat = () => {
+        setChatOpen(false);
+    };
+
+    const handleSendMessage = async () => {
+        if (!messageText.trim()) return;
+
+        const newMessage = await sendMessage("6808d7388056ce9a8797e550", messageText);
+
+        if (newMessage) {
+            setChatHistory((prev) => [...prev, newMessage]);
+            setMessageText("");
+        }
+    };
+
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            const count = await getUnreadMessageCount();
+            setUnreadCount(count);
+        };
+
+        fetchUnreadCount();
+    }, []);
 
     return (
         <Box
@@ -275,7 +290,7 @@ export default function DealDashboard() {
                                 <BarChart fontSize="small" />
                             </Box>
                             <Typography variant="h3" sx={{ my: 1, fontWeight: "bold" }}>
-                                {totalDeals}
+                                {dealcounts.total || 0}
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
                                 Across all statuses
@@ -302,7 +317,7 @@ export default function DealDashboard() {
                                 <InfoOutlined fontSize="small" sx={{ color: "#3a7bd5" }} />
                             </Box>
                             <Typography variant="h3" sx={{ my: 1, fontWeight: "bold" }}>
-                                {activeDeals}
+                                {dealcounts.active || 0}
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
                                 In progress
@@ -329,7 +344,7 @@ export default function DealDashboard() {
                                 <CheckCircleOutline fontSize="small" sx={{ color: "#4caf50" }} />
                             </Box>
                             <Typography variant="h3" sx={{ my: 1, fontWeight: "bold" }}>
-                                {completedDeals}
+                                {dealcounts.closed || 0}
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
                                 Successfully delivered
@@ -358,7 +373,7 @@ export default function DealDashboard() {
                                 </Typography>
                             </Box>
                             <Typography variant="h3" sx={{ my: 1, fontWeight: "bold" }}>
-                                ${totalValue}
+                                $0.00
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
                                 All deals combined
@@ -533,18 +548,19 @@ export default function DealDashboard() {
                     },
                 }}
             >
-                <Tab label={`All Deals (${totalDeals})`} />
-                <Tab label={`Active (${activeDeals})`} />
-                <Tab label={`Pending (${pendingDeals})`} />
-                <Tab label={`Completed (${completedDeals})`} />
-                <Tab label={`Cancelled (${cancelledDeals})`} />
+                <Tab label={`All Deals (${dealcounts.active || 0})`} />
+                <Tab label={`Shared (${dealcounts.shared || 0})`} />
+                <Tab label={`Received (${dealcounts.received || 0})`} />
+                <Tab label={`Pending (${dealcounts.pending || 0})`} />
+                <Tab label={`Completed (${dealcounts.closed || 0})`} />
+                <Tab label={`Cancelled (${dealcounts.cancelled || 0})`} />
             </Tabs>
 
             {/* Card View */}
             {viewMode === "cards" && (
                 <Grid container spacing={2}>
                     {filteredDeals.slice(0, 3).map((deal) => (
-                        <Grid item xs={12} md={4} key={deal.id}>
+                        <Grid item xs={12} md={4} key={deal._id}>
                             <Card
                                 sx={{
                                     bgcolor: "#1a1a2e",
@@ -568,7 +584,11 @@ export default function DealDashboard() {
                                         }}
                                     >
                                         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                            {deal.name}
+                                            {new Date(deal.createdAt).toLocaleDateString("en-US", {
+                                                year: "numeric",
+                                                month: "short",
+                                                day: "numeric",
+                                            })}
                                         </Typography>
                                         <InfoOutlined
                                             fontSize="small"
@@ -585,27 +605,31 @@ export default function DealDashboard() {
                                         />
                                     </Box>
                                     <Typography variant="body2" sx={{ color: "#a0a0b0", marginBottom: "15px" }}>
-                                        {deal.date} • {deal.items} item
+                                        {new Date(deal.createdAt).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        })}
                                     </Typography>
 
                                     <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
                                         <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Buyer:
+                                            Sender ID:
                                         </Typography>
-                                        <Typography variant="body2">{deal.buyer}</Typography>
+                                        <Typography variant="body2">{deal.senderId}</Typography>
                                     </Box>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
                                         <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Seller:
+                                            Reciver ID:
                                         </Typography>
-                                        <Typography variant="body2">{deal.seller}</Typography>
+                                        <Typography variant="body2">{deal.assignedTo}</Typography>
                                     </Box>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
                                         <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
                                             Total:
                                         </Typography>
                                         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                            ${deal.amount.toFixed(2)}
+                                            $0.00
                                         </Typography>
                                     </Box>
 
@@ -660,10 +684,10 @@ export default function DealDashboard() {
                                     },
                                 }}
                             >
-                                <TableCell sx={{ color: "inherit" }}>Deal</TableCell>
-                                <TableCell sx={{ color: "inherit" }}>Date</TableCell>
-                                <TableCell sx={{ color: "inherit" }}>Buyer</TableCell>
-                                <TableCell sx={{ color: "inherit" }}>Seller</TableCell>
+                                <TableCell sx={{ color: "inherit" }}>Sender ID</TableCell>
+                                <TableCell sx={{ color: "inherit" }}>Created Date</TableCell>
+                                <TableCell sx={{ color: "inherit" }}>Reciver ID</TableCell>
+                                <TableCell sx={{ color: "inherit" }}>Updated Date</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Amount</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Status</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Actions</TableCell>
@@ -672,7 +696,7 @@ export default function DealDashboard() {
                         <TableBody>
                             {filteredDeals.map((deal) => (
                                 <TableRow
-                                    key={deal.id}
+                                    key={deal._id}
                                     sx={{
                                         "&:last-child td, &:last-child th": { border: 0 },
                                         "& td": {
@@ -691,12 +715,24 @@ export default function DealDashboard() {
                                             color: "inherit"
                                         }}
                                     >
-                                        {deal.name}
+                                        {deal.senderId}
                                     </TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>{deal.date}</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>{deal.buyer}</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>{deal.seller}</TableCell>
-                                    <TableCell sx={{ color: "inherit", fontWeight: "bold" }}>${deal.amount.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ color: "inherit" }}>
+                                        {new Date(deal.createdAt).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        })}
+                                    </TableCell>
+                                    <TableCell sx={{ color: "inherit" }}>{deal.assignedTo}</TableCell>
+                                    <TableCell sx={{ color: "inherit" }}>
+                                        {new Date(deal.updatedAt).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        })}
+                                    </TableCell>
+                                    <TableCell sx={{ color: "inherit", fontWeight: "bold" }}>0.00</TableCell>
                                     <TableCell sx={{ color: "inherit" }}>
                                         <Chip
                                             label={deal.status}
@@ -712,6 +748,7 @@ export default function DealDashboard() {
                                         <Box sx={{ display: "flex", gap: "4px" }}>
                                             <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                                 <IconButton
+                                                    onClick={() => navigate(`/deal-details/${deal._id}`)}
                                                     size="small"
                                                     sx={{
                                                         color: "#a855f7",
@@ -725,9 +762,10 @@ export default function DealDashboard() {
                                                     <Visibility fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
-                                            <Tooltip title="Edit Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                            <Tooltip title="Open Chat" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                                 <IconButton
                                                     size="small"
+                                                    onClick={() => handleOpenChat(deal._id)}
                                                     sx={{
                                                         color: "#3a7bd5",
                                                         "&:hover": {
@@ -737,7 +775,24 @@ export default function DealDashboard() {
                                                         transition: "all 0.2s",
                                                     }}
                                                 >
-                                                    <Edit fontSize="small" />
+                                                    <Message fontSize="small" />
+                                                    {unreadCount > 0 && (
+                                                        <Chip
+                                                            label={unreadCount}
+                                                            size="small"
+                                                            sx={{
+                                                                position: "absolute",
+                                                                top: 0,
+                                                                right: 0,
+                                                                bgcolor: "#f44336",
+                                                                color: "white",
+                                                                fontSize: "10px",
+                                                                height: "12px",
+                                                                minWidth: "12px",
+                                                                borderRadius: "50%",
+                                                            }}
+                                                        />
+                                                    )}
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="More Options" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
@@ -763,6 +818,101 @@ export default function DealDashboard() {
                     </Table>
                 </TableContainer>
             )}
+
+            {/* Chat Dialog */}
+            <Dialog
+                open={chatOpen}
+                onClose={handleCloseChat}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        bgcolor: "#1a1a2e",
+                        color: "white",
+                        borderRadius: "12px",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "80vh",
+                    },
+                }}
+            >
+                <Box sx={{ p: 2, borderBottom: "1px solid #2a2a3e" }}>
+                    <Typography variant="h6">
+                        Chat with {selectedUser?.name || "User"}
+                    </Typography>
+                </Box>
+
+                <Box
+                    sx={{
+                        flex: 1,
+                        overflowY: "auto",
+                        p: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                    }}
+                >
+                    {chatHistory.map((chat, index) => (
+                        <Box
+                            key={index}
+                            sx={{
+                                alignSelf: chat.senderId === user._id ? "flex-end" : "flex-start",
+                                bgcolor: chat.senderId === user._id ? "#3a7bd5" : "#2a2e3e",
+                                color: "white",
+                                p: 1.5,
+                                borderRadius: 2,
+                                maxWidth: "70%",
+                            }}
+                        >
+                            {chat.message}
+                        </Box>
+                    ))}
+                </Box>
+
+                <Box
+                    sx={{
+                        p: 2,
+                        borderTop: "1px solid #2a2a3e",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <TextField
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Type a message..."
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        InputProps={{
+                            sx: {
+                                bgcolor: "#1a1a2e",
+                                color: "white",
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#2a2a3e",
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#3a3a4e",
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#6a26cd",
+                                },
+                                "& input": {
+                                    color: "white",
+                                },
+                            },
+                        }}
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSendMessage}
+                        sx={{ borderRadius: 2 }}
+                    >
+                        Send
+                    </Button>
+                </Box>
+            </Dialog>
         </Box>
     )
 }

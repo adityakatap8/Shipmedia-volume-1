@@ -20,6 +20,7 @@ import UserManagement from '../../components/userManagement/managementPanel/user
 import UserOrgManagement from '../userOrgRegister/userOrgForm';
 import DealDashboard from '../deals/dealDashboard';
 import CartPage from '../cart/CartPage';
+import DealDetails from '../deals/components/DealDetails';
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
@@ -41,3 +42,4 @@ export const userManagement = () => <UserManagement />
 export const userOrganizationManagement = () => <UserOrgManagement />
 export const dealDashboard = () => <DealDashboard />
 export const cartPage = () => <CartPage />
+export const dealDetails = () => <DealDetails />
