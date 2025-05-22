@@ -488,7 +488,7 @@ const CartPage = () => {
               <Typography sx={{ color: "gray" }}>Total</Typography>
               <Typography sx={{ color: "#fff" }}>${isNaN(total) ? 0 : total}</Typography>
             </Box> */}
-            <Box>
+            {/* <Box>
               <Box sx={{ display: "flex", alignItems: "flex-start", mb: 2 }}>
                 <Checkbox
                   id="terms"
@@ -511,7 +511,7 @@ const CartPage = () => {
                   I agree to the Terms and Conditions and Privacy Policy
                 </Typography>
               </Box>
-            </Box>
+            </Box> */}
             <Button
               variant="contained"
               fullWidth
