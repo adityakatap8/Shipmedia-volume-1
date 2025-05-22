@@ -94,6 +94,16 @@ export default function DealDashboard() {
     console.log("Filtered Deals:", filteredDeals)
 
 
+    const getStatusLabel = (status, userRole) => {
+        if (userRole === "Buyer" && status === "sent_to_buyer") {
+          return "received_from_shipper";
+        }
+        if (userRole === "Admin" && status === "sent_to_shipper") {
+          return "received_from_buyer";
+        }
+        return status; // Default status
+      };
+
     // Get status chip color
     const getStatusColor = (status) => {
         switch (status) {
@@ -135,11 +145,11 @@ export default function DealDashboard() {
     };
 
     // Send a message to a specific user
-    const sendMessage = async (receiverId, message) => {
+    const sendMessage = async (message) => {
         try {
             const response = await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/message`, {
                 senderId: user._id,
-                receiverId,
+                receiverId: user.role === "Admin" ? selectedUser : user.createdBy,
                 message,
             });
             return response.data; // Return the sent message
@@ -152,7 +162,7 @@ export default function DealDashboard() {
     // Get unread message count for the current user
     const getUnreadMessageCount = async () => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/unread-count/${user._id}`);
+            const response = await axios.get(`http://localhost:3000/api/deal/unread-count/${dealId}/${user._id}`);
             return response.data.unreadCount; // Return unread message count
         } catch (error) {
             console.error("Error fetching unread message count:", error);
@@ -161,9 +171,9 @@ export default function DealDashboard() {
     };
 
     // Mark messages as read for a specific user
-    const markMessagesAsRead = async (userId) => {
+    const markMessagesAsRead = async (userId, dealId) => {
         try {
-            await axios.post(`https://www.mediashippers.com/api/chat/mark-as-read`, { userId });
+            await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/mark-read/${userId}`);
         } catch (error) {
             console.error("Error marking messages as read:", error);
         }
@@ -171,18 +181,15 @@ export default function DealDashboard() {
 
     useEffect(() => {
         fetchDeals();
-    }, [])
+    }, [chatOpen])
 
-    const handleOpenChat = async (dealId) => {
+    const handleOpenChat = async (deal) => {
         setChatOpen(true);
-        setDealId(dealId);
-        const history = await getChatHistory(dealId);
+        setDealId(deal._id);
+        setSelectedUser(deal.senderId);
+        const history = await getChatHistory(deal._id);
         setChatHistory(history);
-
-        //   await markMessagesAsRead(user._id);
-
-        const count = await getUnreadMessageCount();
-        setUnreadCount(count);
+        await markMessagesAsRead(user._id, deal._id);
     };
 
     const handleCloseChat = () => {
@@ -192,22 +199,12 @@ export default function DealDashboard() {
     const handleSendMessage = async () => {
         if (!messageText.trim()) return;
 
-        const newMessage = await sendMessage("6808d7388056ce9a8797e550", messageText);
+        await sendMessage(messageText);
 
-        if (newMessage) {
-            setChatHistory((prev) => [...prev, newMessage]);
-            setMessageText("");
-        }
+        const history = await getChatHistory(dealId);
+        setChatHistory(history);
+        setMessageText("");
     };
-
-    useEffect(() => {
-        const fetchUnreadCount = async () => {
-            const count = await getUnreadMessageCount();
-            setUnreadCount(count);
-        };
-
-        fetchUnreadCount();
-    }, []);
 
     return (
         <Box
@@ -559,105 +556,105 @@ export default function DealDashboard() {
             {/* Card View */}
             {viewMode === "cards" && (
                 <Grid container spacing={2}>
-                    {filteredDeals.slice(0, 3).map((deal) => (
-                        <Grid item xs={12} md={4} key={deal._id}>
-                            <Card
-                                sx={{
-                                    bgcolor: "#1a1a2e",
-                                    color: "white",
-                                    position: "relative",
-                                    overflow: "visible",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-5px)",
-                                        boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
-                                    },
-                                }}
-                            >
-                                <CardContent>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "flex-start",
-                                            marginBottom: "10px",
-                                        }}
-                                    >
-                                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                            {new Date(deal.createdAt).toLocaleDateString("en-US", {
-                                                year: "numeric",
-                                                month: "short",
-                                                day: "numeric",
-                                            })}
-                                        </Typography>
-                                        <InfoOutlined
-                                            fontSize="small"
-                                            sx={{
-                                                color:
-                                                    deal.status === "Pending"
-                                                        ? "#f5b014"
-                                                        : deal.status === "Active"
-                                                            ? "#3a7bd5"
-                                                            : deal.status === "Completed"
-                                                                ? "#4caf50"
-                                                                : "#f44336",
-                                            }}
-                                        />
-                                    </Box>
-                                    <Typography variant="body2" sx={{ color: "#a0a0b0", marginBottom: "15px" }}>
-                                        {new Date(deal.createdAt).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        })}
-                                    </Typography>
-
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-                                        <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Sender ID:
-                                        </Typography>
-                                        <Typography variant="body2">{deal.senderId}</Typography>
-                                    </Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-                                        <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Reciver ID:
-                                        </Typography>
-                                        <Typography variant="body2">{deal.assignedTo}</Typography>
-                                    </Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-                                        <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Total:
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                            $0.00
-                                        </Typography>
-                                    </Box>
-
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <Chip
-                                            label={deal.status}
-                                            sx={{
-                                                bgcolor: getStatusColor(deal.status).bg,
-                                                color: getStatusColor(deal.status).color,
-                                                borderRadius: "4px",
-                                                height: "24px",
-                                            }}
-                                        />
-                                        <Button
-                                            endIcon={<ArrowForward />}
-                                            sx={{
-                                                color: "#a855f7",
-                                                "&:hover": { bgcolor: "rgba(168, 85, 247, 0.1)" },
-                                            }}
-                                        >
-                                            View Details
-                                        </Button>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                {filteredDeals.slice(0, 3).map((deal) => (
+                  <Grid item xs={12} md={4} key={deal._id}>
+                    <Card
+                      sx={{
+                        bgcolor: "#1a1a2e",
+                        color: "white",
+                        position: "relative",
+                        overflow: "visible",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-5px)",
+                          boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
+                        },
+                      }}
+                    >
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                            {new Date(deal.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </Typography>
+                          <InfoOutlined
+                            fontSize="small"
+                            sx={{
+                              color:
+                                deal.status === "Pending"
+                                  ? "#f5b014"
+                                  : deal.status === "Active"
+                                  ? "#3a7bd5"
+                                  : deal.status === "Completed"
+                                  ? "#4caf50"
+                                  : "#f44336",
+                            }}
+                          />
+                        </Box>
+                        <Typography variant="body2" sx={{ color: "#a0a0b0", marginBottom: "15px" }}>
+                          {new Date(deal.createdAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </Typography>
+              
+                        <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                          <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
+                            Sender ID:
+                          </Typography>
+                          <Typography variant="body2">{deal.senderId}</Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                          <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
+                            Receiver ID:
+                          </Typography>
+                          <Typography variant="body2">{deal.assignedTo}</Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
+                          <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
+                            Total:
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                            $0.00
+                          </Typography>
+                        </Box>
+              
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Chip
+                            label={getStatusLabel(deal.status, user.role)}
+                            sx={{
+                              bgcolor: getStatusColor(deal.status).bg,
+                              color: getStatusColor(deal.status).color,
+                              borderRadius: "4px",
+                              height: "24px",
+                            }}
+                          />
+                          <Button
+                            endIcon={<ArrowForward />}
+                            sx={{
+                              color: "#a855f7",
+                              "&:hover": { bgcolor: "rgba(168, 85, 247, 0.1)" },
+                            }}
+                          >
+                            View Details
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
             )}
 
             {/* Table View */}
@@ -694,127 +691,88 @@ export default function DealDashboard() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filteredDeals.map((deal) => (
-                                <TableRow
-                                    key={deal._id}
-                                    sx={{
-                                        "&:last-child td, &:last-child th": { border: 0 },
-                                        "& td": {
-                                            color: "white",
-                                            borderBottom: "1px solid #2a2a3e",
-                                        },
-                                        transition: "background-color 0.2s",
-                                        "&:hover": {
-                                            bgcolor: "#252535",
-                                        },
-                                        padding: '0px'
-                                    }}
-                                >
-                                    <TableCell
-                                        sx={{
-                                            color: "inherit"
-                                        }}
-                                    >
-                                        {deal.senderId}
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        {new Date(deal.createdAt).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        })}
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>{deal.assignedTo}</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        {new Date(deal.updatedAt).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        })}
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit", fontWeight: "bold" }}>0.00</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        <Chip
-                                            label={deal.status}
-                                            sx={{
-                                                bgcolor: getStatusColor(deal.status).bg,
-                                                color: getStatusColor(deal.status).color,
-                                                borderRadius: "4px",
-                                                height: "24px",
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        <Box sx={{ display: "flex", gap: "4px" }}>
-                                            <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                <IconButton
-                                                    onClick={() => navigate(`/deal-details/${deal._id}`)}
-                                                    size="small"
-                                                    sx={{
-                                                        color: "#a855f7",
-                                                        "&:hover": {
-                                                            bgcolor: "rgba(168, 85, 247, 0.1)",
-                                                            transform: "scale(1.1)",
-                                                        },
-                                                        transition: "all 0.2s",
-                                                    }}
-                                                >
-                                                    <Visibility fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="Open Chat" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleOpenChat(deal._id)}
-                                                    sx={{
-                                                        color: "#3a7bd5",
-                                                        "&:hover": {
-                                                            bgcolor: "rgba(58, 123, 213, 0.1)",
-                                                            transform: "scale(1.1)",
-                                                        },
-                                                        transition: "all 0.2s",
-                                                    }}
-                                                >
-                                                    <Message fontSize="small" />
-                                                    {unreadCount > 0 && (
-                                                        <Chip
-                                                            label={unreadCount}
-                                                            size="small"
-                                                            sx={{
-                                                                position: "absolute",
-                                                                top: 0,
-                                                                right: 0,
-                                                                bgcolor: "#f44336",
-                                                                color: "white",
-                                                                fontSize: "10px",
-                                                                height: "12px",
-                                                                minWidth: "12px",
-                                                                borderRadius: "50%",
-                                                            }}
-                                                        />
-                                                    )}
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Tooltip title="More Options" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                <IconButton
-                                                    size="small"
-                                                    sx={{
-                                                        color: "#a0a0b0",
-                                                        "&:hover": {
-                                                            bgcolor: "rgba(160, 160, 176, 0.1)",
-                                                            transform: "scale(1.1)",
-                                                        },
-                                                        transition: "all 0.2s",
-                                                    }}
-                                                >
-                                                    <MoreVert fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
+  {filteredDeals.map((deal) => (
+    <TableRow
+      key={deal._id}
+      sx={{
+        "&:last-child td, &:last-child th": { border: 0 },
+        "& td": {
+          color: "white",
+          borderBottom: "1px solid #2a2a3e",
+        },
+        transition: "background-color 0.2s",
+        "&:hover": {
+          bgcolor: "#252535",
+        },
+      }}
+    >
+      <TableCell sx={{ color: "inherit" }}>{deal.senderId}</TableCell>
+      <TableCell sx={{ color: "inherit" }}>
+        {new Date(deal.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })}
+      </TableCell>
+      <TableCell sx={{ color: "inherit" }}>{deal.assignedTo}</TableCell>
+      <TableCell sx={{ color: "inherit" }}>
+        {new Date(deal.updatedAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })}
+      </TableCell>
+      <TableCell sx={{ color: "inherit", fontWeight: "bold" }}>0.00</TableCell>
+      <TableCell sx={{ color: "inherit" }}>
+        <Chip
+          label={getStatusLabel(deal.status, user.role)}
+          sx={{
+            bgcolor: getStatusColor(deal.status).bg,
+            color: getStatusColor(deal.status).color,
+            borderRadius: "4px",
+            height: "24px",
+          }}
+        />
+      </TableCell>
+      <TableCell sx={{ color: "inherit" }}>
+        <Box sx={{ display: "flex", gap: "4px" }}>
+          <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+            <IconButton
+              onClick={() => navigate(`/deal-details/${deal._id}`)}
+              size="small"
+              sx={{
+                color: "#a855f7",
+                "&:hover": {
+                  bgcolor: "rgba(168, 85, 247, 0.1)",
+                  transform: "scale(1.1)",
+                },
+                transition: "all 0.2s",
+              }}
+            >
+              <Visibility fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Open Chat" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+            <IconButton
+              size="small"
+              onClick={() => handleOpenChat(deal)}
+              sx={{
+                color: "#3a7bd5",
+                "&:hover": {
+                  bgcolor: "rgba(58, 123, 213, 0.1)",
+                  transform: "scale(1.1)",
+                },
+                transition: "all 0.2s",
+              }}
+            >
+              <Message fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
                     </Table>
                 </TableContainer>
             )}
