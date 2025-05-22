@@ -64,7 +64,12 @@ export default function MovieGrid() {
   const [selectedItems, setSelectedItems] = useState([]); // State to track selected items
   console.log("selected items", selectedItems)
   const [selectAll, setSelectAll] = useState(false); // State to track "Select All" checkbox
-
+  const [selectedTerritories, setSelectedTerritories] = useState([]);
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [selectedContentCategories, setSelectedContentCategories] = useState([]);
+  const [selectedRights, setSelectedRights] = useState([]);
+  const [originalProjectData, setOriginalProjectData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { orgName, _id:
     userId, role } = useSelector((state) => state.auth.user.user)
@@ -189,6 +194,7 @@ export default function MovieGrid() {
 
         // Set the full project data (including formData)
         setProjectData(projects);
+        setOriginalProjectData(projects);
 
         // Optionally extract and set poster/trailer/specification info if needed
         const formattedSpecs = projects.map((project) => ({
@@ -220,6 +226,22 @@ export default function MovieGrid() {
   }, [userId, role, token, toast]);
 
 
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (!searchTerm) {
+        // If search term is empty, reset to original data
+        setProjectData([...originalProjectData]);
+      } else {
+        // Filter project data based on the search term
+        const filteredData = originalProjectData.filter((project) =>
+          project?.projectTitle?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setProjectData(filteredData);
+      }
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(delayDebounceFn); // Cleanup the timeout
+  }, [searchTerm, originalProjectData]);
 
 
   // Filter states
@@ -236,9 +258,11 @@ export default function MovieGrid() {
   const [genreAnchorEl, setGenreAnchorEl] = useState(null)
   const [yearAnchorEl, setYearAnchorEl] = useState(null)
   const [sortAnchorEl, setSortAnchorEl] = useState(null)
+  const [territoryAnchorEl, setTerritoryAnchorEl] = useState(null);
+  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  const [rightsAnchorEl, setRightsAnchorEl] = useState(null); // Add state for rights popover
+  const [contentCategoryAnchorEl, setContentCategoryAnchorEl] = useState(null);
 
-
-  const [allData, setallData] = useState([]);
 
 
 
@@ -248,64 +272,6 @@ export default function MovieGrid() {
 
 
 
-
-  // Extract unique genres and years
-  const allGenres = Array.from(
-    new Set(
-      Object.values(projectData)
-        .flatMap((project) => project?.formData?.specificationsInfo?.genres || []) // Get genres from specificationsInfoData
-        .map((genre) => genre.toLowerCase()) // Convert to lowercase to avoid case issues
-    )
-  );
-
-
-
-
-  const allYears = [...new Set(
-    Object.values(projectData)
-      .map((project) => {
-        const date = project?.formData?.specificationsInfo?.completionDate;
-        const parsedYear = date ? new Date(date).getFullYear() : null;
-        return parsedYear;
-      })
-      .filter((year) => typeof year === "number")
-  )].sort((a, b) => b - a); // Sort years in descending order
-
-
-  console.log('Raw Dates:', Object.values(projectData).map(p => p?.formData?.specificationsInfo?.completionDate));
-  console.log('Extracted Years:', allYears);
-
-
-
-
-
-  // Count movies for each filter
-  // Calculate the genre counts based on projectData
-  const genreCounts = allGenres.reduce((acc, genre) => {
-    // Count how many projects have the given genre
-    const count = Object.values(projectData).reduce((total, project) => {
-      const genres = project?.formData?.specificationsInfo?.genres;
-
-      if (genres && genres.toLowerCase().includes(genre)) {
-        total++;
-      }
-      return total;
-    }, 0);
-
-    acc[genre] = count; // Store count for each genre
-    return acc;
-  }, {});
-
-
-
-  const yearCounts = allYears.reduce((acc, year) => {
-    acc[year] = Object.values(projectData).filter((project) => {
-      const date = project?.formData?.specificationsInfo?.completionDate;
-      const projectYear = date && !isNaN(new Date(date)) ? new Date(date).getFullYear() : null;
-      return projectYear === year;
-    }).length;
-    return acc;
-  }, {});
 
 
 
@@ -320,20 +286,57 @@ export default function MovieGrid() {
 
 
   const handleGenreFilter = (genre) => {
+    const copyOfProjectData = [...projectData];
+
+    // Update selectedGenres state
+    let updatedGenres;
     if (selectedGenres.includes(genre)) {
-      setSelectedGenres(selectedGenres.filter((g) => g !== genre)); // Remove genre
+      updatedGenres = selectedGenres.filter((g) => g !== genre); // Remove genre
     } else {
-      setSelectedGenres([...selectedGenres, genre]); // Add genre
+      updatedGenres = [...selectedGenres, genre]; // Add genre
     }
+    setSelectedGenres(updatedGenres);
+
+    // Filter project data based on the updated genres
+    const filteredData = copyOfProjectData.filter((project) => {
+      const projectGenres = project?.formData?.specificationsInfo?.genres
+        ?.split(",") // Convert comma-separated string into an array
+        .map((g) => g.trim().toLowerCase()); // Trim and convert to lowercase
+
+      return updatedGenres.length > 0
+        ? updatedGenres.some((selectedGenre) =>
+          projectGenres?.includes(selectedGenre.toLowerCase())
+        )
+        : true;
+    });
+
+    console.log("Filtered Data by Genre:", filteredData);
+    setProjectData(filteredData); // Update the filtered movies state
   };
 
   const handleYearFilter = (year) => {
+    // Update selectedYears state
+    let updatedYears;
     if (selectedYears.includes(year)) {
-      setSelectedYears(selectedYears.filter((y) => y !== year))
+      updatedYears = selectedYears.filter((y) => y !== year); // Remove year
     } else {
-      setSelectedYears([...selectedYears, year])
+      updatedYears = [...selectedYears, year]; // Add year
     }
-  }
+    setSelectedYears(updatedYears);
+
+    // Filter project data based on the selected years
+    const filteredData = projectData.filter((project) => {
+      const completionDate = project?.formData?.specificationsInfo?.completionDate;
+      const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
+
+      return updatedYears.length > 0
+        ? updatedYears.includes(projectYear)
+        : true;
+    });
+
+    console.log("Filtered Data by Year:", filteredData);
+    setProjectData(filteredData); // Update the filtered movies state
+  };
 
   const handlePriceChange = (event, newValue) => {
     setPriceRange(newValue)
@@ -344,16 +347,36 @@ export default function MovieGrid() {
   }
 
   const handleSortChange = (option) => {
-    setSortOption(option)
-    setSortAnchorEl(null)
-  }
+    setSortOption(option); // Update the selected sort option
+    setSortAnchorEl(null); // Close the sort popover
+  
+    if (option === "title") {
+      // Sort projectData alphabetically by projectTitle (case-insensitive)
+      const sortedData = [...projectData].sort((a, b) => {
+        const titleA = a.projectTitle?.toLowerCase() || "";
+        const titleB = b.projectTitle?.toLowerCase() || "";
+        return titleA.localeCompare(titleB, undefined, { sensitivity: 'base' });
+      });
+      setProjectData(sortedData); // Update the sorted project data
+    } else {
+      // Reset to original data if no specific sort option is selected
+      setProjectData([...originalProjectData]);
+    }
+  };
 
   const clearFilters = () => {
-    setSelectedGenres([])
-    setSelectedYears([])
+    // Reset all filter states
+    setSelectedGenres([]);
+    setSelectedYears([]);
+    setSelectedLanguages([]);
+    setSelectedTerritories([]);
+    setSelectedContentCategories([]);
+    setSelectedRights([]);
+    setRatingFilter(0);
 
-    setRatingFilter(0)
-  }
+    // Reset the filtered data to the original project data
+    setProjectData([...originalProjectData]); // Use a copy of the original data
+  };
 
   // Popover handlers
   const handleGenreClick = (event) => {
@@ -380,60 +403,126 @@ export default function MovieGrid() {
     setSortAnchorEl(null)
   }
 
+
+  const handleTerritoryFilter = (territory) => {
+    if (selectedTerritories.includes(territory)) {
+      setSelectedTerritories(selectedTerritories.filter((t) => t !== territory));
+    } else {
+      setSelectedTerritories([...selectedTerritories, territory]);
+    }
+  };
+
+  const handleLanguageFilter = (language) => {
+    const copyOfFilteredData = [...projectData];
+    if (selectedLanguages.includes(language)) {
+      setSelectedLanguages(selectedLanguages.filter((l) => l !== language)); // Remove language
+    } else {
+      setSelectedLanguages([...selectedLanguages, language]); // Add language
+    }
+
+    // Filter project data based on the selected language
+    const filteredData = copyOfFilteredData.filter(
+      (project) =>
+        project?.formData?.specificationsInfo?.language?.toLowerCase() === language.toLowerCase()
+    );
+
+    console.log("Filtered Data:", filteredData);
+    setProjectData(filteredData); // Update the filtered movies state
+  };
+
+  const handleContentCategoryFilter = (category) => {
+    const copyOfFilteredData = [...projectData];
+    if (selectedContentCategories.includes(category)) {
+      setSelectedContentCategories(selectedContentCategories.filter((c) => c !== category)); // Remove category
+    } else {
+      setSelectedContentCategories([...selectedContentCategories, category]); // Add category
+    }
+
+    // Filter project data based on the selected content category
+    const filteredData = copyOfFilteredData.filter((project) =>
+      selectedContentCategories.length > 0
+        ? selectedContentCategories.some((selectedCategory) =>
+          project?.formData?.specificationsInfo?.projectType
+            ?.toLowerCase()
+            .includes(selectedCategory.toLowerCase())
+        )
+        : true
+    );
+
+    console.log("Filtered Data by Content Category:", filteredData);
+    setProjectData(filteredData); // Update the filtered movies state
+  };
+
+  const handleRightsFilter = (right) => {
+    if (selectedRights.includes(right)) {
+      setSelectedRights(selectedRights.filter((r) => r !== right)); // Remove right
+    } else {
+      setSelectedRights([...selectedRights, right]); // Add right
+    }
+  };
+
   // Apply filters and sorting
   useEffect(() => {
-    let result = [...movies]
+    let result = [...movies];
 
     // Apply genre filter
     if (selectedGenres.length > 0) {
-      result = result.filter((movie) => selectedGenres.includes(movie.genre))
+      result = result.filter((movie) => selectedGenres.includes(movie.genre));
     }
 
     // Apply year filter
     if (selectedYears.length > 0) {
-      result = result.filter((movie) => selectedYears.includes(movie.year))
+      result = result.filter((movie) => selectedYears.includes(movie.year));
     }
 
-    // Apply price range filter
-    result = result.filter((movie) => movie.price >= priceRange[0] && movie.price <= priceRange[1])
-
-    // Apply rating filter
-    if (ratingFilter > 0) {
-      result = result.filter((movie) => movie.rating >= ratingFilter)
+    // Apply territory filter
+    if (selectedTerritories.length > 0) {
+      result = result.filter((movie) =>
+        selectedTerritories.some((territory) => movie.territories?.includes(territory))
+      );
     }
 
-    // Apply sorting
-    switch (sortOption) {
-      case "price-low":
-        result.sort((a, b) => a.price - b.price)
-        break
-      case "price-high":
-        result.sort((a, b) => b.price - a.price)
-        break
-      case "rating":
-        result.sort((a, b) => b.rating - a.rating)
-        break
-      case "year":
-        result.sort((a, b) => b.year - a.year)
-        break
-      case "title":
-        result.sort((a, b) => a.title.localeCompare(b.title))
-        break
-      default:
-        // Featured - no sorting
-        break
+    // Apply language filter
+    if (selectedLanguages.length > 0) {
+      result = result.filter((movie) =>
+        selectedLanguages.some((language) => movie.languages?.includes(language))
+      );
     }
 
-    setFilteredMovies(result)
+    // Apply content category filter
+    if (selectedContentCategories.length > 0) {
+      result = result.filter((movie) =>
+        selectedContentCategories.some((category) => movie.contentCategories?.includes(category))
+      );
+    }
+
+    // Apply rights filter
+    if (selectedRights.length > 0) {
+      result = result.filter((movie) =>
+        selectedRights.some((right) => movie.rights?.includes(right))
+      );
+    }
+
+    setFilteredMovies(result);
 
     // Count active filters
-    let count = 0
-    if (selectedGenres.length > 0) count += selectedGenres.length
-    if (selectedYears.length > 0) count += selectedYears.length
+    let count = 0;
+    if (selectedGenres.length > 0) count += selectedGenres.length;
+    if (selectedYears.length > 0) count += selectedYears.length;
+    if (selectedTerritories.length > 0) count += selectedTerritories.length;
+    if (selectedLanguages.length > 0) count += selectedLanguages.length;
+    if (selectedContentCategories.length > 0) count += selectedContentCategories.length;
+    if (selectedRights.length > 0) count += selectedRights.length;
 
-    if (ratingFilter > 0) count++
-    setActiveFiltersCount(count)
-  }, [selectedGenres, selectedYears, ratingFilter, sortOption])
+    setActiveFiltersCount(count);
+  }, [
+    selectedGenres,
+    selectedYears,
+    selectedTerritories,
+    selectedLanguages,
+    selectedContentCategories,
+    selectedRights,
+  ]);
 
 
 
@@ -502,7 +591,8 @@ export default function MovieGrid() {
       width: "100%",
     },
     movieItem: {
-      width: "16.666%", // Exactly 6 items per row
+      width: "16.666%" // Exactly 6 items per row
+      ,
       padding: "0 4px",
       boxSizing: "border-box",
     },
@@ -524,7 +614,7 @@ export default function MovieGrid() {
     },
     cardMedia: {
       height: 0,
-      paddingTop: "120%", // 2:3 aspect ratio for movie posters
+      paddingTop: "120%" // 2:3 aspect ratio for movie posters
     },
     cardContent: {
       flexGrow: 1,
@@ -862,10 +952,10 @@ export default function MovieGrid() {
       //     return "Price: Low to High"
       //   case "price-high":
       //     return "Price: High to Low"
-      case "rating":
-        return "Top Rated"
-      case "year":
-        return "Newest"
+      // case "rating":
+      //   return "Top Rated"
+      // case "year":
+      //   return "Newest"
       case "title":
         return "Title A-Z"
       default:
@@ -895,7 +985,7 @@ export default function MovieGrid() {
           title: 'Success',
           description: 'Movies added to cart successfully!',
         });
-        dispatch(setCartMovies(response.data)); 
+        dispatch(setCartMovies(response.data));
         navigate('/cart');
       } else {
         throw new Error('Unexpected response status');
@@ -960,6 +1050,8 @@ export default function MovieGrid() {
                 "& .MuiInputBase-input": styles.inputInput,
               }}
               inputProps={{ "aria-label": "search" }}
+              value={searchTerm} // Bind the searchTerm state
+              onChange={(e) => setSearchTerm(e.target.value)} // Update searchTerm on input change
             />
           </Box>
 
@@ -989,27 +1081,8 @@ export default function MovieGrid() {
                 <Typography sx={styles.popoverTitle}>Sort By</Typography>
                 <Box sx={styles.sortContainer}>
                   <Box
-                    sx={sortOption === "featured" ? styles.sortItemActive : styles.sortItem}
-                    onClick={() => handleSortChange("featured")}
-                  >
-                    Featured
-                  </Box>
-
-                  <Box
-                    sx={sortOption === "rating" ? styles.sortItemActive : styles.sortItem}
-                    onClick={() => handleSortChange("rating")}
-                  >
-                    Top Rated
-                  </Box>
-                  <Box
-                    sx={sortOption === "year" ? styles.sortItemActive : styles.sortItem}
-                    onClick={() => handleSortChange("year")}
-                  >
-                    Newest
-                  </Box>
-                  <Box
                     sx={sortOption === "title" ? styles.sortItemActive : styles.sortItem}
-                    onClick={() => handleSortChange("title")}
+                    onClick={() => handleSortChange("title")} // Sort A-Z
                   >
                     Title A-Z
                   </Box>
@@ -1020,7 +1093,7 @@ export default function MovieGrid() {
             {/* Genre Button */}
             <Button
               sx={selectedGenres.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={handleGenreClick}
+              onClick={(e) => setGenreAnchorEl(e.currentTarget)} // Open the popover
               endIcon={<ArrowDownIcon fontSize="small" />}
             >
               Genre
@@ -1042,7 +1115,7 @@ export default function MovieGrid() {
             <Popover
               open={Boolean(genreAnchorEl)}
               anchorEl={genreAnchorEl}
-              onClose={handleGenreClose}
+              onClose={() => setGenreAnchorEl(null)} // Close the popover
               anchorOrigin={{
                 vertical: "bottom",
                 horizontal: "left",
@@ -1059,29 +1132,21 @@ export default function MovieGrid() {
                 <Typography sx={styles.popoverTitle}>
                   Genre
                   {selectedGenres.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={() => setSelectedGenres([])}>
+                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
                       Clear
                     </Button>
                   )}
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {allGenres.map((genre) => (
+                  {genresOptions.map((genre) => (
                     <Chip
-                      key={genre}
-                      label={
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          {genre}
-                          <Box component="span" sx={styles.countBadge}>
-                            {genreCounts[genre] || 0} {/* Default to 0 if no count exists */}
-                          </Box>
-                        </Box>
-                      }
-                      onClick={() => handleGenreFilter(genre)}
-                      sx={selectedGenres.includes(genre) ? styles.popoverChipActive : styles.popoverChip}
+                      key={genre.id}
+                      label={genre.name} // Use the name property for the label
+                      onClick={() => handleGenreFilter(genre.name)} // Pass only the name to the handler
+                      sx={selectedGenres.includes(genre.name) ? styles.popoverChipActive : styles.popoverChip}
                     />
                   ))}
                 </Box>
-
               </Box>
             </Popover>
 
@@ -1091,7 +1156,7 @@ export default function MovieGrid() {
               onClick={handleYearClick}
               endIcon={<ArrowDownIcon fontSize="small" />}
             >
-              Year
+              Year Of Release
               {selectedYears.length > 0 && (
                 <Badge
                   badgeContent={selectedYears.length}
@@ -1127,7 +1192,7 @@ export default function MovieGrid() {
                 <Typography sx={styles.popoverTitle}>
                   Year
                   {selectedYears.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={() => setSelectedYears([])}>
+                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
                       Clear
                     </Button>
                   )}
@@ -1135,17 +1200,247 @@ export default function MovieGrid() {
                 <Box sx={{ display: "flex", flexWrap: "wrap" }}>
                   {allYears.map((year) => (
                     <Chip
+                      label={year}
                       key={year}
-                      label={
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          {year}
-                          <Box component="span" sx={styles.countBadge}>
-                            {yearCounts[year]}
-                          </Box>
-                        </Box>
+                      onClick={() => handleYearFilter(year)
                       }
-                      onClick={() => handleYearFilter(year)}
                       sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Popover>
+
+            <Button
+              sx={selectedLanguages.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={(e) => setLanguageAnchorEl(e.currentTarget)} // Open the popover
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
+              Language
+              {selectedLanguages.length > 0 && (
+                <Badge
+                  badgeContent={selectedLanguages.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              )}
+            </Button>
+            <Popover
+              open={Boolean(languageAnchorEl)}
+              anchorEl={languageAnchorEl}
+              onClose={() => setLanguageAnchorEl(null)} // Close the popover
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>
+                  Language
+                  {selectedLanguages.length > 0 && (
+                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                      Clear
+                    </Button>
+                  )}
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {languageList.map((language) => (
+                    <Chip
+                      key={language}
+                      label={language}
+                      onClick={() => handleLanguageFilter(language)} // Toggle language selection
+                      sx={selectedLanguages.includes(language) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Popover>
+
+            <Button
+              sx={selectedTerritories.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={(e) => setTerritoryAnchorEl(e.currentTarget)}
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
+              Territory
+              {selectedTerritories.length > 0 && (
+                <Badge
+                  badgeContent={selectedTerritories.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              )}
+            </Button>
+            <Popover
+              open={Boolean(territoryAnchorEl)}
+              anchorEl={territoryAnchorEl}
+              onClose={() => setTerritoryAnchorEl(null)}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>
+                  Territory
+                  {selectedTerritories.length > 0 && (
+                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                      Clear
+                    </Button>
+                  )}
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {territoryGroupedOptions.map((territory) => (
+                    <Chip
+                      key={territory.name}
+                      label={territory.name}
+                      onClick={() => handleTerritoryFilter(territory.name)}
+                      sx={selectedTerritories.includes(territory.name) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Popover>
+
+            <Button
+              sx={selectedContentCategories.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={(e) => setContentCategoryAnchorEl(e.currentTarget)} // Open the popover
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
+              Content Category
+              {selectedContentCategories.length > 0 && (
+                <Badge
+                  badgeContent={selectedContentCategories.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              )}
+            </Button>
+            <Popover
+              open={Boolean(contentCategoryAnchorEl)}
+              anchorEl={contentCategoryAnchorEl}
+              onClose={() => setContentCategoryAnchorEl(null)} // Close the popover
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>
+                  Content Category
+                  {selectedContentCategories.length > 0 && (
+                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                      Clear
+                    </Button>
+                  )}
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {contentCategoryOptions.map((category) => (
+                    <Chip
+                      key={category.id}
+                      label={category.name}
+                      onClick={() => handleContentCategoryFilter(category.name)} // Toggle content category selection
+                      sx={selectedContentCategories.includes(category.name) ? styles.popoverChipActive : styles.popoverChip}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Popover>
+
+            <Button
+              sx={selectedRights.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={(e) => setRightsAnchorEl(e.currentTarget)} // Open the popover
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
+              Rights
+              {selectedRights.length > 0 && (
+                <Badge
+                  badgeContent={selectedRights.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              )}
+            </Button>
+            <Popover
+              open={Boolean(rightsAnchorEl)}
+              anchorEl={rightsAnchorEl}
+              onClose={() => setRightsAnchorEl(null)} // Close the popover
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              PaperProps={{
+                style: { backgroundColor: "#111" },
+              }}
+            >
+              <Box sx={styles.popoverContent}>
+                <Typography sx={styles.popoverTitle}>
+                  Rights
+                  {selectedRights.length > 0 && (
+                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                      Clear
+                    </Button>
+                  )}
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                  {rightsOptions.map((right) => (
+                    <Chip
+                      key={right.id}
+                      label={right.name}
+                      onClick={() => handleRightsFilter(right.name)} // Toggle rights selection
+                      sx={selectedRights.includes(right.name) ? styles.popoverChipActive : styles.popoverChip}
                     />
                   ))}
                 </Box>
@@ -1236,19 +1531,11 @@ export default function MovieGrid() {
               <Box sx={styles.drawerSection}>
                 <Typography sx={styles.drawerSectionTitle}>Genre</Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {allGenres.map((genre) => (
+                  {genresOptions.map((genre) => (
                     <Chip
-                      key={genre}
-                      label={
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          {genre}
-                          <Box component="span" sx={styles.countBadge}>
-                            {genreCounts[genre]}
-                          </Box>
-                        </Box>
-                      }
-                      onClick={() => handleGenreFilter(genre)}
-                      sx={selectedGenres.includes(genre) ? styles.popoverChipActive : styles.popoverChip}
+                      key={genre.id}
+                      onClick={() => handleGenreFilter(genre.name)}
+                      sx={selectedGenres.includes(genre.name) ? styles.popoverChipActive : styles.popoverChip}
                     />
                   ))}
                 </Box>
@@ -1261,14 +1548,6 @@ export default function MovieGrid() {
                   {allYears.map((year) => (
                     <Chip
                       key={year}
-                      label={
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          {year}
-                          <Box component="span" sx={styles.countBadge}>
-                            {yearCounts[year]}
-                          </Box>
-                        </Box>
-                      }
                       onClick={() => handleYearFilter(year)}
                       sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
                     />
@@ -1424,4 +1703,149 @@ export default function MovieGrid() {
     </>
   )
 }
+
+const rightsOptions = [
+  { name: 'SVOD (Subscription Video on Demand)', id: 1 },
+  { name: 'TVOD (Transactional Video on Demand)', id: 2 },
+  { name: 'AVOD (Advertising Video on Demand)', id: 3 },
+  { name: 'Broadcast', id: 4 },
+  { name: 'Cable', id: 5 },
+  { name: 'Television Broadcast Rights', id: 6 },
+  { name: 'Theatrical Rights', id: 7 },
+  { name: 'EST (Electronic Sell-Through) Rights', id: 8 },
+  { name: 'DVD/Blu-ray Distribution Rights', id: 9 },
+  { name: 'Home Video Rights', id: 10 },
+  { name: 'Foreign Distribution Rights', id: 11 },
+  { name: 'Airline/Ship Rights', id: 12 },
+  { name: 'Merchandising Rights', id: 13 },
+  { name: 'Music Rights', id: 14 },
+  { name: 'Product Placement Rights', id: 15 },
+  { name: 'Franchise/Sequel Rights', id: 16 },
+  { name: 'Mobile Rights', id: 17 },
+  { name: 'Interactive and Gaming Rights', id: 18 },
+  { name: 'Script/Adaptation Rights', id: 19 },
+  { name: 'Public Performance Rights', id: 20 },
+  { name: 'Specialty and Festival Rights', id: 21 },
+  { name: 'Censorship Rights', id: 22 },
+  { name: 'Outright Sale', id: 23 },
+];
+
+const contentCategoryOptions = [
+  { name: 'Feature Film', id: 1 },
+  { name: 'TV Show', id: 2 },
+  { name: 'Docu Series', id: 3 },
+  { name: 'Web Series', id: 4 },
+  { name: 'Kids Content', id: 5 },
+  { name: 'Vertical Drama', id: 6 },
+  { name: 'Micro Drama', id: 7 },
+  { name: 'Documentary', id: 8 },
+  { name: 'Short Film', id: 9 },
+  { name: 'Animation', id: 10 },
+];
+
+
+const languageList = [
+  "Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Azerbaijani", "Basque", "Belarusian",
+  "Bengali", "Bosnian", "Bulgarian", "Burmese", "Catalan", "Cebuano", "Chinese", "Corsican",
+  "Croatian", "Czech", "Danish", "Dutch", "English", "Esperanto", "Estonian", "Finnish",
+  "French", "Frisian", "Galician", "Georgian", "German", "Greek", "Gujarati", "Haitian Creole",
+  "Hausa", "Hawaiian", "Hebrew", "Hindi", "Hmong", "Hungarian", "Icelandic", "Igbo", "Indonesian",
+  "Irish", "Italian", "Japanese", "Javanese", "Kannada", "Kazakh", "Khmer", "Kinyarwanda",
+  "Korean", "Kurdish", "Kyrgyz", "Lao", "Latin", "Latvian", "Lithuanian", "Luxembourgish",
+  "Macedonian", "Malagasy", "Malay", "Malayalam", "Maltese", "Maori", "Marathi", "Mongolian",
+  "Nepali", "Norwegian", "Nyanja", "Odia", "Pashto", "Persian", "Polish", "Portuguese", "Punjabi",
+  "Romanian", "Russian", "Samoan", "Scots Gaelic", "Serbian", "Sesotho", "Shona", "Sindhi",
+  "Sinhala", "Slovak", "Slovenian", "Somali", "Spanish", "Sundanese", "Swahili", "Swedish",
+  "Tagalog", "Tajik", "Tamil", "Tatar", "Telugu", "Thai", "Turkish", "Turkmen", "Ukrainian",
+  "Urdu", "Uyghur", "Uzbek", "Vietnamese", "Welsh", "Xhosa", "Yiddish", "Yoruba", "Zulu"
+];
+
+
+const territoryGroupedOptions = [
+  {
+    name: 'Worldwide',
+    id: 'worldwide',
+    country: 'All Countries',
+    region: 'global'
+  },
+  // Asia
+  { name: 'India', id: 'india', country: 'India', region: 'Asia' },
+  { name: 'China', id: 'china', country: 'China', region: 'Asia' },
+  { name: 'Japan', id: 'japan', country: 'Japan', region: 'Asia' },
+  { name: 'South Korea', id: 'south_korea', country: 'South Korea', region: 'Asia' },
+  { name: 'Indonesia', id: 'indonesia', country: 'Indonesia', region: 'Asia' },
+  { name: 'Thailand', id: 'thailand', country: 'Thailand', region: 'Asia' },
+  { name: 'Vietnam', id: 'vietnam', country: 'Vietnam', region: 'Asia' },
+  { name: 'Philippines', id: 'philippines', country: 'Philippines', region: 'Asia' },
+  // Europe
+  { name: 'Germany', id: 'germany', country: 'Germany', region: 'Europe' },
+  { name: 'France', id: 'france', country: 'France', region: 'Europe' },
+  { name: 'Italy', id: 'italy', country: 'Italy', region: 'Europe' },
+  { name: 'United Kingdom', id: 'united_kingdom', country: 'United Kingdom', region: 'Europe' },
+  { name: 'Spain', id: 'spain', country: 'Spain', region: 'Europe' },
+  { name: 'Netherlands', id: 'netherlands', country: 'Netherlands', region: 'Europe' },
+  // North America
+  { name: 'United States', id: 'united_states', country: 'United States', region: 'North America' },
+  { name: 'Canada', id: 'canada', country: 'Canada', region: 'North America' },
+  { name: 'Mexico', id: 'mexico', country: 'Mexico', region: 'North America' },
+  // Latin America
+  { name: 'Brazil', id: 'brazil', country: 'Brazil', region: 'LATAM (Latin America)' },
+  { name: 'Argentina', id: 'argentina', country: 'Argentina', region: 'LATAM (Latin America)' },
+  { name: 'Colombia', id: 'colombia', country: 'Colombia', region: 'LATAM (Latin America)' },
+  { name: 'Chile', id: 'chile', country: 'Chile', region: 'LATAM (Latin America)' },
+  { name: 'Peru', id: 'peru', country: 'Peru', region: 'LATAM (Latin America)' },
+  // Africa
+  { name: 'South Africa', id: 'south_africa', country: 'South Africa', region: 'Africa' },
+  { name: 'Nigeria', id: 'nigeria', country: 'Nigeria', region: 'Africa' },
+  { name: 'Egypt', id: 'egypt', country: 'Egypt', region: 'Africa' },
+  { name: 'Kenya', id: 'kenya', country: 'Kenya', region: 'Africa' },
+  // Oceania
+  { name: 'Australia', id: 'australia', country: 'Australia', region: 'Oceania' },
+  { name: 'New Zealand', id: 'new_zealand', country: 'New Zealand', region: 'Oceania' },
+];
+
+
+const genresOptions = [
+  { name: 'Action', id: 1 },
+  { name: 'Adventure', id: 2 },
+  { name: 'Animation', id: 3 },
+  { name: 'Comedy', id: 4 },
+  { name: 'Drama', id: 5 },
+  { name: 'Fantasy', id: 6 },
+  { name: 'Historical', id: 7 },
+  { name: 'Horror', id: 8 },
+  { name: 'Musical', id: 9 },
+  { name: 'Mystery', id: 10 },
+  { name: 'Romance', id: 11 },
+  { name: 'Sci-Fi', id: 12 },
+  { name: 'Thriller', id: 13 },
+  { name: 'War', id: 14 },
+  { name: 'Western', id: 15 },
+  { name: 'Crime', id: 16 },
+  { name: 'Documentary', id: 17 },
+  { name: 'Family', id: 18 },
+  { name: 'Film-Noir', id: 19 },
+  { name: 'Reality', id: 20 },
+  { name: 'Animation/Cartoon', id: 21 },
+  { name: 'Biography', id: 22 },
+  { name: 'Sports', id: 23 },
+  { name: 'Experimental', id: 24 },
+  { name: 'Short Film', id: 25 },
+  { name: 'Indie', id: 26 },
+  { name: 'LGBTQ+', id: 27 },
+  { name: 'Cult', id: 28 },
+  { name: 'Noir', id: 29 },
+  { name: 'Psychological', id: 30 },
+];
+
+
+const allYears = [
+  2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014,
+  2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004,
+  2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996, 1995, 1994,
+  1993, 1992, 1991, 1990, 1989, 1988, 1987, 1986, 1985, 1984,
+  1983, 1982, 1981, 1980, 1979, 1978, 1977, 1976, 1975, 1974,
+  1973, 1972, 1971, 1970, 1969, 1968, 1967, 1966, 1965, 1964,
+  1963, 1962, 1961, 1960
+];
 
