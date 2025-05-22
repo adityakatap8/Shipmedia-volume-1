@@ -67,38 +67,39 @@ const CartPage = () => {
   const [message, setMessage] = useState("")
   const [remarks, setRemarks] = useState("")
   const [buyers, setBuyers] = useState([]);
+  console.log("buyers", buyers);
   const [sellers, setSellers] = useState([]);
-  const [selectedBuyer, setSelectedBuyer] = useState([]);
+  const [selectedBuyer, setSelectedBuyer] = useState(null);
+  console.log("selectedBuyer", selectedBuyer);
   const [selectedSeller, setSelectedSeller] = useState([]);
   const [status, setStatus] = useState("");
 
   // Rights options
   const rightsOptions = [
-    { name: "Theatrical Rights", id: 1 },
-    { name: "Television Broadcast Rights", id: 2 },
-    { name: "Digital/SVOD (Subscription Video on Demand) Rights", id: 3 },
-    { name: "EST (Electronic Sell-Through) Rights", id: 4 },
-    { name: "DVD/Blu-ray Distribution Rights", id: 5 },
-    { name: "Home Video Rights", id: 6 },
-    { name: "Foreign Distribution Rights", id: 7 },
-    { name: "Video-On-Demand (VOD) Rights", id: 8 },
-    { name: "Airline/Ship Rights", id: 9 },
-    { name: "Merchandising Rights", id: 10 },
-    { name: "Music Rights", id: 11 },
-    { name: "Product Placement Rights", id: 12 },
-    { name: "Franchise/Sequel Rights", id: 13 },
-    { name: "Mobile Rights", id: 14 },
-    { name: "Interactive and Gaming Rights", id: 15 },
-    { name: "Script/Adaptation Rights", id: 16 },
-    { name: "Public Performance Rights", id: 17 },
-    { name: "Specialty and Festival Rights", id: 18 },
-    { name: "Censorship Rights", id: 19 },
-    { name: "SVOD (Subscription Video on Demand)", id: 20 },
-    { name: "AVOD (Advertising Video on Demand)", id: 21 },
-    { name: "TVOD (Transactional Video on Demand)", id: 22 },
-    { name: "Broadcast", id: 23 },
-    { name: "Cable", id: 24 },
-  ]
+    { name: 'SVOD (Subscription Video on Demand)', id: 1 },
+    { name: 'TVOD (Transactional Video on Demand)', id: 2 },
+    { name: 'AVOD (Advertising Video on Demand)', id: 3 },
+    { name: 'Broadcast', id: 4 },
+    { name: 'Cable', id: 5 },
+    { name: 'Television Broadcast Rights', id: 6 },
+    { name: 'Theatrical Rights', id: 7 },
+    { name: 'EST (Electronic Sell-Through) Rights', id: 8 },
+    { name: 'DVD/Blu-ray Distribution Rights', id: 9 },
+    { name: 'Home Video Rights', id: 10 },
+    { name: 'Foreign Distribution Rights', id: 11 },
+    { name: 'Airline/Ship Rights', id: 12 },
+    { name: 'Merchandising Rights', id: 13 },
+    { name: 'Music Rights', id: 14 },
+    { name: 'Product Placement Rights', id: 15 },
+    { name: 'Franchise/Sequel Rights', id: 16 },
+    { name: 'Mobile Rights', id: 17 },
+    { name: 'Interactive and Gaming Rights', id: 18 },
+    { name: 'Script/Adaptation Rights', id: 19 },
+    { name: 'Public Performance Rights', id: 20 },
+    { name: 'Specialty and Festival Rights', id: 21 },
+    { name: 'Censorship Rights', id: 22 },
+    { name: 'Outright Sale', id: 23 },
+  ];
 
   const territoryOptions = [
     { name: "North America", id: 1 },
@@ -185,10 +186,8 @@ const CartPage = () => {
         senderId: user?._id,
         receiverId:
           user?.role === "Admin"
-            ? selectedBuyer
-            : selectedSeller || (user?.role === "Buyer" || user?.role === "Seller")
-            ? user?.createdBy
-            : null,
+            ? selectedBuyer._id
+            : user?.createdBy,
         movies: movies
           .filter((movie) => movie.selected)
           .map((movie) => ({
@@ -201,10 +200,10 @@ const CartPage = () => {
         usageRights: selectedUsageRights,
         paymentTerms: selectedPaymentTerms,
         remarks,
-        status,
+        status: user?.role === "Admin" ? "sent_to_buyer" : "sent_to_shipper",
         message: {
           senderId: user?._id,
-          reciverId: user?.role === 'Admin' ? selectedBuyer : selectedSeller || (user?.role === 'Buyer' || user?.role === 'Seller') ? user?.createdBy : null,
+          reciverId: user?.role === 'Admin' ? selectedBuyer._id : user?.createdBy,
           content: message,
         },
       };
@@ -300,6 +299,7 @@ const CartPage = () => {
       axios.get('https://www.mediashippers.com/api/auth/all-users') // Replace with your actual endpoint
         .then((res) => {
           const { users } = res.data;
+          console.log("Fetched users:", users);
           setBuyers(users.filter(u => u.role === 'Buyer'));
           setSellers(users.filter(u => u.role === 'Seller'));
         })
@@ -451,7 +451,7 @@ const CartPage = () => {
                         mt: 2,
                       }}
                     >
-                      <Typography sx={{ fontWeight: 500, color: "#fff" }}>${movie.price || 0}</Typography>
+                      {/* <Typography sx={{ fontWeight: 500, color: "#fff" }}>${movie.price || 0}</Typography> */}
                       <IconButton sx={{ color: "#fff" }}>
                         <Delete />
                       </IconButton>
@@ -472,7 +472,7 @@ const CartPage = () => {
               height: "fit-content",
             }}
           >
-            <Typography variant="h6" sx={{ mb: 2, color: "#fff" }}>
+            {/* <Typography variant="h6" sx={{ mb: 2, color: "#fff" }}>
               Order Summary
             </Typography>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -482,12 +482,12 @@ const CartPage = () => {
             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
               <Typography sx={{ color: "gray" }}>Tax</Typography>
               <Typography sx={{ color: "#fff" }}>${isNaN(tax) ? 0 : tax}</Typography>
-            </Box>
+            </Box> */}
             <Divider sx={{ my: 2, backgroundColor: "#27272a" }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: 500 }}>
+            {/* <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: 500 }}>
               <Typography sx={{ color: "gray" }}>Total</Typography>
               <Typography sx={{ color: "#fff" }}>${isNaN(total) ? 0 : total}</Typography>
-            </Box>
+            </Box> */}
             <Box>
               <Box sx={{ display: "flex", alignItems: "flex-start", mb: 2 }}>
                 <Checkbox
@@ -568,102 +568,86 @@ const CartPage = () => {
 
           <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Rights Selection */}
-            <FormControl fullWidth size="small">
-              <InputLabel id="rights-label" sx={{ color: "gray" }}>
-                Rights
-              </InputLabel>
-              <Select
-                labelId="rights-label"
-                multiple
-                value={selectedRights}
-                onChange={(e) => setSelectedRights(e.target.value)}
-                input={<OutlinedInput size="small" label="Rights" />}
-                renderValue={renderRightsValue}
-                sx={{
-                  color: "#fff",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#27272a",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#e1780c",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#e1780c",
-                  },
-                  "& .MuiSelect-icon": {
-                    color: "gray",
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "#18181b",
-                      color: "#fff",
-                      "& .MuiMenuItem-root": {
-                        "&:hover": {
-                          bgcolor: "#27272a",
-                        },
-                        "&.Mui-selected": {
-                          bgcolor: "#27272a",
-                          "&:hover": {
-                            bgcolor: "#333",
-                          },
-                        },
-                      },
-                    },
-                  },
-                  // Position the menu below the select component
-                  anchorOrigin: {
-                    vertical: "bottom",
-                    horizontal: "left",
-                  },
-                  transformOrigin: {
-                    vertical: "top",
-                    horizontal: "left",
-                  },
-                  // Ensure the menu is positioned correctly
-                  getContentAnchorEl: null,
-                }}
-              >
-                {rightsOptions.map((option) => (
-                  <MenuItem key={option.id} value={option.name}>
-                    {option.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText sx={{ color: "gray" }}>Select the rights you want to acquire</FormHelperText>
-            </FormControl>
+            <Autocomplete
+            size="small"
+    multiple
+    value={selectedRights}
+    onChange={(event, newValue) => setSelectedRights(newValue)} // Update the selected rights
+    options={rightsOptions.map((option) => option.name)} // Extract names from rightsOptions
+    renderTags={(value, getTagProps) =>
+      value.map((option, index) => (
+        <Chip
+          key={option}
+          label={option}
+          {...getTagProps({ index })}
+          sx={{
+            bgcolor: "#27272a",
+            color: "#fff",
+            "& .MuiChip-deleteIcon": {
+              color: "gray",
+              "&:hover": {
+                color: "#fff",
+              },
+            },
+          }}
+        />
+      ))
+    }
+    renderInput={(params) => (
+      <TextField
+        type="multiple"
+        {...params}
+        label="Rights"
+        placeholder="Select Rights"
+        InputLabelProps={{
+          sx: { color: "gray" },
+        }}
+        InputProps={{
+          ...params.InputProps,
+          sx: {
+            color: "#fff",
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#27272a",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#e1780c",
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#e1780c",
+            },
+            "& .MuiSvgIcon-root": {
+              color: "gray",
+            },
+          },
+        }}
+      />
+    )}
+    sx={{
+      "& .MuiAutocomplete-popupIndicator": {
+        color: "gray",
+      },
+      "& .MuiAutocomplete-clearIndicator": {
+        color: "gray",
+      },
+    }}
+  />
 
             {user?.role === 'Admin' && (
               <>
                 {/* Buyer Autocomplete */}
                 <Autocomplete
-                  multiple
                   value={selectedBuyer}
-                  onChange={(e, newValue) => setSelectedBuyer(newValue)}
+                  onChange={(e, newValue) => {
+                    console.log("Selected Buyer:", newValue); // Debugging
+                    setSelectedBuyer(newValue);
+                  }}
                   options={buyers}
                   getOptionLabel={(option) => option.name || option.email}
-                  renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                      <Chip
-                        key={option.id}
-                        label={option.name || option.email}
-                        {...getTagProps({ index })}
-                        sx={{
-                          bgcolor: "#3a3a3c",
-                          color: "white",
-                          "& .MuiChip-deleteIcon": {
-                            color: "gray",
-                            "&:hover": { color: "#e1780c" },
-                          },
-                        }}
-                      />
-                    ))
-                  }
+                  isOptionEqualToValue={(option, value) => option._id === value._id} // Ensure proper comparison
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Select Buyers"
+                      label="Select Buyer"
                       size="small"
                       type="search"
                       InputLabelProps={{ sx: { color: "gray" } }}
@@ -682,7 +666,7 @@ const CartPage = () => {
                           },
                           "& .MuiSvgIcon-root": {
                             color: "gray",
-                          }
+                          },
                         },
                       }}
                     />
@@ -692,7 +676,7 @@ const CartPage = () => {
 
 
                 {/* Seller Autocomplete */}
-                <Autocomplete
+                {/* <Autocomplete
                   multiple
                   value={selectedSeller}
                   onChange={(e, newValue) => setSelectedSeller(newValue)}
@@ -742,7 +726,7 @@ const CartPage = () => {
                       }}
                     />
                   )}
-                />
+                /> */}
 
 
               </>
@@ -750,7 +734,6 @@ const CartPage = () => {
 
             {/* Territory Selection */}
             <Autocomplete
-              multiple
               value={selectedTerritory}
               onChange={(e, newValue) => setSelectedTerritory(newValue)}
               options={territoryOptions.map((option) => option.name)}
@@ -804,7 +787,6 @@ const CartPage = () => {
 
             {/* License Term Selection */}
             <Autocomplete
-              multiple
               value={selectedLicenseTerm}
               onChange={(e, newValue) => setSelectedLicenseTerm(newValue)}
               options={licenseTermOptions.map((option) => option.name)}
@@ -858,7 +840,7 @@ const CartPage = () => {
 
             {/* Usage Rights Selection */}
             <Autocomplete
-              multiple
+              // multiple
               value={selectedUsageRights}
               onChange={(e, newValue) => setSelectedUsageRights(newValue)}
               options={usageRightsOptions.map((option) => option.name)}
@@ -912,7 +894,7 @@ const CartPage = () => {
 
             {/* Payment Terms Selection */}
             <Autocomplete
-              multiple
+              // multiple
               value={selectedPaymentTerms}
               onChange={(e, newValue) => setSelectedPaymentTerms(newValue)}
               options={paymentTermsOptions.map((option) => option.name)}
@@ -968,7 +950,7 @@ const CartPage = () => {
             />
 
             {/* Status Field */}
-            <FormControl fullWidth size="small">
+            {/* <FormControl fullWidth size="small">
               <InputLabel id="status-label" sx={{ color: "gray" }}>
                 Status
               </InputLabel>
@@ -1023,16 +1005,16 @@ const CartPage = () => {
               >
                 {user?.role === "Admin" &&
                   [
-                    <MenuItem key="pending" value="pending">Pending</MenuItem>,
-                    <MenuItem key="sent_to_seller" value="sent_to_seller">Sent to Seller</MenuItem>,
-                    <MenuItem key="in_negotiation_seller" value="in_negotiation_seller">In Negotiation Seller</MenuItem>,
+                    // <MenuItem key="pending" value="pending">Pending</MenuItem>,
+                    // <MenuItem key="sent_to_seller" value="sent_to_seller">Sent to Seller</MenuItem>,
+                    // <MenuItem key="in_negotiation_seller" value="in_negotiation_seller">In Negotiation Seller</MenuItem>,
                     <MenuItem key="sent_to_buyer" value="sent_to_buyer">Sent to Buyer</MenuItem>,
-                    <MenuItem key="in_negotiation_buyer" value="in_negotiation_buyer">In Negotiation Buyer</MenuItem>,
-                    <MenuItem key="verified" value="verified">Verified</MenuItem>,
-                    <MenuItem key="closed" value="closed">Closed</MenuItem>,
-                    <MenuItem key="rejected_by_shipper" value="rejected_by_shipper">Rejected by Shipper</MenuItem>,
-                    <MenuItem key="rejected_by_seller" value="rejected_by_seller">Rejected by Seller</MenuItem>,
-                    <MenuItem key="rejected_by_buyer" value="rejected_by_buyer">Rejected by Buyer</MenuItem>,
+                    // <MenuItem key="in_negotiation_buyer" value="in_negotiation_buyer">In Negotiation Buyer</MenuItem>,
+                    // <MenuItem key="verified" value="verified">Verified</MenuItem>,
+                    // <MenuItem key="closed" value="closed">Closed</MenuItem>,
+                    // <MenuItem key="rejected_by_shipper" value="rejected_by_shipper">Rejected by Shipper</MenuItem>,
+                    // <MenuItem key="rejected_by_seller" value="rejected_by_seller">Rejected by Seller</MenuItem>,
+                    // <MenuItem key="rejected_by_buyer" value="rejected_by_buyer">Rejected by Buyer</MenuItem>,
                   ]}
                 {user?.role === "Seller" &&
                   [
@@ -1044,15 +1026,15 @@ const CartPage = () => {
                   ]}
                 {user?.role === "Buyer" &&
                   [
-                    <MenuItem key="pending" value="pending">Pending</MenuItem>,
+                    // <MenuItem key="pending" value="pending">Pending</MenuItem>,
                     <MenuItem key="sent_to_shipper" value="sent_to_shipper">Sent to Shipper</MenuItem>,
-                    <MenuItem key="in_negotiation_shipper" value="in_negotiation_shipper">In Negotiation Shipper</MenuItem>,
-                    <MenuItem key="rejected_by_buyer" value="rejected_by_buyer">Rejected by Buyer</MenuItem>,
-                    <MenuItem key="closed" value="closed">Closed</MenuItem>,
+                    // <MenuItem key="in_negotiation_shipper" value="in_negotiation_shipper">In Negotiation Shipper</MenuItem>,
+                    // <MenuItem key="rejected_by_buyer" value="rejected_by_buyer">Rejected by Buyer</MenuItem>,
+                    // <MenuItem key="closed" value="closed">Closed</MenuItem>,
                   ]}
               </Select>
               <FormHelperText sx={{ color: "gray" }}>Select the current status</FormHelperText>
-            </FormControl>
+            </FormControl> */}
 
             {/* Message Field */}
             <TextField
