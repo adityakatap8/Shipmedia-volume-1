@@ -206,7 +206,7 @@ export default function MovieGrid() {
         setSpecificationsData(formattedSpecs);
 
         // Save project IDs and user IDs if needed
-        setProjectIds(projects.map((p) => p._id));
+       
         allUserIds.current = [...new Set(projects.map((p) => p.userId))];
 
         console.log("✅ All project + form data loaded");

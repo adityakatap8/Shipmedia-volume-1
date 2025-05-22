@@ -419,7 +419,7 @@ const SpecificationsInfo = ({
                     <div className="section-One text-left text-white">
                         <div className="form-section">
                             <div className="form-label grid-3 span-12-phone">
-                                Completion Date
+                                Year of Release
                             </div>
 
                             <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone" style={{ width: "10px" }}>
@@ -448,9 +448,7 @@ const SpecificationsInfo = ({
 
                     <div className="form-sectionThree">
                         <div className="form-section">
-                            <div className="form-label grid-3 span-12-phone">
-                                Rating
-                            </div>
+                            <div className="form-label grid-3 span-12-phone">Rating</div>
                             <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-black">
                                 <div className="input optional form-field-input">
                                     <select
@@ -458,64 +456,132 @@ const SpecificationsInfo = ({
                                         id="rating"
                                         value={rating}
                                         onChange={handleInputChange}
-
-                                        style={{ width: "220px", padding: '10px', borderRadius: "10px" }}
+                                        style={{ width: "340px", padding: '10px', borderRadius: "10px" }}
                                     >
                                         <option value="">Select rating</option>
 
-                                        <option value="G">G</option>
-                                        <option value="PG">PG</option>
-                                        <option value="PG-13">PG-13</option>
-                                        <option value="R">R</option>
-                                        <option value="NC-17">NC-17</option>
-                                        <option value="Unrated / NR">Unrated / NR</option>
+                                        <optgroup label="🇺🇸 United States (MPA)">
+                                            <option value="United States - G">G – General audiences – All ages admitted (United States)</option>
+                                            <option value="United States - PG">PG – Parental guidance suggested (United States)</option>
+                                            <option value="United States - PG-13">PG-13 – Some material may be inappropriate under 13 (United States)</option>
+                                            <option value="United States - R">R – Under 17 requires adult (United States)</option>
+                                            <option value="United States - NC-17">NC-17 – Adults only (United States)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇬🇧 United Kingdom (BBFC)">
+                                            <option value="United Kingdom - U">U – Suitable for all (United Kingdom)</option>
+                                            <option value="United Kingdom - PG">PG – Parental guidance (United Kingdom)</option>
+                                            <option value="United Kingdom - 12A">12A – Under 12 must be accompanied (United Kingdom)</option>
+                                            <option value="United Kingdom - 15">15 – 15 and over (United Kingdom)</option>
+                                            <option value="United Kingdom - 18">18 – Adults only (United Kingdom)</option>
+                                            <option value="United Kingdom - R18">R18 – Explicit content (United Kingdom)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇮🇳 India (CBFC)">
+                                            <option value="India - U">U – Universal, all ages (India)</option>
+                                            <option value="India - UA">UA – Parental guidance under 12 (India)</option>
+                                            <option value="India - A">A – Adults only (India)</option>
+                                            <option value="India - S">S – Specialized audience only (India)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇨🇦 Canada (CHVRS)">
+                                            <option value="Canada - G">G – General (Canada)</option>
+                                            <option value="Canada - PG">PG – Parental guidance (Canada)</option>
+                                            <option value="Canada - 14A">14A – 14 and over, under 14 with adult (Canada)</option>
+                                            <option value="Canada - 18A">18A – 18 and over, under 18 with adult (Canada)</option>
+                                            <option value="Canada - R">R – 18+ only (Canada)</option>
+                                            <option value="Canada - A">A – No minors admitted (Canada)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇦🇺 Australia (Classification Board)">
+                                            <option value="Australia - G">G – General (Australia)</option>
+                                            <option value="Australia - PG">PG – Parental guidance (Australia)</option>
+                                            <option value="Australia - M">M – Mature (recommended 15+) (Australia)</option>
+                                            <option value="Australia - MA15+">MA15+ – Under 15 must be accompanied (Australia)</option>
+                                            <option value="Australia - R18+">R18+ – Restricted to 18+ (Australia)</option>
+                                            <option value="Australia - X18+">X18+ – Explicit content (Australia)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇪🇺 European Union (PEGI)">
+                                            <option value="PEGI - 3">PEGI 3 – Suitable for all (EU)</option>
+                                            <option value="PEGI - 7">PEGI 7 – Mild content (EU)</option>
+                                            <option value="PEGI - 12">PEGI 12 – Moderate content (EU)</option>
+                                            <option value="PEGI - 16">PEGI 16 – Strong content (EU)</option>
+                                            <option value="PEGI - 18">PEGI 18 – Explicit content (EU)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇩🇪 Germany (FSK)">
+                                            <option value="Germany - 0">0 – All ages (Germany)</option>
+                                            <option value="Germany - 6">6 – Ages 6 and over (Germany)</option>
+                                            <option value="Germany - 12">12 – Ages 12 and over (Germany)</option>
+                                            <option value="Germany - 16">16 – Ages 16 and over (Germany)</option>
+                                            <option value="Germany - 18">18 – Adults only (Germany)</option>
+                                        </optgroup>
+
+                                        <optgroup label="🇫🇷 France (CNC)">
+                                            <option value="France - U">U – Suitable for all (France)</option>
+                                            <option value="France - 10">10 – Ages 10 and over (France)</option>
+                                            <option value="France - 12">12 – Ages 12 and over (France)</option>
+                                            <option value="France - 16">16 – Ages 16 and over (France)</option>
+                                            <option value="France - 18">18 – Adults only (France)</option>
+                                        </optgroup>
                                     </select>
+
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Number of Episodes */}
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">Number of Episodes</div>
-                        <div className="form-field radio-buttons span-6 span-12-phone">
-                            <input
-                                type="number"
-                                id="number_of_episodes"
-                                value={numberOfEpisodes}
-                                onChange={handleInputChange}
-                                placeholder="Enter number of episodes"
-                                style={{
-                                    width: '220px',
-                                    padding: '10px',
-                                    borderRadius: '10px',
-                                    color: 'black',
-                                    backgroundColor: 'white',
-                                }}
-                            />
-                        </div>
-                    </div>
 
-                    {/* Number of Seasons */}
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">Number of Seasons</div>
-                        <div className="form-field radio-buttons span-6 span-12-phone">
-                            <input
-                                type="number"
-                                id="number_of_seasons"
-                                value={numberOfSeasons}
-                                onChange={handleInputChange}
-                                placeholder="Enter number of seasons"
-                                style={{
-                                    width: '220px',
-                                    padding: '10px',
-                                    borderRadius: '10px',
-                                    color: 'black',
-                                    backgroundColor: 'white',
-                                }}
-                            />
-                        </div>
-                    </div>
+                    {!["feature_film", "short_film", "documentary"].includes(projectType) && (
+                        <>
+
+  {/* Number of Seasons */}
+                            <div className="form-section">
+                                <div className="form-label grid-3 span-12-phone">Season Number</div>
+                                <div className="form-field radio-buttons span-6 span-12-phone">
+                                    <input
+                                        type="number"
+                                        id="number_of_seasons"
+                                        value={numberOfSeasons}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter number of seasons"
+                                        style={{
+                                            width: '220px',
+                                            padding: '10px',
+                                            borderRadius: '10px',
+                                            color: 'black',
+                                            backgroundColor: 'white',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Number of Episodes */}
+                            <div className="form-section">
+                                <div className="form-label grid-3 span-12-phone">Number of Episodes</div>
+                                <div className="form-field radio-buttons span-6 span-12-phone">
+                                    <input
+                                        type="number"
+                                        id="number_of_episodes"
+                                        value={numberOfEpisodes}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter number of episodes"
+                                        style={{
+                                            width: '220px',
+                                            padding: '10px',
+                                            borderRadius: '10px',
+                                            color: 'black',
+                                            backgroundColor: 'white',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                          
+                        </>
+                    )}
+
 
 
                     {/* Runtime */}

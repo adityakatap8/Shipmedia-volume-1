@@ -127,16 +127,17 @@ function ProjectDashboard() {
           console.log("Making API call with token...");
   
           axios
-            .get(`https://www.mediashippers.com/api/projects/${userData.userId}`, {
+            .get(`https://www.mediashippers.com/api/projectsInfo/userProjects/${userData.userId}`, {
               headers: {
-                'Authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
               },
               withCredentials: true,
             })
             .then((res) => {
-              console.log("Project data:", res.data);
-              // Transform the API response into the desired format
-              const transformedProjects = res.data.map((project) => ({
+              console.log("Project API response:", res.data);
+  
+              const projects = res.data.projects || []; // 🟢 Updated
+              const transformedProjects = projects.map((project) => ({
                 id: project._id,
                 name: project.projectName || project.projectTitle,
                 icon: <Movie />,
@@ -145,8 +146,9 @@ function ProjectDashboard() {
                 starred: false,
                 category: "film",
                 color: getRandomColor(),
-                originalData: project
+                originalData: project,
               }));
+  
               console.log("Transformed projects:", transformedProjects);
               setProjects(transformedProjects);
               setLoading(false);
@@ -155,7 +157,6 @@ function ProjectDashboard() {
               console.error("Error fetching projects:", err.response?.data || err.message);
               setLoading(false);
             });
-  
         } else {
           console.log("User data does not contain userId");
           setLoading(false);
@@ -169,6 +170,7 @@ function ProjectDashboard() {
       setLoading(false);
     }
   }, []);
+  
 
   // Helper function to generate random colors
   const getRandomColor = () => {
