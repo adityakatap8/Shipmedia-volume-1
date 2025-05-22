@@ -6,6 +6,8 @@ import { UserContext } from '../../../contexts/UserContext';
 import SrtFileUpload from './SrtFileUpload';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import Cookies from 'js-cookie';
+
 
 
 
@@ -382,36 +384,48 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
 
   console.log("User id from projectInfo", userId)
   console.log("orgname from projectInf", orgName)
-  useEffect(() => {
-    const fetchProjectCount = async () => {
-      try {
-        const res = await axios.get(
-          `https://www.mediashippers.com/api/projectsInfo/userProjects/${userId}`
-        );
+useEffect(() => {
+  const fetchProjectCount = async () => {
+    try {
+      const token = Cookies.get("token");
+      if (!token) throw new Error("Token missing");
 
-        const projectCount = res.data?.count || 0;
+      const res = await axios.get(
+        `https://www.mediashippers.com/api/projectsInfo/userProjects/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
 
-        console.log('📊 Total number of projects created by user:', projectCount);
+      const projects = res.data?.projects || [];
+      const projectCount = projects.length;
 
-        // Optional: auto-generate project name based on count
-        const autoName = generateProjectName(orgName, projectCount);
-        console.log('🆕 Auto-generated project name:', autoName);
+      console.log('📊 Total number of projects created by user:', projectCount);
 
-        onInputChange({ projectName: autoName });
+      // Auto-generate project name
+      const autoName = generateProjectName(orgName, projectCount);
+      console.log('🆕 Auto-generated project name:', autoName);
 
-      } catch (err) {
-        console.error('❌ Error fetching project count:', err);
-        setProjectInfoErrors(prev => ({
-          ...prev,
-          projectName: 'Failed to generate project name',
-        }));
-      }
-    };
+      onInputChange({ projectName: autoName });
 
-    if (userId && orgName) {
-      fetchProjectCount();
+    } catch (err) {
+      console.error('❌ Error fetching project count:', err);
+      setProjectInfoErrors(prev => ({
+        ...prev,
+        projectName: 'Failed to generate project name',
+      }));
     }
-  }, [userId, orgName]);
+  };
+
+  if (userId && orgName) {
+    fetchProjectCount();
+  }
+}, [userId, orgName]);
+
+
 
 
 
@@ -859,7 +873,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
       {/* Movie File Upload */}
       <div className="form-section">
         <div className="form-label grid-3 span-12-phone">
-          Movie File <span className="required">*</span>
+          Screener/Sample File Name <span className="required">*</span>
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone text-left">
           <div className="input optional form-field-input">

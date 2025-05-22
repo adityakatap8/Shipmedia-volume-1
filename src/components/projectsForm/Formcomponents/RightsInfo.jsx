@@ -4,16 +4,15 @@ import './index.css';
 
 function RightsInfo({ onRightsChange, errors }) {
 const rightsOptions = [
+  { name: 'All Rights', id: 0 }, // 👈 Represents every right
 
   { name: 'SVOD (Subscription Video on Demand)', id: 1 },
   { name: 'TVOD (Transactional Video on Demand)', id: 2 },
   { name: 'AVOD (Advertising Video on Demand)', id: 3 },
 
- 
   { name: 'Broadcast', id: 4 },
   { name: 'Cable', id: 5 },
   { name: 'Television Broadcast Rights', id: 6 },
-
 
   { name: 'Theatrical Rights', id: 7 },
   { name: 'EST (Electronic Sell-Through) Rights', id: 8 },
@@ -34,31 +33,56 @@ const rightsOptions = [
   { name: 'Outright Sale', id: 23 }
 ];
 
-
- const territoryGroupedOptions = [
+const territoryGroupedOptions = [
   {
-    name: 'Select All',
-    id: 'select_all',
-    country: 'All Territories',
+    name: 'Worldwide',
+    id: 'worldwide',
+    country: 'All Countries',
     region: 'global'
   },
+  
+
+  // Asia
   { name: 'India', id: 'india', country: 'India', region: 'Asia' },
   { name: 'China', id: 'china', country: 'China', region: 'Asia' },
   { name: 'Japan', id: 'japan', country: 'Japan', region: 'Asia' },
   { name: 'South Korea', id: 'south_korea', country: 'South Korea', region: 'Asia' },
+  { name: 'Indonesia', id: 'indonesia', country: 'Indonesia', region: 'Asia' },
+  { name: 'Thailand', id: 'thailand', country: 'Thailand', region: 'Asia' },
+  { name: 'Vietnam', id: 'vietnam', country: 'Vietnam', region: 'Asia' },
+  { name: 'Philippines', id: 'philippines', country: 'Philippines', region: 'Asia' },
 
+  // Europe
   { name: 'Germany', id: 'germany', country: 'Germany', region: 'Europe' },
   { name: 'France', id: 'france', country: 'France', region: 'Europe' },
   { name: 'Italy', id: 'italy', country: 'Italy', region: 'Europe' },
+  { name: 'United Kingdom', id: 'united_kingdom', country: 'United Kingdom', region: 'Europe' },
+  { name: 'Spain', id: 'spain', country: 'Spain', region: 'Europe' },
+  { name: 'Netherlands', id: 'netherlands', country: 'Netherlands', region: 'Europe' },
 
+  // North America
   { name: 'United States', id: 'united_states', country: 'United States', region: 'North America' },
   { name: 'Canada', id: 'canada', country: 'Canada', region: 'North America' },
   { name: 'Mexico', id: 'mexico', country: 'Mexico', region: 'North America' },
 
+  // Latin America
   { name: 'Brazil', id: 'brazil', country: 'Brazil', region: 'LATAM (Latin America)' },
   { name: 'Argentina', id: 'argentina', country: 'Argentina', region: 'LATAM (Latin America)' },
-  { name: 'Colombia', id: 'colombia', country: 'Colombia', region: 'LATAM (Latin America)' }
+  { name: 'Colombia', id: 'colombia', country: 'Colombia', region: 'LATAM (Latin America)' },
+  { name: 'Chile', id: 'chile', country: 'Chile', region: 'LATAM (Latin America)' },
+  { name: 'Peru', id: 'peru', country: 'Peru', region: 'LATAM (Latin America)' },
+
+  // Africa
+  { name: 'South Africa', id: 'south_africa', country: 'South Africa', region: 'Africa' },
+  { name: 'Nigeria', id: 'nigeria', country: 'Nigeria', region: 'Africa' },
+  { name: 'Egypt', id: 'egypt', country: 'Egypt', region: 'Africa' },
+  { name: 'Kenya', id: 'kenya', country: 'Kenya', region: 'Africa' },
+
+  // Oceania
+  { name: 'Australia', id: 'australia', country: 'Australia', region: 'Oceania' },
+  { name: 'New Zealand', id: 'new_zealand', country: 'New Zealand', region: 'Oceania' },
 ];
+
 
 
   const licenseTermOptions = [
