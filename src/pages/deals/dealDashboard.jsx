@@ -25,6 +25,7 @@ import {
     Tooltip,
     Fade,
     Dialog,
+    Menu,
 } from "@mui/material"
 import {
     Search,
@@ -39,10 +40,12 @@ import {
     Visibility,
     Edit,
     Message,
+    Send,
 } from "@mui/icons-material"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
+import Loader from "../../components/loader/Loader"
 
 export default function DealDashboard() {
     const navigate = useNavigate()
@@ -58,9 +61,15 @@ export default function DealDashboard() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [messageText, setMessageText] = useState("");
     const [chatHistory, setChatHistory] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
     const [dealId, setDealId] = useState("");
-
+    const [loading, setLoading] = useState(false);
+    const [menuAnchor, setMenuAnchor] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [selectedDealId, setSelectedDealId] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [remark, setRemark] = useState("");
+    const [actionStatus, setActionStatus] = useState(""); // Stores the status (accepted, rejected, negotiation)
+    
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue)
     }
@@ -122,16 +131,17 @@ export default function DealDashboard() {
 
     const fetchDeals = async () => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`)
-            const data = await response.data
-            setDealsData(data.deals)
-            setDealCounts(data.counts) // Assuming the API returns counts for each status
-            // Assuming the API returns an array of deals
-            // setDeals(data.deals) // Uncomment this line if you want to set the deals from the API response
+            setLoading(true); // Show loader
+            const response = await axios.get(`http://localhost:3000/api/deal/deals-with-counts/${user._id}`);
+            const data = await response.data;
+            setDealsData(data.deals);
+            setDealCounts(data.counts); // Assuming the API returns counts for each status
         } catch (error) {
-            console.error("Error fetching deals:", error)
+            console.error("Error fetching deals:", error);
+        } finally {
+            setLoading(false); // Hide loader
         }
-    }
+    };
 
     // Fetch chat history for a specific user
     const getChatHistory = async (dealId) => {
@@ -205,6 +215,130 @@ export default function DealDashboard() {
         setChatHistory(history);
         setMessageText("");
     };
+
+    if (loading) {
+        return <Loader />;
+    }
+
+    const handleSendDeal = async (dealId) => {
+        try {
+            setLoading(true); // Show loader
+            const response = await axios.post('http://localhost:3000/api/deal/split-to-sellers', {
+                dealId, // Include dealId in the request body
+            });
+            console.log("Send Deal Response:", response.data);
+            // Optionally, refresh the deals data or show a success message
+            fetchDeals();
+        } catch (error) {
+            console.error("Error sending deal:", error);
+        } finally {
+            setLoading(false); // Hide loader
+        }
+    };
+
+    const handleMenuOpen = (event, dealId) => {
+        setMenuAnchor(event.currentTarget);
+        setMenuOpen(true);
+        setSelectedDealId(dealId);
+    };
+
+    const handleMenuClose = () => {
+        setMenuAnchor(null);
+        setMenuOpen(false);
+        setSelectedDealId(null);
+    };
+
+    const handleAccept = async (dealId) => {
+        try {
+            setLoading(true);
+            const response = await axios.patch(`http://localhost:3000/api/deal/${dealId}/action`);
+            console.log("Accept Response:", response.data);
+            fetchDeals(); // Refresh deals
+        } catch (error) {
+            console.error("Error accepting deal:", error);
+        } finally {
+            setLoading(false);
+            handleMenuClose();
+        }
+    };
+
+    const handleNegotiate = async (dealId) => {
+        try {
+            setLoading(true);
+            const response = await axios.patch(`http://localhost:3000/api/deal/${dealId}/action`);
+            console.log("Negotiate Response:", response.data);
+            fetchDeals(); // Refresh deals
+        } catch (error) {
+            console.error("Error negotiating deal:", error);
+        } finally {
+            setLoading(false);
+            handleMenuClose();
+        }
+    };
+
+    const handleReject = async (dealId) => {
+        try {
+            setLoading(true);
+            const response = await axios.patch(`http://localhost:3000/api/deal/${dealId}/action`);
+            console.log("Reject Response:", response.data);
+            fetchDeals(); // Refresh deals
+        } catch (error) {
+            console.error("Error rejecting deal:", error);
+        } finally {
+            setLoading(false);
+            handleMenuClose();
+        }
+    };
+
+    const handleActionClick = async (status, movies) => {
+      if (status === "accepted") {
+        try {
+          setLoading(true); // Show loader
+          const moviesPayload = movies.map((movie) => ({
+            movieId: movie.movieId, // Assuming movieId is available in the movie object
+            status: "accepted", // Use the status parameter
+            remarks: "Accepted successfully", // Example remark (can be dynamic)
+          }));
+          const response = await axios.patch(`http://localhost:3000/api/deal/${selectedDealId}/action`,{
+            movies: moviesPayload }
+          );
+          console.log("Accept Response:", response.data);
+          fetchDeals(); // Refresh deals
+        } catch (error) {
+          console.error("Error accepting deal:", error);
+        } finally {
+          setLoading(false); // Hide loader
+          handleMenuClose(); // Close the menu
+        }
+      } else {
+        setActionStatus(status); // Set the status for other actions
+        setModalOpen(true); // Open the modal for "Negotiate" or "Reject"
+      }
+    };
+
+    const handleModalClose = () => {
+        setModalOpen(false); // Close the modal
+        setRemark(""); // Reset the remark field
+      };
+
+      const handleSubmitAction = async () => {
+        try {
+          setLoading(true); 
+
+          const response = await axios.patch(`http://localhost:3000/api/deal/${selectedDealId}/action`, {
+            status: actionStatus, // Use the actionStatus state
+            remark: remark, // Include the remark if provided
+          });
+
+          console.log(`${actionStatus} Response:`, response.data);
+          fetchDeals(); // Refresh deals
+        } catch (error) {
+          console.error(`Error performing ${actionStatus} action:`, error);
+        } finally {
+          setLoading(false); // Hide loader
+          handleModalClose(); // Close the modal
+        }
+      };
 
     return (
         <Box
@@ -736,6 +870,7 @@ export default function DealDashboard() {
                                     </TableCell>
                                     <TableCell sx={{ color: "inherit" }}>
                                         <Box sx={{ display: "flex", gap: "4px" }}>
+                                            {/* View Details Button */}
                                             <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                                 <IconButton
                                                     onClick={() => navigate(`/deal-details/${deal._id}`)}
@@ -752,6 +887,8 @@ export default function DealDashboard() {
                                                     <Visibility fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
+
+                                            {/* Open Chat Button */}
                                             <Tooltip title="Open Chat" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                                 <IconButton
                                                     size="small"
@@ -785,6 +922,66 @@ export default function DealDashboard() {
                                                     )}
                                                 </IconButton>
                                             </Tooltip>
+
+                                            {/* Conditional Rendering for Seller */}
+                                            {user.role === "Seller" || user.role === 'Buyer' ? (
+                                                <>
+                                                    <Tooltip title="More Actions" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(event) => handleMenuOpen(event, deal._id)}
+                                                            disabled={deal.status === "sent_to_shipper"} // Disable if status is 'sent_to_shipper'
+                                                            sx={{
+                                                                color: deal.status === "sent_to_shipper" ? "#9e9e9e" : "#9e9e9e",
+                                                                "&:hover": {
+                                                                    bgcolor: deal.status === "sent_to_shipper" ? "transparent" : "rgba(158, 158, 158, 0.1)",
+                                                                    transform: deal.status === "sent_to_shipper" ? "none" : "scale(1.1)",
+                                                                },
+                                                                transition: "all 0.2s",
+                                                            }}
+                                                        >
+                                                            <MoreVert fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Menu
+                                                        anchorEl={menuAnchor}
+                                                        open={menuOpen && selectedDealId === deal._id}
+                                                        onClose={handleMenuClose}
+                                                        PaperProps={{
+                                                            sx: {
+                                                                bgcolor: "#1a1a2e",
+                                                                color: "white",
+                                                                "& .MuiMenuItem-root": {
+                                                                    "&:hover": {
+                                                                        bgcolor: "#2a2a3e",
+                                                                    },
+                                                                },
+                                                            },
+                                                        }}
+                                                    >
+                                                        <MenuItem onClick={() => handleActionClick("accepted", deal.movies)}>Accept</MenuItem>
+                                                        <MenuItem onClick={() => handleActionClick("negotiation", deal.movies)}>Negotiate</MenuItem>
+                                                        <MenuItem onClick={() => handleActionClick("rejected", deal.movies)}>Reject</MenuItem>
+                                                    </Menu>
+                                                </>
+                                            ) : (
+                                                <Tooltip title="Send Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleSendDeal(deal._id)}
+                                                        sx={{
+                                                            color: "#4caf50",
+                                                            "&:hover": {
+                                                                bgcolor: "rgba(76, 175, 80, 0.1)",
+                                                                transform: "scale(1.1)",
+                                                            },
+                                                            transition: "all 0.2s",
+                                                        }}
+                                                    >
+                                                        <Send fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
                                         </Box>
                                     </TableCell>
                                 </TableRow>
@@ -887,6 +1084,78 @@ export default function DealDashboard() {
                         Send
                     </Button>
                 </Box>
+            </Dialog>
+
+            {/* Action Modal */}
+            <Dialog
+              open={modalOpen}
+              onClose={handleModalClose}
+              maxWidth="sm"
+              fullWidth
+              PaperProps={{
+                sx: {
+                  bgcolor: "#1a1a2e",
+                  color: "white",
+                  borderRadius: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                },
+              }}
+            >
+              <Box sx={{ p: 2, borderBottom: "1px solid #2a2a3e" }}>
+                <Typography variant="h6">
+                  {actionStatus === "accepted"
+                    ? "Accept Deal"
+                    : actionStatus === "rejected"
+                    ? "Reject Deal"
+                    : "Negotiate Deal"}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2 }}>
+                <TextField
+                  label="Remark"
+                  variant="outlined"
+                  fullWidth
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  InputProps={{
+                    sx: {
+                      bgcolor: "#1a1a2e",
+                      color: "white",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#2a2a3e",
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#3a3a4e",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#6a26cd",
+                      },
+                      "& input": {
+                        color: "white",
+                      },
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleModalClose}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmitAction}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Submit
+                </Button>
+              </Box>
             </Dialog>
         </Box>
     )
