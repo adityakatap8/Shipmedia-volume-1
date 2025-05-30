@@ -33,6 +33,7 @@ import {
   ViewList as ListViewIcon,
 } from "@mui/icons-material"
 import { UserContext } from '../../contexts/UserContext';
+import Loader from "../loader/Loader";
 
 export default function S3Browser() {
   const [currentPath, setCurrentPath] = useState([]);
@@ -546,7 +547,7 @@ export default function S3Browser() {
             endAdornment:
               isSearching && loading ? (
                 <InputAdornment position="end">
-                  <CircularProgress size={24} color="inherit" />
+                  <Loader size={24} color="inherit" />
                 </InputAdornment>
               ) : null,
           }}
@@ -665,7 +666,7 @@ export default function S3Browser() {
         >
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-              <CircularProgress />
+              <Loader />
             </Box>
           ) : isSearching ? (
             // Search Results

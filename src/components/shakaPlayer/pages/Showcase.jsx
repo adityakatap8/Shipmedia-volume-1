@@ -286,7 +286,6 @@ export default function MovieGrid() {
 
 
   const handleGenreFilter = (genre) => {
-    const copyOfProjectData = [...projectData];
 
     // Update selectedGenres state
     let updatedGenres;
@@ -298,7 +297,7 @@ export default function MovieGrid() {
     setSelectedGenres(updatedGenres);
 
     // Filter project data based on the updated genres
-    const filteredData = copyOfProjectData.filter((project) => {
+    const filteredData = originalProjectData.filter((project) => {
       const projectGenres = project?.formData?.specificationsInfo?.genres
         ?.split(",") // Convert comma-separated string into an array
         .map((g) => g.trim().toLowerCase()); // Trim and convert to lowercase
@@ -323,17 +322,17 @@ export default function MovieGrid() {
       updatedYears = [...selectedYears, year]; // Add year
     }
     setSelectedYears(updatedYears);
-
+    console.log("Selected Years:", updatedYears);
     // Filter project data based on the selected years
-    const filteredData = projectData.filter((project) => {
+    const filteredData = originalProjectData.filter((project) => {
       const completionDate = project?.formData?.specificationsInfo?.completionDate;
       const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
-
+      console.log("project Years:", projectYear);
       return updatedYears.length > 0
-        ? updatedYears.includes(projectYear)
+        ? updatedYears.includes(projectYear) 
         : true;
     });
-
+    
     console.log("Filtered Data by Year:", filteredData);
     setProjectData(filteredData); // Update the filtered movies state
   };
@@ -413,7 +412,6 @@ export default function MovieGrid() {
   };
 
   const handleLanguageFilter = (language) => {
-    const copyOfFilteredData = [...projectData];
     if (selectedLanguages.includes(language)) {
       setSelectedLanguages(selectedLanguages.filter((l) => l !== language)); // Remove language
     } else {
@@ -421,7 +419,7 @@ export default function MovieGrid() {
     }
 
     // Filter project data based on the selected language
-    const filteredData = copyOfFilteredData.filter(
+    const filteredData = originalProjectData.filter(
       (project) =>
         project?.formData?.specificationsInfo?.language?.toLowerCase() === language.toLowerCase()
     );

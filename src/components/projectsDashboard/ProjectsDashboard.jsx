@@ -20,9 +20,12 @@ import { Add, Search, Movie, BarChart, Bolt, Star, Close, AccessTime } from "@mu
 import { useNavigate } from 'react-router-dom';
 import Cookies from "js-cookie";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import Loader from "../loader/Loader";
 
 function ProjectDashboard() {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth.user);
   const [searchQuery, setSearchQuery] = useState("")
   const [showNotification, setShowNotification] = useState(false)
   const [openModal, setOpenModal] = useState(false)
@@ -114,62 +117,46 @@ function ProjectDashboard() {
   };
 
   useEffect(() => {
-    console.log("Component mounted or updated");
-  
-    const token = Cookies.get("token");
-    const userDataCookie = Cookies.get("userData");
-  
-    if (token && userDataCookie) {
-      try {
-        const userData = JSON.parse(userDataCookie);
-  
-        if (userData.userId) {
-          console.log("Making API call with token...");
-  
-          axios
-            .get(`https://www.mediashippers.com/api/projectsInfo/userProjects/${userData.userId}`, {
+      const fetchProjects = async () => {
+        try {
+          setLoading(true); // Show loader
+          const token = Cookies.get("token");
+          const response = await axios.get(
+            `https://www.mediashippers.com/api/projectsInfo/userProjects/${user._id}`,
+            {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
               withCredentials: true,
-            })
-            .then((res) => {
-              console.log("Project API response:", res.data);
-  
-              const projects = res.data.projects || []; // 🟢 Updated
-              const transformedProjects = projects.map((project) => ({
-                id: project._id,
-                name: project.projectName || project.projectTitle,
-                icon: <Movie />,
-                status: "active",
-                lastUpdated: formatRelativeTime(project.updatedAt),
-                starred: false,
-                category: "film",
-                color: getRandomColor(),
-                originalData: project,
-              }));
-  
-              console.log("Transformed projects:", transformedProjects);
-              setProjects(transformedProjects);
-              setLoading(false);
-            })
-            .catch((err) => {
-              console.error("Error fetching projects:", err.response?.data || err.message);
-              setLoading(false);
-            });
-        } else {
-          console.log("User data does not contain userId");
-          setLoading(false);
+            }
+          );
+
+          console.log("Project API response:", response.data);
+
+          const projects = response.data.projects || [];
+          const transformedProjects = projects.map((project) => ({
+            id: project._id,
+            name: project.projectName || project.projectTitle,
+            icon: <Movie />,
+            status: "active",
+            lastUpdated: formatRelativeTime(project.updatedAt),
+            starred: false,
+            category: "film",
+            color: getRandomColor(),
+            originalData: project,
+          }));
+
+          console.log("Transformed projects:", transformedProjects);
+          setProjects(transformedProjects);
+        } catch (error) {
+          console.error("Error fetching projects:", error.response?.data || error.message);
+        } finally {
+          setLoading(false); // Hide loader
         }
-      } catch (error) {
-        console.error("Error parsing userData from cookies:", error);
-        setLoading(false);
-      }
-    } else {
-      console.log("No token or user data found in cookies");
-      setLoading(false);
-    }
-  }, []);
+      };
+
+      fetchProjects();
+  }, [user._id]);
   
 
   // Helper function to generate random colors
@@ -186,6 +173,10 @@ function ProjectDashboard() {
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <Box
@@ -764,7 +755,7 @@ export default ProjectDashboard
 //       setShowModal(false);
   
 //       const token = Cookies.get("token");
-  
+
 //       // Step 1: Create the project folder in S3
 //       axios
 //         .post(

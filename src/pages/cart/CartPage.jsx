@@ -38,6 +38,7 @@ import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import { setCartMovies } from "../../redux/cartSlice/cartSlice"
+import Loader from "../../components/loader/Loader"
 
 const CartPage = () => {
   const Navigate = useNavigate();
@@ -48,7 +49,7 @@ const CartPage = () => {
   console.log("movies", movies);
 
   // State for terms and conditions
-  const [termsAgreed, setTermsAgreed] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [newsletter, setNewsletter] = useState(false)
 
@@ -131,15 +132,18 @@ const CartPage = () => {
 
   const fetchCartMovies = async () => {
     try {
-      const response = await axios.get(`https://www.mediashippers.com/api/cart/get-cart/${user?._id}`)
-      console.log("response", response)
-      const movies = response.data
-      console.log("Fetched movies:", movies)
-      setMovies(movies.map(movie => ({ ...movie, selected: true }))) // Set all movies as selected by default
+      setLoading(true); // Show loader
+      const response = await axios.get(`https://www.mediashippers.com/api/cart/get-cart/${user?._id}`);
+      console.log("response", response);
+      const movies = response.data;
+      console.log("Fetched movies:", movies);
+      setMovies(movies.map((movie) => ({ ...movie, selected: true }))); // Set all movies as selected by default
     } catch (error) {
-      console.error("Error fetching movies:", error)
+      console.error("Error fetching movies:", error);
+    } finally {
+      setLoading(false); // Hide loader
     }
-  }
+  };
 
   // Calculate subtotal based on selected movies
   const subtotal = movies
@@ -193,6 +197,7 @@ const CartPage = () => {
           .map((movie) => ({
             movieId: movie._id,
             title: movie.projectName,
+            userId: movie.userId,
           })),
         rights: selectedRights,
         territory: selectedTerritory,
@@ -211,7 +216,7 @@ const CartPage = () => {
       console.log("Payload to be sent:", payload);
 
       // Call the API
-      const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload);
+      const response = await axios.post("http://localhost:3000/api/deal/create", payload);
 
       if (response.status === 201) {
         const remainingMovies = response.data.remainingMovies || [];
@@ -306,6 +311,10 @@ const CartPage = () => {
         .catch((err) => console.error('Failed to fetch users', err));
     }
   }, [user]);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <Box
