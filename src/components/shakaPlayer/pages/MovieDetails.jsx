@@ -115,7 +115,7 @@ export default function MovieDetails() {
   const banner = projectInfoData.bannerFileName;
   const trailer = projectInfoData.trailerFileName;
   const movie = projectInfoData.movieFileName;
-  const project = projectInfoData.projectTitle
+  const project = projectInfoData.projectName
 
   console.log("title", title)
 
@@ -387,11 +387,55 @@ export default function MovieDetails() {
           </div>
 
 
-          {/* Right Side: Synopsis */}
-          <div className="md:w-2/3 w-full p-4 bg-opacity-50 rounded-lg">
-            <p className="text-xl font-semibold mb-4">Brief Synopsis</p>
-            <p className="text-gray-200">{projectInfoData?.briefSynopsis || "No synopsis provided."}</p>
-          </div>
+         {/* Right Side: Synopsis */}
+<div className="md:w-2/3 w-full p-4 bg-opacity-50 rounded-lg">
+  <p className="text-xl font-semibold mb-4">Brief Synopsis</p>
+  <p className="text-gray-200 mb-6">{projectInfoData?.briefSynopsis || "No synopsis provided."}</p>
+
+  {/* Additional Information */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {/* Project Type */}
+    {specificationsInfoData.projectType && (
+      <div className="glass-card p-3">
+        <p className="text-gray-400 text-xs mb-1">Project Type</p>
+        <p className="text-white font-medium">{specificationsInfoData.projectType}</p>
+      </div>
+    )}
+
+    {/* Genre */}
+    {specificationsInfoData.genres && (
+      <div className="glass-card p-3">
+        <p className="text-gray-400 text-xs mb-1">Genre</p>
+        <p className="text-white font-medium">{specificationsInfoData.genres}</p>
+      </div>
+    )}
+
+    {/* Rating */}
+    {specificationsInfoData.rating && (
+      <div className="glass-card p-3">
+        <p className="text-gray-400 text-xs mb-1">Rating</p>
+        <p className="text-white font-medium">{specificationsInfoData.rating}</p>
+      </div>
+    )}
+
+    {/* Language */}
+    {specificationsInfoData.language && (
+      <div className="glass-card p-3">
+        <p className="text-gray-400 text-xs mb-1">Language</p>
+        <p className="text-white font-medium">{specificationsInfoData.language}</p>
+      </div>
+    )}
+
+    {/* Completion Year */}
+    {specificationsInfoData.completionDate && (
+      <div className="glass-card p-3">
+        <p className="text-gray-400 text-xs mb-1">Year</p>
+        <p className="text-white font-medium">{new Date(specificationsInfoData.completionDate).getFullYear()}</p>
+      </div>
+    )}
+  </div>
+</div>
+
 
         </div>
 

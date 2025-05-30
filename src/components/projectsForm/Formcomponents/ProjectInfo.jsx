@@ -450,7 +450,7 @@ useEffect(() => {
       let trailerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/`;
       let movieUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/movies/`;
 
-      // Append the poster URL if it exists
+      // Append the poster URL if it exists 
       if (projectInfo.projectPoster) {
         posterUrl += projectInfo.projectPoster.name;
         console.log('Project Poster URL:', posterUrl);  // Log poster URL

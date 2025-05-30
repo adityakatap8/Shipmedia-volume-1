@@ -60,6 +60,7 @@ function ProjectsForm() {
     userId: user?.userId || '',
   });
   console.log("form data from specs:", formData)
+
   const [errors, setErrors] = useState({
     projectInfoErrors: {},
     submitterInfoErrors: {},
@@ -77,10 +78,10 @@ function ProjectsForm() {
   const { userData } = useContext(UserContext);
 
 
-  // useEffect(() => {
-  //   console.log('Updated srtFiles:', srtFiles);
-  //   console.log('Updated infoDocs:', infoDocs);
-  // }, [srtFiles, infoDocs]);
+  useEffect(() => {
+    console.log('Updated srtFiles:', srtFiles);
+    console.log('Updated infoDocs:', infoDocs);
+  }, [srtFiles, infoDocs]);
 
   const handleSrtFileChange = (files) => {
     // console.log('📥 SRT Files received:', files);
@@ -238,6 +239,18 @@ function ProjectsForm() {
   };
 
 
+
+
+
+
+
+  const extractFileNameFromUrl = (url) => {
+    if (!url) return '';
+    const parts = String(url).split('/');
+    return parts[parts.length - 1];
+  };
+
+
   const transferFileToLocation = async () => {
     const { orgName } = user.user;
     // const projectFolder = projectName || 'defaultProjectFolder';
@@ -291,93 +304,79 @@ function ProjectsForm() {
   };
 
 
-
-
-  const extractFileNameFromUrl = (url) => {
-    if (!url) return '';
-    const parts = String(url).split('/');
-    return parts[parts.length - 1];
-  };
-
-
-
-
-
   // utils/uploadFilesToS3.js
 
-  const uploadFilesToS3 = async ({ projectPoster, projectBanner, projectTrailer }, projectName, orgName) => {
-    console.log('Uploading files with orgName:', orgName);  // Log orgName here to confirm it's passed correctly
+const uploadFilesToS3 = async (
+  {
+    projectPoster,
+    projectBanner,
+    projectTrailer,
+    dubbedFiles = [],
+    srtFiles = []
+  },
+  projectName,
+  orgName,
+  userId // ✅ Accept userId here
+) => {
+  const formData = new FormData();
 
-    // Check projectBanner content before appending to FormData
-    console.log('projectBanner:', projectBanner);
-    if (projectBanner) {
-      console.log('projectBanner Type:', typeof projectBanner);
+  // Append main assets
+  if (projectPoster) formData.append('projectPoster', projectPoster);
+  if (projectBanner) formData.append('projectBanner', projectBanner);
+  if (projectTrailer) formData.append('projectTrailer', projectTrailer);
+
+  // Append dubbed files
+  dubbedFiles.forEach((entry, index) => {
+    const { language, dubbedTrailerFile, dubbedSubtitleFile } = entry;
+
+    if (dubbedTrailerFile) {
+      formData.append(`dubbedTrailer_${index}`, dubbedTrailerFile);
+      formData.append(`dubbedTrailerLang_${index}`, language);
     }
 
-    const formData = new FormData();
+    if (dubbedSubtitleFile) {
+      formData.append(`dubbedSubtitle_${index}`, dubbedSubtitleFile);
+      formData.append(`dubbedSubtitleLang_${index}`, language);
+    }
+  });
 
-    if (projectPoster) {
-      console.log('Appending projectPoster to formData');
-      formData.append('projectPoster', projectPoster);
+  // Append SRT and infoDoc files
+  srtFiles.forEach((entry, index) => {
+    const { srtFile, infoDocFile } = entry;
+
+    if (srtFile) {
+      formData.append(`srtFile_${index}`, srtFile);
     }
 
-    if (projectBanner) {
-      console.log('Appending projectBanner to formData');
-      formData.append('projectBanner', projectBanner);
+    if (infoDocFile) {
+      formData.append(`infoDocFile_${index}`, infoDocFile);
     }
+  });
 
-    if (projectTrailer) {
-      console.log('Appending projectTrailer to formData');
-      formData.append('projectTrailer', projectTrailer);
-    }
+  // Meta
+  formData.append('projectName', projectName);
+  formData.append('orgName', orgName);
+  formData.append('userId', userId); // ✅ Append userId
 
-    formData.append('projectName', projectName);
-    formData.append('orgName', orgName);
+  const response = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    try {
-      const response = await fetch('https://www.mediashippers.com/api/files/upload-file', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-        headers: {
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(err);
+  }
 
-          'Authorization': `Bearer ${token}`, // Authorization header with Bearer token
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText);
-      }
-
-      const data = await response.json();
-
-      console.log('✅ All files uploaded successfully:');
-      if (data.projectPosterUrl) {
-        console.log('Poster Uploaded:', data.projectPosterUrl.fileName);
-        console.log('Poster URL:', data.projectPosterUrl.fileUrl);
-      }
-      if (data.projectBannerUrl) {
-        console.log('Banner Uploaded:', data.projectBannerUrl.fileName);
-        console.log('Banner URL:', data.projectBannerUrl.fileUrl);
-      }
-      if (data.projectTrailerUrl) {
-        console.log('Trailer Uploaded:', data.projectTrailerUrl.fileName);
-        console.log('Trailer URL:', data.projectTrailerUrl.fileUrl);
-      }
-
-      return data;
-    } catch (error) {
-      console.error('❌ Error uploading files:', error.message);
-      throw error;
-    }
-  };
+  return await response.json();
+};
 
 
-
-
-
-  const handleSubmit = async (event) => {
+const handleSubmit = async (event) => {
   event.preventDefault();
   setIsFormSubmitted(true);
   setIsUploading(true);
@@ -402,25 +401,91 @@ function ProjectsForm() {
     return;
   }
 
-  const { projectPoster, projectBanner, trailerFile: projectTrailer, projectName, orgName: organizationName } = formData.projectInfo;
+  const {
+    projectPoster,
+    projectBanner,
+    trailerFile: projectTrailer,
+    projectName,
+    orgName: organizationName
+  } = formData.projectInfo;
+
   const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
   const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
   const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
 
   try {
     let uploadedFiles = {};
+    const orgNameToUse = organizationName || orgName;
 
-    if (shouldUploadPoster || shouldUploadBanner || shouldUploadTrailer) {
-      const orgNameToUse = organizationName || orgName;
+    // ✅ Normalize dubbed files
+    let dubbedFilesArray = [];
+    if (Array.isArray(formData.dubbedFiles)) {
+      dubbedFilesArray = formData.dubbedFiles;
+    } else if (typeof formData.dubbedFiles === 'object') {
+      dubbedFilesArray = Object.values(formData.dubbedFiles).filter(
+        (item) => typeof item === 'object' && item.language
+      );
+    }
 
+    // ✅ Normalize SRT files
+    let srtFilesArray = [];
+    console.log("🐛 Raw srtInfo value in formData:", formData.srtInfo);
+
+    if (Array.isArray(formData.srtInfo)) {
+      srtFilesArray = formData.srtInfo
+        .map((entry) => ({
+          language: entry.language,
+          srtFile: entry.srtFile,
+          infoDocFile: entry.infoDocFile,
+        }))
+        .filter(item => item.srtFile || item.infoDocFile);
+    } else if (
+      formData.srtInfo &&
+      (Array.isArray(formData.srtInfo.srtFiles) || Array.isArray(formData.srtInfo.infoDocuments))
+    ) {
+      const srt = formData.srtInfo;
+      srtFilesArray = [];
+
+      if (Array.isArray(srt.srtFiles)) {
+        srtFilesArray.push(
+          ...srt.srtFiles.map(f => ({
+            language: f.language || '',
+            srtFile: f,
+            infoDocFile: null,
+          }))
+        );
+      }
+
+      if (Array.isArray(srt.infoDocuments)) {
+        srt.infoDocuments.forEach((doc, i) => {
+          if (srtFilesArray[i]) {
+            srtFilesArray[i].infoDocFile = doc;
+          } else {
+            srtFilesArray.push({ language: '', srtFile: null, infoDocFile: doc });
+          }
+        });
+      }
+    }
+
+    // ✅ Upload files
+    if (
+      shouldUploadPoster ||
+      shouldUploadBanner ||
+      shouldUploadTrailer ||
+      dubbedFilesArray.length > 0 ||
+      srtFilesArray.length > 0
+    ) {
       uploadedFiles = await uploadFilesToS3(
         {
           projectPoster: shouldUploadPoster ? projectPoster : null,
           projectBanner: shouldUploadBanner ? projectBanner : null,
           projectTrailer: shouldUploadTrailer ? projectTrailer : null,
+          dubbedFiles: dubbedFilesArray,
+          srtFiles: srtFilesArray
         },
         projectName,
-        orgNameToUse
+        orgNameToUse,
+        userId
       );
 
       if (uploadedFiles.projectPosterUrl)
@@ -434,50 +499,52 @@ function ProjectsForm() {
     } else {
       const { posterUrl, bannerUrl, trailerUrl } = formData.projectInfo;
 
-      if (posterUrl)
-        formData.projectInfo.s3SourcePosterUrl = posterUrl;
-
-      if (bannerUrl)
-        formData.projectInfo.s3SourceBannerUrl = bannerUrl;
-
-      if (trailerUrl)
-        formData.projectInfo.s3SourceTrailerUrl = trailerUrl;
+      if (posterUrl) formData.projectInfo.s3SourcePosterUrl = posterUrl;
+      if (bannerUrl) formData.projectInfo.s3SourceBannerUrl = bannerUrl;
+      if (trailerUrl) formData.projectInfo.s3SourceTrailerUrl = trailerUrl;
     }
-  } catch (uploadError) {
-    console.error('Error during upload:', uploadError);
-    alert('File upload failed: ' + uploadError.message);
-    return;
-  }
 
-  // ✅ Final payload preparation
-  const updatedFormData = {
-    projectInfo: {
-      ...formData.projectInfo,
-      projectName: formData.projectInfo.projectName,
-      userId,
-      posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
-      projectPosterS3Url: formData.projectInfo.projectPosterS3Url,
-      bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
-      projectBannerS3Url: formData.projectInfo.projectBannerS3Url,
-      trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
-      trailerUrl: formData.projectInfo.trailerUrl,
-      movieFileName: formData.projectInfo.movieFileName || ''
-    },
-    creditsInfo: { ...formData.creditsInfo, projectName, userId },
-    specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
-    rightsInfo: { ...formData.rightsInfo, projectName, userId },
-    srtInfo: {
-      srtFiles: formData.srtInfo.map(pair => pair.srtFile),
-      infoDocuments: formData.srtInfo.map(pair => pair.infoDocFile),
-      projectName,
-      userId
-    },
-    dubbedFiles: formData.dubbedFiles || []  // ✅ Include dubbed files
-  };
+    // ✅ Clean SRT info for backend
+   const cleanSrtInfo = {
+  srtFiles: uploadedFiles?.srtFiles || [],
+  infoDocuments: uploadedFiles?.infoDocuments || [],
+  projectName,
+  userId
+};
 
-  console.log('✅ Submitting full form data:', updatedFormData);
 
-  try {
+    // ✅ Clean dubbed files
+    const cleanedDubbedFiles = dubbedFilesArray.map(file => ({
+      language: file.language,
+      dubbedTrailerFileName: file.dubbedTrailerFileName,
+      dubbedTrailerUrl: file.dubbedTrailerUrl,
+      dubbedSubtitleFileName: file.dubbedSubtitleFileName,
+      dubbedSubtitleUrl: file.dubbedSubtitleUrl,
+    }));
+
+    // ✅ Final payload
+    const updatedFormData = {
+      projectInfo: {
+        ...formData.projectInfo,
+        projectName,
+        userId,
+        posterFileName: extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl),
+        projectPosterS3Url: formData.projectInfo.s3SourcePosterUrl,
+        bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
+        projectBannerS3Url: formData.projectInfo.s3SourceBannerUrl,
+        trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
+        trailerUrl: formData.projectInfo.s3SourceTrailerUrl,
+        movieFileName: formData.projectInfo.movieFileName || ''
+      },
+      creditsInfo: { ...formData.creditsInfo, projectName, userId },
+      specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
+      rightsInfo: { ...formData.rightsInfo, projectName, userId },
+      srtInfo: { srtInfo: cleanSrtInfo },
+      dubbedFiles: cleanedDubbedFiles
+    };
+
+    console.log('✅ Submitting full form data:', updatedFormData);
+
     const response = await fetch('https://www.mediashippers.com/api/projectForm', {
       method: 'POST',
       headers: {
@@ -497,7 +564,6 @@ function ProjectsForm() {
     const transferResult = await transferFileToLocation();
     if (transferResult.success) {
       alert('✅ File transfer successful!');
-      // navigate('/showcase-projects');
     } else {
       alert(`⚠️ File transfer failed: ${transferResult.error}`);
       navigate('/projects-form');
@@ -512,9 +578,13 @@ function ProjectsForm() {
       stack: error.stack,
     }));
   } finally {
-    setIsUploading(false); // 🔁 End loader
+    setIsUploading(false);
   }
 };
+
+
+
+
 
 
 
@@ -524,15 +594,15 @@ function ProjectsForm() {
     <form className="container-fluid projects-form-container">
       {isUploading && <Loader />}
       <div className='text-white'>
-        <h1>{user.userId}</h1>
-        {/* Display orgName below userId */}
-        <h1>{orgName}</h1>
+        {/* <h1>{user.userId}</h1>
+    
+        <h1>{orgName}</h1> */}
 
 
-        <div className='text-white'>
+        {/* <div className='text-white'>
           <h2>Project Name: {projectName}</h2>
           <h3>Movie Name: {movieName}</h3>
-        </div>
+        </div> */}
 
         <ProjectInfo
           onInputChange={(data) => handleInputChange('projectInfo', data)}
@@ -556,25 +626,6 @@ function ProjectsForm() {
 
         />
 
-<SrtFileUpload
-          onSrtFileChange={handleSrtFileChange}
-          onInfoDocsFileChange={handleInfoDocsChange}
-        />
-
-        <DubbedFiles
-          onInputChange={(data) => handleInputChange('dubbedFiles', data)}
-          formData={formData.dubbedFiles}
-          setFormData={setFormData}
-          errors={isFormSubmitted ? errors.dubbedFilesErrors : {}}
-          setDubbedFilesErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              dubbedFilesErrors: errors,
-            }))
-          }
-        />
-
-
         <SpecificationsInfo
           onInputChange={(data) => handleInputChange('specificationsInfo', data)}
           formData={formData.specificationsInfo}
@@ -587,6 +638,37 @@ function ProjectsForm() {
             }))
           }
         />
+
+        <SrtFileUpload
+          onSrtFileChange={handleSrtFileChange}
+          onInfoDocsFileChange={handleInfoDocsChange}
+          orgName={user?.user?.orgName}
+          projectName={formData.projectInfo.projectName || formData.projectInfo.projectTitle}
+          projectInfo={formData.projectInfo}
+          language={formData.specificationsInfo.language || 'unknown_language'} // add if you track language somewhere
+        />
+
+
+        <DubbedFiles
+          onInputChange={(data) => handleInputChange('dubbedFiles', data)}
+          formData={formData.dubbedFiles}
+          setFormData={setFormData}
+          errors={isFormSubmitted ? errors.dubbedFilesErrors : {}}
+          setDubbedFilesErrors={(errors) =>
+            setErrors((prev) => ({
+              ...prev,
+              dubbedFilesErrors: errors,
+            }))
+          }
+          orgName={user?.user?.orgName}
+          projectName={formData.projectInfo.projectName || formData.projectInfo.projectTitle}
+          projectInfo={formData.projectInfo}
+        />
+
+
+
+
+
 
 
 

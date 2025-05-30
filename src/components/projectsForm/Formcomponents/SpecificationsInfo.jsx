@@ -100,6 +100,8 @@ const SpecificationsInfo = ({
         }
     };
 
+
+
     useEffect(() => {
         onInputChange({
             projectType,
@@ -109,7 +111,7 @@ const SpecificationsInfo = ({
             rating,
             numberOfEpisodes,
             numberOfSeasons,
-            runtime: getFormattedRuntime()
+            runtime: getFormattedRuntime(),
         });
     }, [
         projectType, runtime, completionDate, countryOfOrigin,
