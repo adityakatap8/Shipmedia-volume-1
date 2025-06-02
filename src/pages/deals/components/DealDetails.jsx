@@ -45,6 +45,7 @@ import {
 import { useParams } from "react-router-dom"
 import axios from "axios"
 import { useSelector } from "react-redux"
+import ShakaPlayer from "../../../components/shakaPlayer/pages/ShakaPlayer"
 
 // Create a custom theme
 const theme = createTheme({
@@ -131,9 +132,12 @@ export default function DealDashboard() {
   const [tabValue, setTabValue] = useState(0)
   const [openModal, setOpenModal] = useState(false)
   const [selectedMovie, setSelectedMovie] = useState(null)
+  console.log("selectedMovie", selectedMovie)
   const [deal, setDeal] = useState({})
+  console.log("deal", deal)
   const [loading, setLoading] = useState(true) // Add loading state
-  console.log("dealData", deal)
+  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
+  const [trailerUrl, setTrailerUrl] = useState('');
 
   const handleOpenModal = (movie) => {
     setSelectedMovie(movie)
@@ -146,7 +150,7 @@ export default function DealDashboard() {
 
   const getStatusDetails = (status) => {
     return (
-    statusMap[status] || {
+      statusMap[status] || {
         label: status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
         color: "#9e9e9e",
         icon: <CheckCircle sx={{ mr: 1 }} />,
@@ -154,14 +158,14 @@ export default function DealDashboard() {
       }
     )
   }
-  
+
   const defaultStatus = {
     label: "Loading...",
     color: "#888",
     icon: <CircularProgress size={18} sx={{ mr: 1 }} />,
     step: 0,
   }
-  
+
   const statusDetails = deal?.status
     ? getStatusDetails(deal.status)
     : defaultStatus
@@ -182,6 +186,18 @@ export default function DealDashboard() {
       setLoading(false) // Set loading to false after API call completes
     }
   }
+
+  const handlePlayTrailer = () => {
+
+    const trailerUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.orgName}/${selectedMovie.projectName}/trailer/${selectedMovie.trailerFileName}`;
+    setTrailerUrl(trailerUrl);
+    setIsTrailerPlaying(true);
+  };
+
+  const handleCloseTrailer = () => {
+    setIsTrailerPlaying(false);
+    setTrailerUrl("");
+  };
 
   useEffect(() => {
     console.log("Fetching deal details...")
@@ -715,6 +731,7 @@ export default function DealDashboard() {
                             color="primary"
                             startIcon={<Movie />}
                             sx={{ mb: 1, borderRadius: 2 }}
+                            onClick={() => handlePlayTrailer()}
                           >
                             Watch Trailer
                           </Button>
@@ -971,9 +988,6 @@ export default function DealDashboard() {
                       </Paper>
 
                       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-                        <Button variant="contained" color="primary" sx={{ borderRadius: 2, mr: 2 }}>
-                          Add to Deal
-                        </Button>
                         <Button variant="outlined" onClick={handleCloseModal} sx={{ borderRadius: 2 }}>
                           Close
                         </Button>
@@ -982,9 +996,25 @@ export default function DealDashboard() {
                   </Grid>
                 </>
               )}
+              {isTrailerPlaying && trailerUrl && (
+                console.log("Playing trailer:", trailerUrl),
+                <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50">
+                  <div className="relative w-[80%] max-w-5xl">
+                    <ShakaPlayer width="100%" height="100%" url={trailerUrl} />
+                    <button
+                      onClick={handleCloseTrailer}
+                      className="absolute top-2 right-2 text-white text-3xl player-close-button"
+                      style={{ zIndex: 10 }}
+                    >
+                      X
+                    </button>
+                  </div>
+                </div>
+              )}
             </Box>
           </Fade>
         </Modal>
+
       </Box>
     </ThemeProvider>
   )
