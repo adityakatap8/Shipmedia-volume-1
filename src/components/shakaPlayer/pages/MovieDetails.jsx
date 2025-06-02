@@ -16,6 +16,11 @@ import defaultBanner from '../../../assets/Banner-Holder.png'
 import defaultPoster from '../../../assets/Logo-Holder.png'
 import { useSelector } from 'react-redux';
 
+const constructS3Url = (org, project, folderPath, fileName) => {
+
+  return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${org}/${project}/${folderPath}/${fileName}`;
+};
+
 
 
 // Function to generate image URL for crew members (directors, writers, actors, producers)
@@ -41,6 +46,9 @@ export default function MovieDetails() {
   const [trailerUrl, setTrailerUrl] = useState(''); // Store trailer URL
   const [movieUrl, setMovieUrl] = useState(''); // Store movie URL
   const [isMoviePlaying, setIsMoviePlaying] = useState(false); // Manage movie playback state
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+
 
   const [feedback, setFeedback] = useState({
     comment: "",
@@ -72,14 +80,33 @@ export default function MovieDetails() {
           },
         }
       );
+
       if (response.status === 200) {
-        console.log("Fetched data:", response.data); // Log the response data
-        setMovieData(response.data); // Store the fetched movie data
+        console.log("Fetched data:", response.data); // Log full movie data
+        const movieData = response.data;
+
+        // ✅ Convert dubbed trailer URLs properly
+        const dubbedFiles = movieData?.projectInfoData?.dubbedFileData || [];
+
+        dubbedFiles.forEach((file) => {
+          const originalUrl = file.dubbedTrailerUrl;
+          console.log(`Original Dubbed Trailer URL [${file.language}]:`, originalUrl);
+
+          // Only replace if it's an s3://mediashippers-filestash/ URL
+          if (originalUrl?.startsWith("s3://mediashippers-filestash/")) {
+            const relativePath = originalUrl.replace("s3://mediashippers-filestash/", "");
+            file.dubbedTrailerUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${relativePath}`;
+          }
+
+          console.log(`Converted Dubbed Trailer URL [${file.language}]:`, file.dubbedTrailerUrl);
+        });
+
+        setMovieData(movieData); // Store the updated movie data
       } else {
         setError("Failed to load data.");
       }
     } catch (error) {
-      console.error("Error occurred while fetching data:", error); // Log error for debugging
+      console.error("Error occurred while fetching data:", error);
       setError("An error occurred while fetching the data.");
       toast({
         variant: "destructive",
@@ -87,9 +114,12 @@ export default function MovieDetails() {
         description: "Failed to load project details. Please try again later.",
       });
     } finally {
-      setIsLoading(false); // Stop loading indicator once the data is fetched or error is handled
+      setIsLoading(false);
     }
   };
+
+
+
 
   useEffect(() => {
     // Call fetchMovieData every time the projectId changes
@@ -117,6 +147,9 @@ export default function MovieDetails() {
   const movie = projectInfoData.movieFileName;
   const project = projectInfoData.projectName
 
+  const dubbedFiles = projectInfoData?.dubbedFileData || [];
+
+
   console.log("title", title)
 
 
@@ -131,6 +164,7 @@ export default function MovieDetails() {
   const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
   const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
 
+  console.log("main trailer url", trailerVideoURL)
   // Play Movie handler
   const handlePlayMovie = () => {
     setMovieUrl(movieVideoURL); // Set the movie URL dynamically
@@ -218,14 +252,70 @@ export default function MovieDetails() {
 
             {/* Action Buttons */}
             <div className="flex gap-4">
-              <Button
-                size="lg"
-                className="btn-play-trailer"
-                onClick={handlePlayTrailer}
-              >
-                <Play className="mr-2 h-5 w-5" />
-                Watch Trailer
-              </Button>
+              <div className="relative">
+                <Button
+                  size="lg"
+                  className="btn-play-trailer"
+                  onClick={() => {
+                    if (dubbedFiles.length > 0) {
+                      setShowLanguageDropdown(!showLanguageDropdown);
+                    } else {
+                      handlePlayTrailer(); // No dubbed options, play default
+                    }
+                  }}
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  Watch Trailer
+                </Button>
+
+                {/* Dropdown menu */}
+                {showLanguageDropdown && (
+                  <div className="absolute z-10 mt-2 w-48 bg-white rounded shadow-lg">
+                    {/* Original Language Option */}
+                    <div
+                      className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black font-semibold"
+                      onClick={() => {
+                        setSelectedLanguage(specificationsInfoData.language);
+                        setTrailerUrl(trailerVideoURL); // Set to original trailer
+                        setIsTrailerPlaying(true);
+                        setShowLanguageDropdown(false);
+                      }}
+                    >
+                      {specificationsInfoData.language} (Original)
+                    </div>
+
+                    {/* Dubbed Language Options */}
+                    {dubbedFiles.map((item, index) => {
+                      const finalUrl = item.dubbedTrailerUrl?.startsWith("s3://")
+                        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${item.dubbedTrailerUrl.replace("s3://", "")}`
+                        : item.dubbedTrailerUrl;
+
+                      return (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black"
+                          onClick={() => {
+                            console.log(`Playing ${item.language} Dubbed Trailer URL:`, finalUrl);
+                            setSelectedLanguage(item.language);
+                            setTrailerUrl(finalUrl);
+                            setIsTrailerPlaying(true);
+                            setShowLanguageDropdown(false);
+                          }}
+                        >
+                          {item.language}
+                        </div>
+                      );
+                    })}
+
+
+
+                  </div>
+                )}
+              </div>
+
+
+
+
               <Button
                 size="lg"
                 className="btn-play-movie"
@@ -245,8 +335,8 @@ export default function MovieDetails() {
       {/* Show Trailer Video when playing */}
       {isTrailerPlaying && trailerUrl && (
         <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50">
-          <div className="relative">
-            <ShakaPlayer width="80%" height="auto" url={trailerUrl} />
+          <div className="relative w-[80%] max-w-5xl">
+            <ShakaPlayer width="100%" height="100%" url={trailerUrl} />
             <button
               onClick={handleCloseTrailer}
               className="absolute top-2 right-2 text-white text-3xl player-close-button"
@@ -387,54 +477,54 @@ export default function MovieDetails() {
           </div>
 
 
-         {/* Right Side: Synopsis */}
-<div className="md:w-2/3 w-full p-4 bg-opacity-50 rounded-lg">
-  <p className="text-xl font-semibold mb-4">Brief Synopsis</p>
-  <p className="text-gray-200 mb-6">{projectInfoData?.briefSynopsis || "No synopsis provided."}</p>
+          {/* Right Side: Synopsis */}
+          <div className="md:w-2/3 w-full p-4 bg-opacity-50 rounded-lg">
+            <p className="text-xl font-semibold mb-4">Brief Synopsis</p>
+            <p className="text-gray-200 mb-6">{projectInfoData?.briefSynopsis || "No synopsis provided."}</p>
 
-  {/* Additional Information */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {/* Project Type */}
-    {specificationsInfoData.projectType && (
-      <div className="glass-card p-3">
-        <p className="text-gray-400 text-xs mb-1">Project Type</p>
-        <p className="text-white font-medium">{specificationsInfoData.projectType}</p>
-      </div>
-    )}
+            {/* Additional Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Project Type */}
+              {specificationsInfoData.projectType && (
+                <div className="glass-card p-3">
+                  <p className="text-gray-400 text-xs mb-1">Project Type</p>
+                  <p className="text-white font-medium">{specificationsInfoData.projectType}</p>
+                </div>
+              )}
 
-    {/* Genre */}
-    {specificationsInfoData.genres && (
-      <div className="glass-card p-3">
-        <p className="text-gray-400 text-xs mb-1">Genre</p>
-        <p className="text-white font-medium">{specificationsInfoData.genres}</p>
-      </div>
-    )}
+              {/* Genre */}
+              {specificationsInfoData.genres && (
+                <div className="glass-card p-3">
+                  <p className="text-gray-400 text-xs mb-1">Genre</p>
+                  <p className="text-white font-medium">{specificationsInfoData.genres}</p>
+                </div>
+              )}
 
-    {/* Rating */}
-    {specificationsInfoData.rating && (
-      <div className="glass-card p-3">
-        <p className="text-gray-400 text-xs mb-1">Rating</p>
-        <p className="text-white font-medium">{specificationsInfoData.rating}</p>
-      </div>
-    )}
+              {/* Rating */}
+              {specificationsInfoData.rating && (
+                <div className="glass-card p-3">
+                  <p className="text-gray-400 text-xs mb-1">Rating</p>
+                  <p className="text-white font-medium">{specificationsInfoData.rating}</p>
+                </div>
+              )}
 
-    {/* Language */}
-    {specificationsInfoData.language && (
-      <div className="glass-card p-3">
-        <p className="text-gray-400 text-xs mb-1">Language</p>
-        <p className="text-white font-medium">{specificationsInfoData.language}</p>
-      </div>
-    )}
+              {/* Language */}
+              {specificationsInfoData.language && (
+                <div className="glass-card p-3">
+                  <p className="text-gray-400 text-xs mb-1">Language</p>
+                  <p className="text-white font-medium">{specificationsInfoData.language}</p>
+                </div>
+              )}
 
-    {/* Completion Year */}
-    {specificationsInfoData.completionDate && (
-      <div className="glass-card p-3">
-        <p className="text-gray-400 text-xs mb-1">Year</p>
-        <p className="text-white font-medium">{new Date(specificationsInfoData.completionDate).getFullYear()}</p>
-      </div>
-    )}
-  </div>
-</div>
+              {/* Completion Year */}
+              {specificationsInfoData.completionDate && (
+                <div className="glass-card p-3">
+                  <p className="text-gray-400 text-xs mb-1">Year</p>
+                  <p className="text-white font-medium">{new Date(specificationsInfoData.completionDate).getFullYear()}</p>
+                </div>
+              )}
+            </div>
+          </div>
 
 
         </div>

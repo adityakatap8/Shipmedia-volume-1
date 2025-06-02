@@ -1,5 +1,5 @@
 import { Button } from '../components/ui/button';
-import { ArrowLeft, FastForwardIcon, ForwardIcon, PauseIcon, PlayIcon, Redo2, RewindIcon } from 'lucide-react';
+import { ArrowLeft, FastForwardIcon, PauseIcon, PlayIcon, Redo2, RewindIcon } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import shaka from 'shaka-player';
@@ -7,7 +7,7 @@ import shaka from 'shaka-player';
 const ShakaPlayer = ({
   width = '100%',
   height = '100%',
-  url // The dynamic URL prop passed from the parent
+  url
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -16,11 +16,10 @@ const ShakaPlayer = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const navigate = useNavigate();
 
-  // Effect to initialize the player and load the video
   useEffect(() => {
-    if (!url) return;  // If no URL, do not continue
+    if (!url) return;
 
-    shaka.polyfill.installAll(); // Install Shaka polyfills
+    shaka.polyfill.installAll();
 
     if (!shaka.Player.isBrowserSupported()) {
       console.error('Browser not supported for Shaka Player!');
@@ -29,15 +28,17 @@ const ShakaPlayer = ({
 
     const initPlayer = async () => {
       try {
-        const player = new shaka.Player(videoRef.current); // Initialize Shaka player
-        const video = videoRef.current;
+        const player = new shaka.Player();
         playerRef.current = player;
+
+        const video = videoRef.current;
+        await player.attach(video); // ✅ NEW WAY
 
         player.addEventListener('error', (event) => {
           console.error('Error code:', event.detail.code, 'object:', event.detail);
         });
 
-        await player.load(url);  // Load the video using the URL prop
+        await player.load(url);
 
         video.addEventListener('ended', () => setIsEnded(true));
 
@@ -54,10 +55,13 @@ const ShakaPlayer = ({
       }
     };
 
-    initPlayer(); // Initialize the player when URL changes
-  }, [url]); // Re-run this effect if `url` changes
+    initPlayer();
 
-  // Handler to replay the video when it's ended
+    return () => {
+      playerRef.current?.destroy();
+    };
+  }, [url]);
+
   const handleReplay = () => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
@@ -66,7 +70,6 @@ const ShakaPlayer = ({
     }
   };
 
-  // Rewind by 10 seconds
   const handleRewind = () => {
     const video = videoRef.current;
     if (video) {
@@ -74,7 +77,6 @@ const ShakaPlayer = ({
     }
   };
 
-  // Forward by 10 seconds
   const handleForward = () => {
     const video = videoRef.current;
     if (video) {
@@ -82,7 +84,6 @@ const ShakaPlayer = ({
     }
   };
 
-  // Play/Pause handler
   const handlePause = () => {
     const video = videoRef.current;
     if (video) {
@@ -117,7 +118,6 @@ const ShakaPlayer = ({
               autoPlay
             />
           </div>
-
 
           {showControls && !isEnded && (
             <div

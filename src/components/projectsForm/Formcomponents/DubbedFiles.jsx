@@ -68,7 +68,7 @@ const DubbedFiles = ({
     const fileName = file.name;
 
     if (fieldName === 'dubbedTrailerFile') {
-      const dubbedS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/${language}/${fileName}`;
+      const dubbedS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
       updatedEntries[index].dubbedTrailerFileName = fileName;
       updatedEntries[index].dubbedTrailerUrl = dubbedS3Url;
     }
