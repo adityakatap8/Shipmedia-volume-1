@@ -216,7 +216,7 @@ const CartPage = () => {
       console.log("Payload to be sent:", payload);
 
       // Call the API
-      const response = await axios.post("http://localhost:3000/api/deal/create", payload);
+      const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload);
 
       if (response.status === 201) {
         const remainingMovies = response.data.remainingMovies || [];
