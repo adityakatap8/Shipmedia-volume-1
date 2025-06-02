@@ -39,6 +39,7 @@ import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import { setCartMovies } from "../../redux/cartSlice/cartSlice"
 import Loader from "../../components/loader/Loader"
+import Breadcrumb from "../../components/breadcrumb/Breadcrumb"
 
 const CartPage = () => {
   const Navigate = useNavigate();
@@ -74,6 +75,12 @@ const CartPage = () => {
   console.log("selectedBuyer", selectedBuyer);
   const [selectedSeller, setSelectedSeller] = useState([]);
   const [status, setStatus] = useState("");
+
+
+  const breadcrumbItems = [
+    { label: "Home", path: "/showcase-projects" },
+    { label: "Cart" },
+  ];
 
   // Rights options
   const rightsOptions = [
@@ -220,13 +227,13 @@ const CartPage = () => {
 
       if (response.status === 201) {
         const remainingMovies = response.data.remainingMovies || [];
-  
+
         // Update the cart in Redux
         dispatch(setCartMovies(remainingMovies));
-  
+
         // Close the drawer
         setDrawerOpen(false);
-  
+
         // Navigate to deals page
         Navigate("/deals");
       } else {
@@ -326,10 +333,10 @@ const CartPage = () => {
         p: 1,
       }}
     >
+      <Breadcrumb items={breadcrumbItems} />
       <Box
         sx={{
           mx: "auto",
-          py: 4,
           px: 2,
         }}
       >
@@ -567,9 +574,15 @@ const CartPage = () => {
         }}
       >
         <Box sx={{ width: "100%" }}>
-          <Typography variant="h5" sx={{ mb: 3, color: "#fff", fontWeight: "bold" }}>
-            Complete Your Purchase
-          </Typography>
+          {/* Header with Close Icon */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+            <Typography variant="h5" sx={{ color: "#fff", fontWeight: "bold" }}>
+              Complete Your Purchase
+            </Typography>
+            <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: "#fff" }}>
+              <Cancel />
+            </IconButton>
+          </Box>
 
           <Typography variant="body2" sx={{ mb: 4, color: "gray" }}>
             Please specify the licensing details for your selected content.
@@ -578,68 +591,68 @@ const CartPage = () => {
           <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Rights Selection */}
             <Autocomplete
-            size="small"
-    multiple
-    value={selectedRights}
-    onChange={(event, newValue) => setSelectedRights(newValue)} // Update the selected rights
-    options={rightsOptions.map((option) => option.name)} // Extract names from rightsOptions
-    renderTags={(value, getTagProps) =>
-      value.map((option, index) => (
-        <Chip
-          key={option}
-          label={option}
-          {...getTagProps({ index })}
-          sx={{
-            bgcolor: "#27272a",
-            color: "#fff",
-            "& .MuiChip-deleteIcon": {
-              color: "gray",
-              "&:hover": {
-                color: "#fff",
-              },
-            },
-          }}
-        />
-      ))
-    }
-    renderInput={(params) => (
-      <TextField
-        type="multiple"
-        {...params}
-        label="Rights"
-        placeholder="Select Rights"
-        InputLabelProps={{
-          sx: { color: "gray" },
-        }}
-        InputProps={{
-          ...params.InputProps,
-          sx: {
-            color: "#fff",
-            "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#27272a",
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#e1780c",
-            },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#e1780c",
-            },
-            "& .MuiSvgIcon-root": {
-              color: "gray",
-            },
-          },
-        }}
-      />
-    )}
-    sx={{
-      "& .MuiAutocomplete-popupIndicator": {
-        color: "gray",
-      },
-      "& .MuiAutocomplete-clearIndicator": {
-        color: "gray",
-      },
-    }}
-  />
+              size="small"
+              multiple
+              value={selectedRights}
+              onChange={(event, newValue) => setSelectedRights(newValue)} // Update the selected rights
+              options={rightsOptions.map((option) => option.name)} // Extract names from rightsOptions
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    key={option}
+                    label={option}
+                    {...getTagProps({ index })}
+                    sx={{
+                      bgcolor: "#27272a",
+                      color: "#fff",
+                      "& .MuiChip-deleteIcon": {
+                        color: "gray",
+                        "&:hover": {
+                          color: "#fff",
+                        },
+                      },
+                    }}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  type="multiple"
+                  {...params}
+                  label="Rights"
+                  placeholder="Select Rights"
+                  InputLabelProps={{
+                    sx: { color: "gray" },
+                  }}
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: {
+                      color: "#fff",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#27272a",
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#e1780c",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#e1780c",
+                      },
+                      "& .MuiSvgIcon-root": {
+                        color: "gray",
+                      },
+                    },
+                  }}
+                />
+              )}
+              sx={{
+                "& .MuiAutocomplete-popupIndicator": {
+                  color: "gray",
+                },
+                "& .MuiAutocomplete-clearIndicator": {
+                  color: "gray",
+                },
+              }}
+            />
 
             {user?.role === 'Admin' && (
               <>
