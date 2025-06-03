@@ -116,7 +116,7 @@ const SpecificationsInfo = ({
     }, [
         projectType, runtime, completionDate, countryOfOrigin,
         countryOfFilming, language, shootingFormat, aspectRatio,
-        genres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming, numberOfEpisodes,
+        selectedGenres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming, numberOfEpisodes,
         rating, numberOfSeasons
     ]);
 
