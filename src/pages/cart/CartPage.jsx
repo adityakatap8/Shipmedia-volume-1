@@ -1093,7 +1093,7 @@ const CartPage = () => {
               rows={2}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              placeholder="Any additional comments or special requests"
+              placeholder={user?.role === "Seller" ? "Add buyer information or comments for smooth processing." : "Add any additional comments or instructions."}
               fullWidth
               InputLabelProps={{
                 sx: { color: "gray" },
@@ -1111,6 +1111,10 @@ const CartPage = () => {
                     borderColor: "#e1780c",
                   },
                 },
+              }}
+              helperText={user?.role === "Seller" ? "Provide buyer details or any specific instructions for the deal." : "Provide any additional comments or instructions."}
+              FormHelperTextProps={{
+                sx: { color: "gray" },
               }}
             />
 

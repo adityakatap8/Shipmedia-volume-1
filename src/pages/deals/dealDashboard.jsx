@@ -150,16 +150,16 @@ export default function DealDashboard() {
     };
 
     // Fetch chat history for a specific user
-    const getChatHistory = async (dealId) => {
+    const getChatHistory = async (deal) => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}/message-history`, {
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/${deal._id}/message-history`, {
                 params: {
                     loggedInUserId: user._id,
                     loggedInUserRole: user.role,
-                    selectedUserId: selectedSeller || selectedDeal?.senderId || user.createdBy, // Use selectedSeller if available
+                    selectedUserId: selectedSeller || deal?.senderId,
                 },
             });
-            return response.data.history; // Return chat history
+            return response.data.history; 
         } catch (error) {
             console.error("Error fetching chat history:", error);
             return [];
@@ -221,7 +221,7 @@ export default function DealDashboard() {
         setDealId(deal._id);
         setSelectedDeal(deal);
         setSelectedUser(deal.senderId);
-        const history = await getChatHistory(deal._id);
+        const history = await getChatHistory(deal);
         setChatHistory(history);
         await markMessagesAsRead(user._id, deal._id);
     };
@@ -375,7 +375,7 @@ export default function DealDashboard() {
     };
 
     const handleSellerChange = async (selectedValue) => {
-        console.log("Selected Seller:", selectedValue);
+        console.log("Selected Seller:", selectedDeal, selectedValue);
         setSelectedSeller(selectedValue);
         const history = await getChatHistory(selectedDeal._id);
         setChatHistory(history);
