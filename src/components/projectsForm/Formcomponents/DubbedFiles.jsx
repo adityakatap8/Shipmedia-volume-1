@@ -36,55 +36,52 @@ const DubbedFiles = ({
     onInputChange({ dubbedFiles: entries });
   };
 
- const baseUrl = `https://mediashippers-filestash.s3.amazonaws.com`;
+  const handleChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedEntries = [...dubbedEntries];
+    updatedEntries[index] = { ...updatedEntries[index], [name]: value };
 
-const handleChange = (index, e) => {
-  const { name, value } = e.target;
-  const updatedEntries = [...dubbedEntries];
-  updatedEntries[index] = { ...updatedEntries[index], [name]: value };
+    if (name === 'dubbedTrailerUrl' && value) {
+      const fileName = value.split('/').pop();
+      const projectFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
+      const language = updatedEntries[index].language || 'unknown_language';
 
-  if (name === 'dubbedTrailerUrl' && value) {
-    const fileName = value.split('/').pop();
-    const projectFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
+      const constructedS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/${language}/${fileName}`;
+
+      updatedEntries[index].dubbedTrailerFileName = fileName;
+      updatedEntries[index].dubbedTrailerUrl = constructedS3Url;
+    }
+
+    setDubbedEntries(updatedEntries);
+    updateParent(updatedEntries);
+  };
+
+  const handleFileChange = (index, e, fieldName) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const updatedEntries = [...dubbedEntries];
+    updatedEntries[index] = { ...updatedEntries[index], [fieldName]: file };
+
     const language = updatedEntries[index].language || 'unknown_language';
+    const projectFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
+    const fileName = file.name;
 
-    const constructedHttpsUrl = `${baseUrl}/${orgName}/${projectFolder}/trailers/${language}/${fileName}`;
+    if (fieldName === 'dubbedTrailerFile') {
+      const dubbedS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
+      updatedEntries[index].dubbedTrailerFileName = fileName;
+      updatedEntries[index].dubbedTrailerUrl = dubbedS3Url;
+    }
 
-    updatedEntries[index].dubbedTrailerFileName = fileName;
-    updatedEntries[index].dubbedTrailerUrl = constructedHttpsUrl;
-  }
+    if (fieldName === 'dubbedSubtitleFile') {
+      const subtitleS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/srt files/${language}/${fileName}`;
+      updatedEntries[index].dubbedSubtitleFileName = fileName;
+      updatedEntries[index].dubbedSubtitleUrl = subtitleS3Url;
+    }
 
-  setDubbedEntries(updatedEntries);
-  updateParent(updatedEntries);
-};
-
-const handleFileChange = (index, e, fieldName) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const updatedEntries = [...dubbedEntries];
-  updatedEntries[index] = { ...updatedEntries[index], [fieldName]: file };
-
-  const language = updatedEntries[index].language || 'unknown_language';
-  const projectFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
-  const fileName = file.name;
-
-  if (fieldName === 'dubbedTrailerFile') {
-    const dubbedHttpsUrl = `${baseUrl}/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
-    updatedEntries[index].dubbedTrailerFileName = fileName;
-    updatedEntries[index].dubbedTrailerUrl = dubbedHttpsUrl;
-  }
-
-  if (fieldName === 'dubbedSubtitleFile') {
-    const subtitleHttpsUrl = `${baseUrl}/${orgName}/${projectFolder}/srt files/${language}/${fileName}`;
-    updatedEntries[index].dubbedSubtitleFileName = fileName;
-    updatedEntries[index].dubbedSubtitleUrl = subtitleHttpsUrl;
-  }
-
-  setDubbedEntries(updatedEntries);
-  updateParent(updatedEntries);
-};
-
+    setDubbedEntries(updatedEntries);
+    updateParent(updatedEntries);
+  };
 
   const resetFileField = (index, fieldName) => {
     const updatedEntries = [...dubbedEntries];
