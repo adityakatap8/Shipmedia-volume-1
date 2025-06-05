@@ -21,6 +21,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 
+
 function ProjectsForm() {
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -322,8 +323,8 @@ function ProjectsForm() {
     const trailerFileUrl = formData.projectInfo.s3SourceTrailerUrl;
     const movieFileUrl = formData.projectInfo.s3SourceMovieUrl;
 
-    const accessKeyId = 'AKIATKPD3X56JTYCQOO7';
-    const secretAccessKey = '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';
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
     if (!accessKeyId || !secretAccessKey) {
       console.error("Access keys are missing!");
