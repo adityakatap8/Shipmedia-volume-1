@@ -323,8 +323,7 @@ function ProjectsForm() {
     const trailerFileUrl = formData.projectInfo.s3SourceTrailerUrl;
     const movieFileUrl = formData.projectInfo.s3SourceMovieUrl;
 
-    // const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    // const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+    
 
     if (!accessKeyId || !secretAccessKey) {
       console.error("Access keys are missing!");
