@@ -27,21 +27,22 @@ import {
     Dialog,
     Menu,
     InputLabel,
+    Collapse,
 } from "@mui/material"
 import {
     Search,
     BarChart,
     TableRows,
     CalendarToday,
-    ArrowDownward,
     InfoOutlined,
     CheckCircleOutline,
     ArrowForward,
     MoreVert,
     Visibility,
-    Edit,
     Message,
     Send,
+    KeyboardArrowDown,
+    KeyboardArrowRight,
 } from "@mui/icons-material"
 import axios from "axios"
 import { useSelector } from "react-redux"
@@ -51,72 +52,112 @@ import Loader from "../../components/loader/Loader"
 export default function DealDashboard() {
     const navigate = useNavigate()
     const { user } = useSelector((state) => state.auth.user)
+    console.log("User:", user)
     const [viewMode, setViewMode] = useState("table")
     const [tabValue, setTabValue] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
     const [sortOrder, setSortOrder] = useState("descending")
     const [sortField, setSortField] = useState("date")
-    const [dealsData, setDealsData] = useState([]);
-    const [dealcounts, setDealCounts] = useState({});
-    const [chatOpen, setChatOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [messageText, setMessageText] = useState("");
-    const [chatHistory, setChatHistory] = useState([]);
-    const [dealId, setDealId] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [menuAnchor, setMenuAnchor] = useState(null);
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [selectedDealId, setSelectedDealId] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [remark, setRemark] = useState("");
-    const [actionStatus, setActionStatus] = useState("");
-    const [selectedSeller, setSelectedSeller] = useState(null);
-    const [selectedDeal, setSelectedDeal] = useState(null);
-    const [sellers, setSellers] = useState([]);
+    const [dealsData, setDealsData] = useState([])
+    const [dealcounts, setDealCounts] = useState({})
+    const [chatOpen, setChatOpen] = useState(false)
+    const [selectedUser, setSelectedUser] = useState(null)
+    const [messageText, setMessageText] = useState("")
+    const [chatHistory, setChatHistory] = useState([])
+    const [dealId, setDealId] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [menuAnchor, setMenuAnchor] = useState(null)
+    const [menuOpen, setMenuOpen] = useState(false)
+    const [selectedDealId, setSelectedDealId] = useState(null)
+    const [modalOpen, setModalOpen] = useState(false)
+    const [remark, setRemark] = useState("")
+    const [actionStatus, setActionStatus] = useState("")
+    const [selectedSeller, setSelectedSeller] = useState(null)
+    const [selectedDeal, setSelectedDeal] = useState(null)
+    const [sellers, setSellers] = useState([])
+    const [expandedRows, setExpandedRows] = useState(new Set())
+    const [subDeals, setSubDeals] = useState({})
+
     console.log("sellers", sellers)
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue)
     }
 
+    // Toggle row expansion
+    const handleRowExpand = (dealId) => {
+        setExpandedRows((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(dealId)) {
+                newSet.delete(dealId);
+            } else {
+                newSet.add(dealId);
+            }
+            return newSet;
+        });
+    };
+
+
+    // Fetch sub-deals for a specific deal
+    const fetchSubDeals = async (dealId) => {
+        try {
+            setLoading(true)
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}/sub-deals`)
+            const subDealData = response.data.subDeals || []
+
+            setSubDeals((prev) => ({
+                ...prev,
+                [dealId]: subDealData,
+            }))
+        } catch (error) {
+            console.error("Error fetching sub-deals:", error)
+            // Set empty array if no sub-deals found
+            setSubDeals((prev) => ({
+                ...prev,
+                [dealId]: [],
+            }))
+        } finally {
+            setLoading(false)
+        }
+    }
+
     // Filter deals based on tab selection and search term
     const getFilteredDeals = () => {
-        let filtered = [...dealsData];
+        let filtered = [...dealsData]
 
         // Filter by tab
         if (tabValue === 0) {
             filtered = filtered
         } else if (tabValue === 1) {
-            filtered = filtered.filter((deal) => deal.senderId === user._id);
+            filtered = filtered.filter((deal) => deal.senderId === user._id)
         } else if (tabValue === 2) {
-            filtered = filtered.filter((deal) => deal.assignedTo === user._id);
+            filtered = filtered.filter((deal) => deal.assignedTo === user._id)
         } else if (tabValue === 3) {
-            filtered = filtered.filter((deal) => deal.status === "pending");
+            filtered = filtered.filter((deal) => deal.status === "pending")
         } else if (tabValue === 4) {
-            filtered = filtered.filter((deal) => deal.status === "closed");
+            filtered = filtered.filter((deal) => deal.status === "closed")
         } else if (tabValue === 5) {
-            filtered = filtered.filter((deal) => deal.status === "cancelled");
+            filtered = filtered.filter((deal) => deal.status === "cancelled")
         }
 
         // Debugging: Log the filtered deals
-        console.log("Filtered Deals:", filtered);
+        console.log("Filtered Deals:", filtered)
 
-        return filtered;
-    };
+        return filtered
+    }
 
     const filteredDeals = getFilteredDeals()
     console.log("Filtered Deals:", filteredDeals)
 
-
     const getStatusLabel = (status, userRole) => {
         if (userRole === "Buyer" && status === "sent_to_buyer") {
-            return "received_from_shipper";
+            return "received_from_shipper"
         }
         if (userRole === "Admin" && status === "sent_to_shipper") {
-            return "received_from_buyer";
+            return "received_from_buyer"
         }
-        return status; // Default status
-    };
+        return status // Default status
+    }
 
     // Get status chip color
     const getStatusColor = (status) => {
@@ -136,18 +177,18 @@ export default function DealDashboard() {
 
     const fetchDeals = async () => {
         try {
-            setLoading(true); // Show loader
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`);
-            const data = await response.data;
-            console.log("Fetched Deals:", data.deals);
-            setDealsData(data.deals);
-            setDealCounts(data.counts); // Assuming the API returns counts for each status
+            setLoading(true) // Show loader
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`)
+            const data = await response.data
+            console.log("Fetched Deals:", data.deals)
+            setDealsData(data.deals)
+            setDealCounts(data.counts) // Assuming the API returns counts for each status
         } catch (error) {
-            console.error("Error fetching deals:", error);
+            console.error("Error fetching deals:", error)
         } finally {
-            setLoading(false); // Hide loader
+            setLoading(false) // Hide loader
         }
-    };
+    }
 
     // Fetch chat history for a specific user
     const getChatHistory = async (deal) => {
@@ -158,13 +199,13 @@ export default function DealDashboard() {
                     loggedInUserRole: user.role,
                     selectedUserId: selectedSeller || deal?.senderId,
                 },
-            });
-            return response.data.history; 
+            })
+            return response.data.history
         } catch (error) {
-            console.error("Error fetching chat history:", error);
-            return [];
+            console.error("Error fetching chat history:", error)
+            return []
         }
-    };
+    }
 
     // Send a message to a specific user
     const sendMessage = async (message) => {
@@ -173,214 +214,410 @@ export default function DealDashboard() {
                 senderId: user._id,
                 receiverId: user.role === "Admin" ? selectedUser : user.createdBy,
                 message,
-            });
-            return response.data; // Return the sent message
+            })
+            return response.data // Return the sent message
         } catch (error) {
-            console.error("Error sending message:", error);
-            return null;
+            console.error("Error sending message:", error)
+            return null
         }
-    };
+    }
 
     // Get unread message count for the current user
     const getUnreadMessageCount = async () => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/unread-count/${dealId}/${user._id}`);
-            return response.data.unreadCount; // Return unread message count
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/unread-count/${dealId}/${user._id}`)
+            return response.data.unreadCount // Return unread message count
         } catch (error) {
-            console.error("Error fetching unread message count:", error);
-            return 0;
+            console.error("Error fetching unread message count:", error)
+            return 0
         }
-    };
+    }
 
     // Mark messages as read for a specific user
     const markMessagesAsRead = async (userId, dealId) => {
         try {
-            await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/mark-read/${userId}`);
+            await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/mark-read/${userId}`)
         } catch (error) {
-            console.error("Error marking messages as read:", error);
+            console.error("Error marking messages as read:", error)
         }
-    };
+    }
 
     useEffect(() => {
-        fetchDeals();
+        fetchDeals()
     }, [chatOpen])
 
     useEffect(() => {
         const fetchSellers = async () => {
-          if (selectedDeal && selectedDeal.movieDetails) {
-            const sellerData = await getUniqueSellers(selectedDeal.movieDetails); // Await the result
-            setSellers(sellerData); // Set the resolved value
-          }
-        };
-      
-        fetchSellers();
-      }, [selectedDeal]);
+            if (selectedDeal && selectedDeal.movieDetails) {
+                const sellerData = await getUniqueSellers(selectedDeal.movieDetails) // Await the result
+                setSellers(sellerData) // Set the resolved value
+            }
+        }
+
+        fetchSellers()
+    }, [selectedDeal])
 
     const handleOpenChat = async (deal) => {
-        setChatOpen(true);
-        setDealId(deal._id);
-        setSelectedDeal(deal);
-        setSelectedUser(deal.senderId);
-        const history = await getChatHistory(deal);
-        setChatHistory(history);
-        await markMessagesAsRead(user._id, deal._id);
-    };
+        console.log("Opening chat for deal:", deal)
+        setChatOpen(true)
+        setDealId(deal._id)
+        setSelectedDeal(deal)
+        setSelectedUser(deal.senderId)
+        const history = await getChatHistory(deal)
+        setChatHistory(history)
+        await markMessagesAsRead(user._id, deal._id)
+    }
 
     const handleCloseChat = () => {
-        setChatOpen(false);
-    };
+        setChatOpen(false)
+    }
 
     const handleSendMessage = async () => {
-        if (!messageText.trim()) return;
+        if (!messageText.trim()) return
 
-        await sendMessage(messageText);
+        await sendMessage(messageText)
 
-        const history = await getChatHistory(dealId);
-        setChatHistory(history);
-        setMessageText("");
-    };
+        const history = await getChatHistory(dealId)
+        setChatHistory(history)
+        setMessageText("")
+    }
 
     if (loading) {
-        return <Loader />;
+        return <Loader />
     }
 
     const handleSendDeal = async (dealId) => {
         try {
-            setLoading(true); // Show loader
-            const response = await axios.post('https://www.mediashippers.com/api/deal/split-to-sellers', {
+            setLoading(true) // Show loader
+            const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
                 dealId, // Include dealId in the request body
-            });
-            console.log("Send Deal Response:", response.data);
+            })
+            console.log("Send Deal Response:", response.data)
             // Optionally, refresh the deals data or show a success message
-            fetchDeals();
+            fetchDeals()
         } catch (error) {
-            console.error("Error sending deal:", error);
+            console.error("Error sending deal:", error)
         } finally {
-            setLoading(false); // Hide loader
+            setLoading(false) // Hide loader
         }
-    };
+    }
 
     const handleMenuOpen = (event, dealId) => {
-        setMenuAnchor(event.currentTarget);
-        setMenuOpen(true);
-        setSelectedDealId(dealId);
-    };
+        setMenuAnchor(event.currentTarget)
+        setMenuOpen(true)
+        setSelectedDealId(dealId)
+    }
 
     const handleMenuClose = () => {
-        setMenuAnchor(null);
-        setMenuOpen(false);
-        setSelectedDealId(null);
-    };
+        setMenuAnchor(null)
+        setMenuOpen(false)
+        setSelectedDealId(null)
+    }
 
     const handleAccept = async (dealId) => {
         try {
-            setLoading(true);
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`);
-            console.log("Accept Response:", response.data);
-            fetchDeals(); // Refresh deals
+            setLoading(true)
+            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`)
+            console.log("Accept Response:", response.data)
+            fetchDeals() // Refresh deals
         } catch (error) {
-            console.error("Error accepting deal:", error);
+            console.error("Error accepting deal:", error)
         } finally {
-            setLoading(false);
-            handleMenuClose();
+            setLoading(false)
+            handleMenuClose()
         }
-    };
+    }
 
     const handleNegotiate = async (dealId) => {
         try {
-            setLoading(true);
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`);
-            console.log("Negotiate Response:", response.data);
-            fetchDeals(); // Refresh deals
+            setLoading(true)
+            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`)
+            console.log("Negotiate Response:", response.data)
+            fetchDeals() // Refresh deals
         } catch (error) {
-            console.error("Error negotiating deal:", error);
+            console.error("Error negotiating deal:", error)
         } finally {
-            setLoading(false);
-            handleMenuClose();
+            setLoading(false)
+            handleMenuClose()
         }
-    };
+    }
 
     const handleReject = async (dealId) => {
         try {
-            setLoading(true);
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`);
-            console.log("Reject Response:", response.data);
-            fetchDeals(); // Refresh deals
+            setLoading(true)
+            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`)
+            console.log("Reject Response:", response.data)
+            fetchDeals() // Refresh deals
         } catch (error) {
-            console.error("Error rejecting deal:", error);
+            console.error("Error rejecting deal:", error)
         } finally {
-            setLoading(false);
-            handleMenuClose();
+            setLoading(false)
+            handleMenuClose()
         }
-    };
+    }
 
     const handleActionClick = async (status, movies) => {
         if (status === "accepted") {
             try {
-                setLoading(true); // Show loader
+                setLoading(true) // Show loader
                 const moviesPayload = movies.map((movie) => ({
                     movieId: movie.movieId, // Assuming movieId is available in the movie object
                     status: "accepted", // Use the status parameter
                     remarks: "Accepted successfully", // Example remark (can be dynamic)
-                }));
+                }))
                 const response = await axios.patch(`https://www.mediashippers.com/api/deal/${selectedDealId}/action`, {
-                    movies: moviesPayload
-                }
-                );
-                console.log("Accept Response:", response.data);
-                fetchDeals(); // Refresh deals
+                    movies: moviesPayload,
+                })
+                console.log("Accept Response:", response.data)
+                fetchDeals() // Refresh deals
             } catch (error) {
-                console.error("Error accepting deal:", error);
+                console.error("Error accepting deal:", error)
             } finally {
-                setLoading(false); // Hide loader
-                handleMenuClose(); // Close the menu
+                setLoading(false) // Hide loader
+                handleMenuClose() // Close the menu
             }
         } else {
-            setActionStatus(status); // Set the status for other actions
-            setModalOpen(true); // Open the modal for "Negotiate" or "Reject"
+            setActionStatus(status) // Set the status for other actions
+            setModalOpen(true) // Open the modal for "Negotiate" or "Reject"
         }
-    };
+    }
 
     const handleModalClose = () => {
-        setModalOpen(false); // Close the modal
-        setRemark(""); // Reset the remark field
-    };
+        setModalOpen(false) // Close the modal
+        setRemark("") // Reset the remark field
+    }
 
     const handleSubmitAction = async () => {
         try {
-            setLoading(true);
+            setLoading(true)
 
             const response = await axios.patch(`https://www.mediashippers.com/api/deal/${selectedDealId}/action`, {
                 status: actionStatus, // Use the actionStatus state
                 remark: remark, // Include the remark if provided
-            });
+            })
 
-            console.log(`${actionStatus} Response:`, response.data);
-            fetchDeals(); // Refresh deals
+            console.log(`${actionStatus} Response:`, response.data)
+            fetchDeals() // Refresh deals
         } catch (error) {
-            console.error(`Error performing ${actionStatus} action:`, error);
+            console.error(`Error performing ${actionStatus} action:`, error)
         } finally {
-            setLoading(false); // Hide loader
-            handleModalClose(); // Close the modal
+            setLoading(false) // Hide loader
+            handleModalClose() // Close the modal
         }
-    };
-
-    const getUniqueSellers = async (movieDetails) => {
-        const sellers = movieDetails.map((movie) => movie.userId);
-
-        // Remove duplicates
-        const uniqueSellerIds = [...new Set(sellers)];
-        console.log("Unique Seller IDs:", uniqueSellerIds);
-        return uniqueSellerIds;
-    };
-
-    const handleSellerChange = async (selectedValue) => {
-        console.log("Selected Seller:", selectedDeal, selectedValue);
-        setSelectedSeller(selectedValue);
-        const history = await getChatHistory(selectedDeal._id);
-        setChatHistory(history);
     }
 
+    const getUniqueSellers = async (movieDetails) => {
+        const sellers = movieDetails.map((movie) => movie.userId)
+
+        // Remove duplicates
+        const uniqueSellerIds = [...new Set(sellers)]
+        console.log("Unique Seller IDs:", uniqueSellerIds)
+        return uniqueSellerIds
+    }
+
+    const handleSellerChange = async (selectedValue) => {
+        console.log("Selected Seller:", selectedDeal, selectedValue)
+        setSelectedSeller(selectedValue)
+        const history = await getChatHistory(selectedDeal._id)
+        setChatHistory(history)
+    }
+
+    // Render table row (for both main deals and sub-deals)
+    const renderTableRow = (deal, isSubDeal = false) => (
+        <TableRow
+            key={deal._id}
+            sx={{
+                "&:last-child td, &:last-child th": { border: 0 },
+                "& td": {
+                    color: "white",
+                    borderBottom: "1px solid #2a2a3e",
+                    paddingLeft: isSubDeal ? "40px" : "16px", // Indent sub-deals
+                },
+                transition: "background-color 0.2s",
+                "&:hover": {
+                    bgcolor: "#252535",
+                },
+                bgcolor: isSubDeal ? "#1e1e2e" : "transparent", // Slightly different background for sub-deals
+            }}
+        >
+            <TableCell sx={{ color: "inherit" }}>
+                {!isSubDeal && (
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <IconButton
+                            size="small"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleRowExpand(deal._id)
+                            }}
+                            sx={{
+                                color: "white",
+                                marginRight: 1,
+                                padding: "2px",
+                            }}
+                        >
+                            {expandedRows.has(deal._id) ? (
+                                <KeyboardArrowDown fontSize="small" />
+                            ) : (
+                                <KeyboardArrowRight fontSize="small" />
+                            )}
+                        </IconButton>
+                        {deal.senderId}
+                    </Box>
+                )}
+                {isSubDeal && (
+                    <Box sx={{ display: "flex", alignItems: "center", paddingLeft: "24px" }}>
+                        <Typography variant="body2" sx={{ color: "#a0a0b0", marginRight: 1 }}>
+                            └
+                        </Typography>
+                        {deal.senderId}
+                    </Box>
+                )}
+            </TableCell>
+            <TableCell sx={{ color: "inherit" }}>
+                {new Date(deal.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                })}
+            </TableCell>
+            <TableCell sx={{ color: "inherit" }}>{deal.assignedTo}</TableCell>
+            <TableCell sx={{ color: "inherit" }}>
+                {new Date(deal.updatedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                })}
+            </TableCell>
+            <TableCell sx={{ color: "inherit", fontWeight: "bold" }}>0.00</TableCell>
+            <TableCell sx={{ color: "inherit" }}>
+                <Chip
+                    label={getStatusLabel(deal.status, user.role)}
+                    sx={{
+                        bgcolor: getStatusColor(deal.status).bg,
+                        color: getStatusColor(deal.status).color,
+                        borderRadius: "4px",
+                        height: "24px",
+                    }}
+                />
+            </TableCell>
+            <TableCell sx={{ color: "inherit" }}>
+                <Box sx={{ display: "flex", gap: "4px" }}>
+                    {/* View Details Button */}
+                    <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                        <IconButton
+                            onClick={() => navigate(`/deal-details/${deal._id}`)}
+                            size="small"
+                            sx={{
+                                color: "#a855f7",
+                                "&:hover": {
+                                    bgcolor: "rgba(168, 85, 247, 0.1)",
+                                    transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s",
+                            }}
+                        >
+                            <Visibility fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+
+                    {/* Open Chat Button */}
+                    <Tooltip title="Open Chat" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                        <IconButton
+                            size="small"
+                            onClick={() => handleOpenChat(deal)}
+                            sx={{
+                                color: "#3a7bd5",
+                                "&:hover": {
+                                    bgcolor: "rgba(58, 123, 213, 0.1)",
+                                    transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s",
+                            }}
+                        >
+                            <Message fontSize="small" />
+                            {deal.unreadMessageCount > 0 && (
+                                <Chip
+                                    label={deal.unreadMessageCount}
+                                    size="small"
+                                    sx={{
+                                        position: "absolute",
+                                        top: 0,
+                                        right: 0,
+                                        bgcolor: "#f44336",
+                                        color: "white",
+                                        fontSize: "10px",
+                                        height: "12px",
+                                        minWidth: "12px",
+                                        borderRadius: "50%",
+                                    }}
+                                />
+                            )}
+                        </IconButton>
+                    </Tooltip>
+
+                    {/* Conditional Rendering for Seller */}
+                    {user.role === "Seller" || user.role === "Buyer" ? (
+                        <>
+                            <Tooltip title="More Actions" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                <IconButton
+                                    size="small"
+                                    onClick={(event) => handleMenuOpen(event, deal._id)}
+                                    disabled={deal.status === "sent_to_shipper"} // Disable if status is 'sent_to_shipper'
+                                    sx={{
+                                        color: deal.status === "sent_to_shipper" ? "#9e9e9e" : "#9e9e9e",
+                                        "&:hover": {
+                                            bgcolor: deal.status === "sent_to_shipper" ? "transparent" : "rgba(158, 158, 158, 0.1)",
+                                            transform: deal.status === "sent_to_shipper" ? "none" : "scale(1.1)",
+                                        },
+                                        transition: "all 0.2s",
+                                    }}
+                                >
+                                    <MoreVert fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={menuAnchor}
+                                open={menuOpen && selectedDealId === deal._id}
+                                onClose={handleMenuClose}
+                                PaperProps={{
+                                    sx: {
+                                        bgcolor: "#1a1a2e",
+                                        color: "white",
+                                        "& .MuiMenuItem-root": {
+                                            "&:hover": {
+                                                bgcolor: "#2a2a3e",
+                                            },
+                                        },
+                                    },
+                                }}
+                            >
+                                <MenuItem onClick={() => handleActionClick("accepted", deal.movies)}>Accept</MenuItem>
+                                <MenuItem onClick={() => handleActionClick("negotiation", deal.movies)}>Negotiate</MenuItem>
+                                <MenuItem onClick={() => handleActionClick("rejected", deal.movies)}>Reject</MenuItem>
+                            </Menu>
+                        </>
+                    ) : (
+                        <Tooltip title="Send Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                            <IconButton
+                                size="small"
+                                onClick={() => handleSendDeal(deal._id)}
+                                sx={{
+                                    color: "#4caf50",
+                                    "&:hover": {
+                                        bgcolor: "rgba(76, 175, 80, 0.1)",
+                                        transform: "scale(1.1)",
+                                    },
+                                    transition: "all 0.2s",
+                                }}
+                            >
+                                <Send fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </Box>
+            </TableCell>
+        </TableRow>
+    )
 
     return (
         <Box
@@ -833,7 +1070,7 @@ export default function DealDashboard() {
                 </Grid>
             )}
 
-            {/* Table View */}
+            {/* Table View with Expandable Rows */}
             {viewMode === "table" && (
                 <TableContainer
                     component={Paper}
@@ -859,7 +1096,7 @@ export default function DealDashboard() {
                             >
                                 <TableCell sx={{ color: "inherit" }}>Sender ID</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Created Date</TableCell>
-                                <TableCell sx={{ color: "inherit" }}>Reciver ID</TableCell>
+                                <TableCell sx={{ color: "inherit" }}>Receiver ID</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Updated Date</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Amount</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Status</TableCell>
@@ -868,165 +1105,38 @@ export default function DealDashboard() {
                         </TableHead>
                         <TableBody>
                             {filteredDeals.map((deal) => (
-                                <TableRow
-                                    key={deal._id}
-                                    sx={{
-                                        "&:last-child td, &:last-child th": { border: 0 },
-                                        "& td": {
-                                            color: "white",
-                                            borderBottom: "1px solid #2a2a3e",
-                                        },
-                                        transition: "background-color 0.2s",
-                                        "&:hover": {
-                                            bgcolor: "#252535",
-                                        },
-                                    }}
-                                >
-                                    <TableCell sx={{ color: "inherit" }}>{deal.senderId}</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        {new Date(deal.createdAt).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        })}
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>{deal.assignedTo}</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        {new Date(deal.updatedAt).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        })}
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit", fontWeight: "bold" }}>0.00</TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        <Chip
-                                            label={getStatusLabel(deal.status, user.role)}
-                                            sx={{
-                                                bgcolor: getStatusColor(deal.status).bg,
-                                                color: getStatusColor(deal.status).color,
-                                                borderRadius: "4px",
-                                                height: "24px",
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell sx={{ color: "inherit" }}>
-                                        <Box sx={{ display: "flex", gap: "4px" }}>
-                                            {/* View Details Button */}
-                                            <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                <IconButton
-                                                    onClick={() => navigate(`/deal-details/${deal._id}`)}
-                                                    size="small"
-                                                    sx={{
-                                                        color: "#a855f7",
-                                                        "&:hover": {
-                                                            bgcolor: "rgba(168, 85, 247, 0.1)",
-                                                            transform: "scale(1.1)",
-                                                        },
-                                                        transition: "all 0.2s",
-                                                    }}
-                                                >
-                                                    <Visibility fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
+                                <>
+                                    {/* Main Deal Row */}
+                                    {renderTableRow(deal, false)}
 
-                                            {/* Open Chat Button */}
-                                            <Tooltip title="Open Chat" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleOpenChat(deal)}
-                                                    sx={{
-                                                        color: "#3a7bd5",
-                                                        "&:hover": {
-                                                            bgcolor: "rgba(58, 123, 213, 0.1)",
-                                                            transform: "scale(1.1)",
-                                                        },
-                                                        transition: "all 0.2s",
-                                                    }}
-                                                >
-                                                    <Message fontSize="small" />
-                                                    {deal.unreadMessageCount > 0 && (
-                                                        <Chip
-                                                            label={deal.unreadMessageCount}
-                                                            size="small"
-                                                            sx={{
-                                                                position: "absolute",
-                                                                top: 0,
-                                                                right: 0,
-                                                                bgcolor: "#f44336",
-                                                                color: "white",
-                                                                fontSize: "10px",
-                                                                height: "12px",
-                                                                minWidth: "12px",
-                                                                borderRadius: "50%",
-                                                            }}
-                                                        />
-                                                    )}
-                                                </IconButton>
-                                            </Tooltip>
-
-                                            {/* Conditional Rendering for Seller */}
-                                            {user.role === "Seller" || user.role === 'Buyer' ? (
-                                                <>
-                                                    <Tooltip title="More Actions" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={(event) => handleMenuOpen(event, deal._id)}
-                                                            disabled={deal.status === "sent_to_shipper"} // Disable if status is 'sent_to_shipper'
-                                                            sx={{
-                                                                color: deal.status === "sent_to_shipper" ? "#9e9e9e" : "#9e9e9e",
-                                                                "&:hover": {
-                                                                    bgcolor: deal.status === "sent_to_shipper" ? "transparent" : "rgba(158, 158, 158, 0.1)",
-                                                                    transform: deal.status === "sent_to_shipper" ? "none" : "scale(1.1)",
-                                                                },
-                                                                transition: "all 0.2s",
-                                                            }}
-                                                        >
-                                                            <MoreVert fontSize="small" />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                    <Menu
-                                                        anchorEl={menuAnchor}
-                                                        open={menuOpen && selectedDealId === deal._id}
-                                                        onClose={handleMenuClose}
-                                                        PaperProps={{
-                                                            sx: {
-                                                                bgcolor: "#1a1a2e",
-                                                                color: "white",
-                                                                "& .MuiMenuItem-root": {
-                                                                    "&:hover": {
-                                                                        bgcolor: "#2a2a3e",
-                                                                    },
-                                                                },
-                                                            },
-                                                        }}
-                                                    >
-                                                        <MenuItem onClick={() => handleActionClick("accepted", deal.movies)}>Accept</MenuItem>
-                                                        <MenuItem onClick={() => handleActionClick("negotiation", deal.movies)}>Negotiate</MenuItem>
-                                                        <MenuItem onClick={() => handleActionClick("rejected", deal.movies)}>Reject</MenuItem>
-                                                    </Menu>
-                                                </>
-                                            ) : (
-                                                <Tooltip title="Send Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleSendDeal(deal._id)}
-                                                        sx={{
-                                                            color: "#4caf50",
-                                                            "&:hover": {
-                                                                bgcolor: "rgba(76, 175, 80, 0.1)",
-                                                                transform: "scale(1.1)",
-                                                            },
-                                                            transition: "all 0.2s",
-                                                        }}
-                                                    >
-                                                        <Send fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
+                                    {/* Sub-deals Row (Collapsible) */}
+                                    {
+                                        user.role === 'Admin' && (
+                                            <TableRow>
+                                                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+                                                    <Collapse in={expandedRows.has(deal._id)} timeout="auto" unmountOnExit>
+                                                        <Box sx={{ margin: 1 }}>
+                                                            {deal.childDeals && deal.childDeals.length > 0 ? (
+                                                                deal.childDeals.map((childDeal) => renderTableRow(childDeal, true))
+                                                            ) : (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        color: "#a0a0b0",
+                                                                        textAlign: "center",
+                                                                        padding: 2,
+                                                                    }}
+                                                                >
+                                                                    No sub-deals available
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    </Collapse>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    }
+                                </>
                             ))}
                         </TableBody>
                     </Table>
@@ -1051,10 +1161,8 @@ export default function DealDashboard() {
                 }}
             >
                 <Box sx={{ p: 2, borderBottom: "1px solid #2a2a3e" }}>
-                    <Typography variant="h6">
-                        Chat with {selectedUser?.name || "User"}
-                    </Typography>
-                    {user.role === 'Admin' && (
+                    <Typography variant="h6">Chat with {selectedUser?.name || "User"}</Typography>
+                    {user.role === "Admin" && (
                         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, alignItems: "center" }}>
                             <Button
                                 variant="contained"
@@ -1078,11 +1186,7 @@ export default function DealDashboard() {
                                     height: 40,
                                 }}
                             >
-                                <InputLabel
-                                    size="small"
-                                    id="seller-select-label"
-                                    sx={{ color: "#a0a0b0", fontSize: "0.875rem" }}
-                                >
+                                <InputLabel size="small" id="seller-select-label" sx={{ color: "#a0a0b0", fontSize: "0.875rem" }}>
                                     Select Seller
                                 </InputLabel>
                                 <Select
@@ -1181,12 +1285,7 @@ export default function DealDashboard() {
                             },
                         }}
                     />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSendMessage}
-                        sx={{ borderRadius: 2 }}
-                    >
+                    <Button variant="contained" color="primary" onClick={handleSendMessage} sx={{ borderRadius: 2 }}>
                         Send
                     </Button>
                 </Box>
@@ -1245,20 +1344,10 @@ export default function DealDashboard() {
                     />
                 </Box>
                 <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={handleModalClose}
-                        sx={{ borderRadius: 2 }}
-                    >
+                    <Button variant="outlined" color="secondary" onClick={handleModalClose} sx={{ borderRadius: 2 }}>
                         Cancel
                     </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSubmitAction}
-                        sx={{ borderRadius: 2 }}
-                    >
+                    <Button variant="contained" color="primary" onClick={handleSubmitAction} sx={{ borderRadius: 2 }}>
                         Submit
                     </Button>
                 </Box>
