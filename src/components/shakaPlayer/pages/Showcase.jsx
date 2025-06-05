@@ -1639,9 +1639,8 @@ export default function MovieGrid() {
 
               const title = project?.projectTitle || "Untitled Project";
               const poster = project?.posterFileName;
-              const logoImageURL = poster
-                ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${(title)}/film stills/${poster}`
-                : defaultPoster;
+           const logoImageURL = project?.projectPosterS3Url || defaultPoster;
+
               console.log("poster filen name", poster)
               console.log("logo image url", logoImageURL)
               console.log("orgname", orgName)
