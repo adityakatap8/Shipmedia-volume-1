@@ -21,6 +21,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 
+
 function ProjectsForm() {
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -325,8 +326,7 @@ const validateForm = () => {
     const trailerFileUrl = formData.projectInfo.s3SourceTrailerUrl;
     const movieFileUrl = formData.projectInfo.s3SourceMovieUrl;
 
-    const accessKeyId = 'AKIATKPD3X56KBBSX2K2';
-    const secretAccessKey = '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';
+   
 
     if (!accessKeyId || !secretAccessKey) {
       console.error("Access keys are missing!");
