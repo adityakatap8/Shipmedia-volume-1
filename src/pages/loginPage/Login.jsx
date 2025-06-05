@@ -1,5 +1,3 @@
-"use client"
-
 import { Box, Container, Typography, TextField, Button, Paper, InputAdornment, IconButton, Link } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import VisibilityIcon from "@mui/icons-material/Visibility"

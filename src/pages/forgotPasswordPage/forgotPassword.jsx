@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Box, Container, Paper, Typography, TextField, Button, Link } from "@mui/material"
 import { createTheme, ThemeProvider } from "@mui/material/styles"
