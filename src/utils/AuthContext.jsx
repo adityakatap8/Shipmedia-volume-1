@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.get('https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/user', {
+      const response = await axios.get('https://media-shippers-backend.vercel.app/api/auth/user', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

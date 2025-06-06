@@ -122,7 +122,7 @@ function ProjectDashboard() {
           setLoading(true); // Show loader
           const token = Cookies.get("token");
           const response = await axios.get(
-            `https://media-shippers-backend-n73nu7q44.vercel.app/api/projectsInfo/userProjects/${user._id}`,
+            `https://media-shippers-backend.vercel.app/api/projectsInfo/userProjects/${user._id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -675,7 +675,7 @@ export default ProjectDashboard
 //           console.log("Making API call with token...");
   
 //           axios
-//             .get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/projects/${userData.userId}`, {
+//             .get(`https://media-shippers-backend.vercel.app/api/projects/${userData.userId}`, {
 //               headers: {
 //                 'Authorization': `Bearer ${token}`,
 //               },
@@ -720,7 +720,7 @@ export default ProjectDashboard
 //       setLoading(true);
 
 //       // Make request with cookies included
-//       axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/projects/${parsedUserData.userId}`, {
+//       axios.get(`https://media-shippers-backend.vercel.app/api/projects/${parsedUserData.userId}`, {
 //         withCredentials: true,
 //         headers: {
 //           Authorization: `Bearer ${Cookies.get("token")}`,
@@ -759,7 +759,7 @@ export default ProjectDashboard
 //       // Step 1: Create the project folder in S3
 //       axios
 //         .post(
-//           `https://media-shippers-backend-n73nu7q44.vercel.app/api/folders/create-project-folder`,
+//           `https://media-shippers-backend.vercel.app/api/folders/create-project-folder`,
 //           {
 //             orgName: orgName,
 //             projectName: projectName,
@@ -787,7 +787,7 @@ export default ProjectDashboard
 //           // Step 2: Create subfolders
 //           axios
 //             .post(
-//               `https://media-shippers-backend-n73nu7q44.vercel.app/api/folders/create-subfolders`,
+//               `https://media-shippers-backend.vercel.app/api/folders/create-subfolders`,
 //               {
 //                 orgName: orgName,
 //                 projectName: projectName,
@@ -807,7 +807,7 @@ export default ProjectDashboard
 //               // Step 3: Create project info in DB
 //               axios
 //                 .post(
-//                   `https://media-shippers-backend-n73nu7q44.vercel.app/api/projectsInfo/createProjectInfo`,
+//                   `https://media-shippers-backend.vercel.app/api/projectsInfo/createProjectInfo`,
 //                   {
 //                     projectName: projectName,
 //                     projectTitle: movieName,

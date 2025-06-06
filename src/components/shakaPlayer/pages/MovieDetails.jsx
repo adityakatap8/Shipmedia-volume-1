@@ -71,7 +71,7 @@ export default function MovieDetails() {
 
     try {
       const response = await axios.get(
-        `https://media-shippers-backend-n73nu7q44.vercel.app/api/project-form/data/${projectId}`,
+        `https://media-shippers-backend.vercel.app/api/project-form/data/${projectId}`,
         {
           withCredentials: true,
           headers: {
