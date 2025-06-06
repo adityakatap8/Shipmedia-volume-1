@@ -16,7 +16,7 @@ import ProjectsForm from '../../components/projectsForm/ProjectsForm';
 import ProjectsDashboard from '../../components/projectsDashboard/ProjectsDashboard';
 import ViewAndEditForm from '../../components/projectsForm/ViewAndEditForm';
 import BrowseFestival from '../../components/browseFestival/BrowseFestival';
-import UserManagement from '../../components/userManagement/managementPanel/userManagement';
+import UserManagement from '../../components/userManagement/managementPanel/UserManagement';
 import UserOrgManagement from '../userOrgRegister/userOrgForm';
 import DealDashboard from '../deals/dealDashboard';
 import CartPage from '../cart/CartPage';
