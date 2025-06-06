@@ -176,7 +176,7 @@ export default function DealDashboard() {
 
   const fetchDealDetails = async () => {
     try {
-      const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}`)
+      const response = await axios.get(`https://media-shippers-backend.vercel.app/api/deal/${dealId}`)
       console.log("response", response)
       const deal = response.data.deal
       setDeal(deal)

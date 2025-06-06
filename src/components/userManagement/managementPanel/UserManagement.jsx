@@ -16,7 +16,7 @@ function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true); // Start loading
     try {
-      const response = await axios.get('https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/all-users', {
+      const response = await axios.get('https://media-shippers-backend.vercel.app/api/auth/all-users', {
         withCredentials: true,
       });
       const allUsers = response.data.users;

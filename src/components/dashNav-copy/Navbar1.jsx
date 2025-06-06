@@ -4,7 +4,7 @@ import user from '../../assets/User1.jpg';
 
 const Navbar1 = ({ user }) => {
     const handleLogout = () => {
-        fetch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/logout`, { method: 'POST' })
+        fetch(`https://media-shippers-backend.vercel.app/api/auth/logout`, { method: 'POST' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

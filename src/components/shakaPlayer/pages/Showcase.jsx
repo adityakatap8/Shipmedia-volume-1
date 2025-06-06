@@ -178,7 +178,7 @@ export default function MovieGrid() {
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://media-shippers-backend-n73nu7q44.vercel.app/api/project-form/all-details?userId=${userId}&role=${role}`,
+          `https://media-shippers-backend.vercel.app/api/project-form/all-details?userId=${userId}&role=${role}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -971,7 +971,7 @@ export default function MovieGrid() {
     });
 
     try {
-      const response = await axios.post('https://media-shippers-backend-n73nu7q44.vercel.app/api/cart/add-to-cart', {
+      const response = await axios.post('https://media-shippers-backend.vercel.app/api/cart/add-to-cart', {
         userId,
         movies,
       });

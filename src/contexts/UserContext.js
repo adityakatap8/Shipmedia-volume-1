@@ -23,7 +23,7 @@ export const UserProvider = ({ children }) => {
 
       try {
         console.log('Fetching user data...');
-        const response = await fetch('https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/user', {
+        const response = await fetch('https://media-shippers-backend.vercel.app/api/auth/user', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`

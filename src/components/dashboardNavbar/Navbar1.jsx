@@ -199,7 +199,7 @@ export function Navebar1({
       dispatch(clearAuthToken());
 
       // 🔁 Optional: call server logout to clear cookie
-      const response = await fetch('https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/logout', {
+      const response = await fetch('https://media-shippers-backend.vercel.app/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
