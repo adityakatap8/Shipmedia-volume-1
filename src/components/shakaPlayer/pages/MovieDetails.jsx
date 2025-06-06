@@ -13,7 +13,7 @@ import zIndex from "@mui/material/styles/zIndex";
 import Loader from "../../loader/Loader";
 import Cookies from "js-cookie";
 import defaultBanner from '../../../assets/Banner-Holder.png'
-import defaultPoster from '../../../assets/Logo-Holder.png'
+import defaultPoster from '../../../assets/Logo-holder.png'
 import { useSelector } from 'react-redux';
 
 const constructS3Url = (org, project, folderPath, fileName) => {
