@@ -47,9 +47,9 @@ import ShakaPlayer from "../src/components/shakaPlayer/pages/ShakaPlayer";
 import { Toaster } from "../src/components/shakaPlayer/components/ui/toaster";
 import { Toaster as Sonner } from "../src/components/shakaPlayer/components/ui/sonner";
 import { PlayerMenu } from "../src/components/shakaPlayer/components/PlayerMenu";
-import UserManagement from './components/userManagement/managementPanel/userManagement';
 import ForgotPassword from './pages/forgotPasswordPage/forgotPassword';
 import { Navebar1 } from './components/dashboardNavbar/Navbar1';
+import UserManagement from './components/userManagement/managementPanel/UserManagement';
 
 
 const queryClient = new QueryClient();
