@@ -29,9 +29,6 @@ import {
   Autocomplete,
 } from "@mui/material"
 import { Delete, CheckCircle, Cancel } from "@mui/icons-material"
-import movieImg from "../../assets/11.jpg"
-import loginBack from "../../assets/loginBack.jpg"
-import secImg from "../../assets/img2.jpg"
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
