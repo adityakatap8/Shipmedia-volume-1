@@ -31,7 +31,8 @@ import {
   userOrganizationManagement,
   dealDashboard,
   cartPage,
-  dealDetails
+  dealDetails,
+  userManagement
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -49,7 +50,6 @@ import { Toaster as Sonner } from "../src/components/shakaPlayer/components/ui/s
 import { PlayerMenu } from "../src/components/shakaPlayer/components/PlayerMenu";
 import ForgotPassword from './pages/forgotPasswordPage/forgotPassword';
 import { Navebar1 } from './components/dashboardNavbar/Navbar1';
-import UserManagement from './components/userManagement/managementPanel/UserManagement';
 
 
 const queryClient = new QueryClient();
@@ -200,7 +200,7 @@ function App() {
             } />
             <Route path="/user-management" element={
               <ProtectedRoute>
-                <DashboardLayout><UserManagement /></DashboardLayout>
+                <DashboardLayout>{userManagement()}</DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/user-org-register" element={

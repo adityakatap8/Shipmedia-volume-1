@@ -9,7 +9,7 @@ import MainTabsWatchfolder from '../../components/tabs-watchFolder/MainTabs-watc
 import ListingTable from '../../components/listingTable/ListingTable';
 import JobQueueTable from '../../components/jobQueueTable/JobQueueTable';
 import UserProfile from '../../components/userProfile/UserProfile';
-import Catalogue from '../../components/tabs-catalogue/MainTabs-Catalogue';
+import Catalogue from '../../components/tabs-catalogue/MainTabs-catalogue';
 import OrderSummary from '../orderSummary/OrderSummary';
 import Projects from '../projects/Projects';
 import ProjectsForm from '../../components/projectsForm/ProjectsForm';
