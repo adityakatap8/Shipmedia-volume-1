@@ -1013,7 +1013,7 @@ const CodecSettings = ({ goToNextTab, goToPreviousTab }) => {
         console.log("Data to send:", JSON.stringify(dataToSend, null, 2));
 
         try {
-            const response = await fetch(`https://www.mediashippers.com/api/services`, {
+            const response = await fetch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/services`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -102,7 +102,7 @@ export default function DealDashboard() {
     const fetchSubDeals = async (dealId) => {
         try {
             setLoading(true)
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}/sub-deals`)
+            const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}/sub-deals`)
             const subDealData = response.data.subDeals || []
 
             setSubDeals((prev) => ({
@@ -178,7 +178,7 @@ export default function DealDashboard() {
     const fetchDeals = async () => {
         try {
             setLoading(true) // Show loader
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`)
+            const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/deals-with-counts/${user._id}`)
             const data = await response.data
             console.log("Fetched Deals:", data.deals)
             setDealsData(data.deals)
@@ -209,7 +209,7 @@ export default function DealDashboard() {
     // Send a message to a specific user
     const sendMessage = async (message) => {
         try {
-            const response = await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/message`, {
+            const response = await axios.post(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}/message`, {
                 senderId: user._id,
                 receiverId: user.role === "Admin" ? selectedUser : user.createdBy,
                 message,
@@ -224,7 +224,7 @@ export default function DealDashboard() {
     // Get unread message count for the current user
     const getUnreadMessageCount = async () => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/unread-count/${dealId}/${user._id}`)
+            const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/unread-count/${dealId}/${user._id}`)
             return response.data.unreadCount // Return unread message count
         } catch (error) {
             console.error("Error fetching unread message count:", error)
@@ -235,7 +235,7 @@ export default function DealDashboard() {
     // Mark messages as read for a specific user
     const markMessagesAsRead = async (userId, dealId) => {
         try {
-            await axios.post(`https://www.mediashippers.com/api/deal/${dealId}/mark-read/${userId}`)
+            await axios.post(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}/mark-read/${userId}`)
         } catch (error) {
             console.error("Error marking messages as read:", error)
         }
@@ -288,7 +288,7 @@ export default function DealDashboard() {
     const handleSendDeal = async (dealId) => {
         try {
             setLoading(true) // Show loader
-            const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
+            const response = await axios.post("https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/split-to-sellers", {
                 dealId, // Include dealId in the request body
             })
             console.log("Send Deal Response:", response.data)
@@ -316,7 +316,7 @@ export default function DealDashboard() {
     const handleAccept = async (dealId) => {
         try {
             setLoading(true)
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`)
+            const response = await axios.patch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}/action`)
             console.log("Accept Response:", response.data)
             fetchDeals() // Refresh deals
         } catch (error) {
@@ -330,7 +330,7 @@ export default function DealDashboard() {
     const handleNegotiate = async (dealId) => {
         try {
             setLoading(true)
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`)
+            const response = await axios.patch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}/action`)
             console.log("Negotiate Response:", response.data)
             fetchDeals() // Refresh deals
         } catch (error) {
@@ -344,7 +344,7 @@ export default function DealDashboard() {
     const handleReject = async (dealId) => {
         try {
             setLoading(true)
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${dealId}/action`)
+            const response = await axios.patch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${dealId}/action`)
             console.log("Reject Response:", response.data)
             fetchDeals() // Refresh deals
         } catch (error) {
@@ -364,7 +364,7 @@ export default function DealDashboard() {
                     status: "accepted", // Use the status parameter
                     remarks: "Accepted successfully", // Example remark (can be dynamic)
                 }))
-                const response = await axios.patch(`https://www.mediashippers.com/api/deal/${selectedDealId}/action`, {
+                const response = await axios.patch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${selectedDealId}/action`, {
                     movies: moviesPayload,
                 })
                 console.log("Accept Response:", response.data)
@@ -390,7 +390,7 @@ export default function DealDashboard() {
         try {
             setLoading(true)
 
-            const response = await axios.patch(`https://www.mediashippers.com/api/deal/${selectedDealId}/action`, {
+            const response = await axios.patch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/${selectedDealId}/action`, {
                 status: actionStatus, // Use the actionStatus state
                 remark: remark, // Include the remark if provided
             })

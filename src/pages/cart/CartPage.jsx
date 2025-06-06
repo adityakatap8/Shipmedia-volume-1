@@ -135,7 +135,7 @@ const CartPage = () => {
   const fetchCartMovies = async () => {
     try {
       setLoading(true); // Show loader
-      const response = await axios.get(`https://www.mediashippers.com/api/cart/get-cart/${user?._id}`);
+      const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/cart/get-cart/${user?._id}`);
       console.log("response", response);
       const movies = response.data;
       console.log("Fetched movies:", movies);
@@ -218,7 +218,7 @@ const CartPage = () => {
       console.log("Payload to be sent:", payload);
 
       // Call the API
-      const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload);
+      const response = await axios.post("https://media-shippers-backend-n73nu7q44.vercel.app/api/deal/create", payload);
 
       if (response.status === 201) {
         const remainingMovies = response.data.remainingMovies || [];
@@ -303,7 +303,7 @@ const CartPage = () => {
 
   useEffect(() => {
     if (user?.role === 'Admin') {
-      axios.get('https://www.mediashippers.com/api/auth/all-users') // Replace with your actual endpoint
+      axios.get('https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/all-users') // Replace with your actual endpoint
         .then((res) => {
           const { users } = res.data;
           console.log("Fetched users:", users);

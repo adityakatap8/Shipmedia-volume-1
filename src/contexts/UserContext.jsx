@@ -16,7 +16,7 @@ export const UserProvider = ({ children }) => {
       console.log('Checking authentication: inside userContext...');
       const token = Cookies.get('token');
       try {
-        const response = await axios.get('https://www.mediashippers.com/api/auth/user', {
+        const response = await axios.get('https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/user', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

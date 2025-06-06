@@ -16,7 +16,7 @@ const CartIcon = () => {
 
   const fetchCartMovies = async () => {
     try {
-      const response = await axios.get(`https://www.mediashippers.com/api/cart/get-cart/${user?._id}`)
+      const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/cart/get-cart/${user?._id}`)
       console.log("response", response)
       const movies = response.data
       dispatch(setCartMovies(movies))

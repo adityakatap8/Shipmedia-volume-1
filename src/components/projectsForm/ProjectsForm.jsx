@@ -334,7 +334,7 @@ const validateForm = () => {
     }
 
     try {
-      const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
+      const response = await fetch(`https://media-shippers-backend-n73nu7q44.vercel.app/api/folders/transfer-file`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -422,7 +422,7 @@ const validateForm = () => {
     formData.append('orgName', orgName);
     formData.append('userId', userId); // ✅ Append userId
 
-    const response = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+    const response = await fetch('https://media-shippers-backend-n73nu7q44.vercel.app/api/files/upload-file', {
       method: 'POST',
       body: formData,
       credentials: 'include',
@@ -604,7 +604,7 @@ const handleSubmit = async (event) => {
 
     console.log('✅ Submitting full form data:', updatedFormData);
 
-    const response = await fetch('https://www.mediashippers.com/api/projectForm', {
+    const response = await fetch('https://media-shippers-backend-n73nu7q44.vercel.app/api/projectForm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

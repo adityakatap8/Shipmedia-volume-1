@@ -67,7 +67,7 @@ export default function S3Browser() {
     setLoading(true);
     try {
       const path = currentPath.join('/');
-      const response = await axios.post('https://www.mediashippers.com/api/folders/s3-list', 
+      const response = await axios.post('https://media-shippers-backend-n73nu7q44.vercel.app/api/folders/s3-list', 
         { path },
         {
           headers: {
@@ -128,7 +128,7 @@ export default function S3Browser() {
   const downloadFile = async (fileName) => {
     try {
       const fullFilePath = `s3://${currentPath.join('/')}/${fileName}`;
-      const response = await axios.post('https://www.mediashippers.com/api/folders/download-files', 
+      const response = await axios.post('https://media-shippers-backend-n73nu7q44.vercel.app/api/folders/download-files', 
         { files: [fullFilePath] },
         {
           headers: {
