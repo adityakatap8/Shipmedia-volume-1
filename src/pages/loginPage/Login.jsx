@@ -175,7 +175,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "https://www.mediashippers.com/api/auth/login",
+        "https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/login",
         {
           email,
           password,

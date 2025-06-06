@@ -46,7 +46,7 @@ function Register() {
     }
 
     try {
-      const response = await axios.post(`https://www.mediashippers.com/api/auth/register`, {
+      const response = await axios.post(`https://media-shippers-backend-n73nu7q44.vercel.app/api/auth/register`, {
         name,
         orgName,
         email,

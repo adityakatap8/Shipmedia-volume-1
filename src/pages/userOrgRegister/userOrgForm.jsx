@@ -106,7 +106,7 @@ function UserOrgManagement() {
             }
 
             const response = await axios.post(
-                "https://www.mediashippers.com/api/organization/register",
+                "https://media-shippers-backend-n73nu7q44.vercel.app/api/organization/register",
                 formData,
               );
           

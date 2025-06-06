@@ -73,7 +73,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     const userId = userData?.userId;
     if (userId && projectName) {
       try {
-        const response = await axios.get(`https://www.mediashippers.com/api/projectInfo/${userId}`, {
+        const response = await axios.get(`https://media-shippers-backend-n73nu7q44.vercel.app/api/projectInfo/${userId}`, {
           params: { projectName }
         });
         console.log('Project Data:', response.data);
