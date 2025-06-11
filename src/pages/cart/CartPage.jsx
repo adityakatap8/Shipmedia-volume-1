@@ -420,7 +420,7 @@ const CartPage = () => {
                   </Box>
                   <Box
                     component="img"
-                    src={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user?.orgName}/${(movie?.projectTitle)}/film stills/${movie?.posterFileName}`}
+                    src={movie.projectPosterS3Url}
                     alt={`${movie.projectName} poster`}
                     sx={{
                       width: 100,
