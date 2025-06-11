@@ -193,7 +193,7 @@ export default function DealDashboard() {
     // Fetch chat history for a specific user
     const getChatHistory = async (dealId) => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}/message-history`, {
+            const response = await axios.get(`https://media-shippers-backend.vercel.app/api/deal/${dealId}/message-history`, {
                 params: {
                     loggedInUserId: user._id,
                     loggedInUserRole: user.role
