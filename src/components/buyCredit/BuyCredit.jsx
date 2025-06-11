@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import BlueButton from '../blueButton/BlueButton';
-import Submit from '../submit/Submit';
 import "./index.css"
 
 const BuyCredit = () => {

@@ -191,13 +191,12 @@ export default function DealDashboard() {
     }
 
     // Fetch chat history for a specific user
-    const getChatHistory = async (deal) => {
+    const getChatHistory = async (dealId) => {
         try {
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/${deal._id}/message-history`, {
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/${dealId}/message-history`, {
                 params: {
                     loggedInUserId: user._id,
-                    loggedInUserRole: user.role,
-                    selectedUserId: selectedSeller || deal?.senderId,
+                    loggedInUserRole: user.role
                 },
             })
             return response.data.history
@@ -263,7 +262,7 @@ export default function DealDashboard() {
         setDealId(deal._id)
         setSelectedDeal(deal)
         setSelectedUser(deal.senderId)
-        const history = await getChatHistory(deal)
+        const history = await getChatHistory(deal._id)
         setChatHistory(history)
         await markMessagesAsRead(user._id, deal._id)
     }

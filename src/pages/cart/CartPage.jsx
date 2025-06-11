@@ -29,9 +29,6 @@ import {
   Autocomplete,
 } from "@mui/material"
 import { Delete, CheckCircle, Cancel } from "@mui/icons-material"
-import movieImg from "../../assets/11.jpg"
-import loginBack from "../../assets/loginBack.jpg"
-import secImg from "../../assets/img2.jpg"
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
@@ -423,7 +420,7 @@ const CartPage = () => {
                   </Box>
                   <Box
                     component="img"
-                    src={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user?.orgName}/${(movie?.projectTitle)}/film stills/${movie?.posterFileName}`}
+                    src={movie.projectPosterS3Url}
                     alt={`${movie.projectName} poster`}
                     sx={{
                       width: 100,
