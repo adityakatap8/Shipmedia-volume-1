@@ -248,6 +248,26 @@ const CartPage = () => {
     setSelectedRights(selectedRights.filter((rightId) => rightId !== rightIdToDelete))
   }
 
+  const handleDeleteCartItem = async (cartItemId) => {
+    try {
+      setLoading(true); // Show loader
+      const response = await axios.delete(`https://www.mediashippers.com/api/cart/${user._id}/${cartItemId}`);
+      if (response.status === 200) {
+        // Remove the deleted item from the cart state
+        const updatedMovies = movies.filter((movie) => movie._id !== cartItemId);
+        setMovies(updatedMovies); // Update local state
+        dispatch(setCartMovies(updatedMovies)); // Update Redux state
+        console.log("Cart item deleted successfully:", cartItemId);
+      } else {
+        console.error("Failed to delete cart item:", response.status);
+      }
+    } catch (error) {
+      console.error("Error deleting cart item:", error);
+    } finally {
+      setLoading(false); // Hide loader
+    }
+  };
+
   // Custom rendering for the rights chips
   const renderRightsValue = (selected) => (
     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, maxHeight: "120px", overflowY: "auto" }}>
@@ -463,7 +483,10 @@ const CartPage = () => {
                       }}
                     >
                       {/* <Typography sx={{ fontWeight: 500, color: "#fff" }}>${movie.price || 0}</Typography> */}
-                      <IconButton sx={{ color: "#fff" }}>
+                      <IconButton
+                        sx={{ color: "#fff" }}
+                        onClick={() => handleDeleteCartItem(movie._id)} // Pass the movie ID to delete
+                      >
                         <Delete />
                       </IconButton>
                     </Box>

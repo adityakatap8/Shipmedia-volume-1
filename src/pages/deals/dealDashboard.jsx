@@ -123,27 +123,24 @@ export default function DealDashboard() {
 
     // Filter deals based on tab selection and search term
     const getFilteredDeals = () => {
-        let filtered = [...dealsData]
+        let filtered = [...dealsData];
 
         // Filter by tab
         if (tabValue === 0) {
-            filtered = filtered
+            filtered = filtered.filter((deal) => deal.senderId === user._id);
         } else if (tabValue === 1) {
-            filtered = filtered.filter((deal) => deal.senderId === user._id)
+            filtered = filtered.filter((deal) => deal.assignedTo === user._id);
         } else if (tabValue === 2) {
-            filtered = filtered.filter((deal) => deal.assignedTo === user._id)
+            filtered = filtered.filter((deal) => deal.status === "pending");
         } else if (tabValue === 3) {
-            filtered = filtered.filter((deal) => deal.status === "pending")
+            filtered = filtered.filter((deal) => deal.status === "closed");
         } else if (tabValue === 4) {
-            filtered = filtered.filter((deal) => deal.status === "closed")
-        } else if (tabValue === 5) {
-            filtered = filtered.filter((deal) => deal.status === "cancelled")
+            filtered = filtered.filter((deal) => deal.status === "cancelled");
         }
 
-        // Debugging: Log the filtered deals
-        console.log("Filtered Deals:", filtered)
+        console.log("Filtered Deals:", filtered);
 
-        return filtered
+        return filtered;
     }
 
     const filteredDeals = getFilteredDeals()
@@ -440,7 +437,7 @@ export default function DealDashboard() {
                 bgcolor: isSubDeal ? "#1e1e2e" : "transparent", // Slightly different background for sub-deals
             }}
         >
-            <TableCell sx={{ color: "inherit" }}>
+            {tabValue !== 0 && <TableCell sx={{ color: "inherit" }}>
                 {!isSubDeal && (
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                         <IconButton
@@ -461,7 +458,7 @@ export default function DealDashboard() {
                                 <KeyboardArrowRight fontSize="small" />
                             )}
                         </IconButton>
-                        {deal.senderId}
+                        {deal.senderDetails.name}
                     </Box>
                 )}
                 {isSubDeal && (
@@ -469,10 +466,11 @@ export default function DealDashboard() {
                         <Typography variant="body2" sx={{ color: "#a0a0b0", marginRight: 1 }}>
                             └
                         </Typography>
-                        {deal.senderId}
+                        {deal.senderDetails.name}
                     </Box>
                 )}
-            </TableCell>
+            </TableCell>}
+            {tabValue !== 1 && <TableCell sx={{ color: "inherit" }}>{deal.assignedToDetails.name}</TableCell>}
             <TableCell sx={{ color: "inherit" }}>
                 {new Date(deal.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -480,7 +478,6 @@ export default function DealDashboard() {
                     day: "numeric",
                 })}
             </TableCell>
-            <TableCell sx={{ color: "inherit" }}>{deal.assignedTo}</TableCell>
             <TableCell sx={{ color: "inherit" }}>
                 {new Date(deal.updatedAt).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -601,13 +598,14 @@ export default function DealDashboard() {
                             <IconButton
                                 size="small"
                                 onClick={() => handleSendDeal(deal._id)}
+                                disabled={deal.status === 'sent_to_seller' || deal.status === 'sent_to_buyer'} // Correct condition
                                 sx={{
-                                    color: "#4caf50",
-                                    "&:hover": {
-                                        bgcolor: "rgba(76, 175, 80, 0.1)",
-                                        transform: "scale(1.1)",
-                                    },
-                                    transition: "all 0.2s",
+                                  color: deal.status === 'sent_to_seller' || deal.status === 'sent_to_buyer' ? "#9e9e9e" : "#4caf50", // Change color when disabled
+                                  "&:hover": {
+                                    bgcolor: deal.status === 'sent_to_seller' || deal.status === 'sent_to_buyer' ? "transparent" : "rgba(76, 175, 80, 0.1)",
+                                    transform: deal.status === 'sent_to_seller' || deal.status === 'sent_to_buyer' ? "none" : "scale(1.1)",
+                                  },
+                                  transition: "all 0.2s",
                                 }}
                             >
                                 <Send fontSize="small" />
@@ -958,7 +956,6 @@ export default function DealDashboard() {
                     },
                 }}
             >
-                <Tab label={`All Deals (${dealcounts.active || 0})`} />
                 <Tab label={`Shared (${dealcounts.shared || 0})`} />
                 <Tab label={`Received (${dealcounts.received || 0})`} />
                 <Tab label={`Pending (${dealcounts.pending || 0})`} />
@@ -1024,15 +1021,15 @@ export default function DealDashboard() {
 
                                     <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
                                         <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Sender ID:
+                                            Sender:
                                         </Typography>
-                                        <Typography variant="body2">{deal.senderId}</Typography>
+                                        <Typography variant="body2">{deal.senderDetails.name}</Typography>
                                     </Box>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
                                         <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
-                                            Receiver ID:
+                                            Receiver:
                                         </Typography>
-                                        <Typography variant="body2">{deal.assignedTo}</Typography>
+                                        <Typography variant="body2">{deal.assignedToDetails.name}</Typography>
                                     </Box>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
                                         <Typography variant="body2" sx={{ color: "#a0a0b0" }}>
@@ -1094,9 +1091,9 @@ export default function DealDashboard() {
                                     },
                                 }}
                             >
-                                <TableCell sx={{ color: "inherit" }}>Sender ID</TableCell>
+                                {tabValue !== 0 && <TableCell sx={{ color: "inherit" }}>Sender</TableCell>}
+                                {tabValue !== 1 && <TableCell sx={{ color: "inherit" }}>Receiver</TableCell>}
                                 <TableCell sx={{ color: "inherit" }}>Created Date</TableCell>
-                                <TableCell sx={{ color: "inherit" }}>Receiver ID</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Updated Date</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Amount</TableCell>
                                 <TableCell sx={{ color: "inherit" }}>Status</TableCell>
