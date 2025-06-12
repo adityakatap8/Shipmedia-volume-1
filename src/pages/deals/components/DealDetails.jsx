@@ -188,9 +188,7 @@ export default function DealDashboard() {
   }
 
   const handlePlayTrailer = () => {
-
-    const trailerUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.orgName}/${selectedMovie.projectName}/trailer/${selectedMovie.trailerFileName}`;
-    setTrailerUrl(trailerUrl);
+    setTrailerUrl(selectedMovie.projectTrailerS3Url);
     setIsTrailerPlaying(true);
   };
 
@@ -491,7 +489,7 @@ export default function DealDashboard() {
                           <CardMedia
                             component="img"
                             sx={{ width: 120, objectFit: "cover" }}
-                            image={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.orgName}/${(movie.projectName)}/film stills/${movie.posterFileName}`}
+                            image={movie.projectPosterS3Url}
                             alt={movie.projectTitle}
                           />
                           <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
@@ -708,7 +706,7 @@ export default function DealDashboard() {
                             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                             mb: 2,
                           }}
-                          image={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user.orgName}/${(selectedMovie.projectName)}/film stills/${selectedMovie.posterFileName}`}
+                          image={selectedMovie.projectPosterS3Url}
                           alt={selectedMovie.projectTitle}
                         />
 
@@ -790,110 +788,6 @@ export default function DealDashboard() {
                             <Typography variant="body1" fontWeight={500} sx={{ mb: 2 }}>
                               {formatDate(selectedMovie.updatedAt)}
                             </Typography>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          p: 3,
-                          borderRadius: 2,
-                          border: "1px solid #2a2e45",
-                          mb: 3,
-                        }}
-                      >
-                        <Typography variant="h6" gutterBottom>
-                          Media Files
-                        </Typography>
-
-                        <Grid container spacing={3}>
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Poster File
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                p: 1.5,
-                                bgcolor: "#131b2e",
-                                borderRadius: 1,
-                                mb: 2,
-                              }}
-                            >
-                              <img src="/placeholder-akhq1.png" alt="File" style={{ width: 30, marginRight: 10 }} />
-                              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                                {selectedMovie.posterFileName}
-                              </Typography>
-                            </Box>
-
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Banner File
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                p: 1.5,
-                                bgcolor: "#131b2e",
-                                borderRadius: 1,
-                                mb: 2,
-                              }}
-                            >
-                              <img src="/placeholder-akhq1.png" alt="File" style={{ width: 30, marginRight: 10 }} />
-                              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                                {selectedMovie.bannerFileName}
-                              </Typography>
-                            </Box>
-                          </Grid>
-
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Trailer File
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                p: 1.5,
-                                bgcolor: "#131b2e",
-                                borderRadius: 1,
-                                mb: 2,
-                              }}
-                            >
-                              <img
-                                src="/placeholder-92508.png"
-                                alt="Video File"
-                                style={{ width: 30, marginRight: 10 }}
-                              />
-                              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                                {selectedMovie.trailerFileName}
-                              </Typography>
-                            </Box>
-
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Movie File
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                p: 1.5,
-                                bgcolor: "#131b2e",
-                                borderRadius: 1,
-                                mb: 2,
-                              }}
-                            >
-                              <img
-                                src="/placeholder-92508.png"
-                                alt="Video File"
-                                style={{ width: 30, marginRight: 10 }}
-                              />
-                              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                                {selectedMovie.movieFileName || "Not available"}
-                              </Typography>
-                            </Box>
                           </Grid>
                         </Grid>
                       </Paper>

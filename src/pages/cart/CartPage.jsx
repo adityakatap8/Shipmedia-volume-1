@@ -43,6 +43,7 @@ const CartPage = () => {
   const Navigate = useNavigate();
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.auth.user);
+  console.log("user", user)
   // Movie data with added selected property
   const [movies, setMovies] = useState([])
   console.log("movies", movies);
@@ -423,7 +424,7 @@ const CartPage = () => {
                   </Box>
                   <Box
                     component="img"
-                    src={`https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${user?.orgName}/${(movie?.projectTitle)}/film stills/${movie?.posterFileName}`}
+                    src={movie.projectPosterS3Url}
                     alt={`${movie.projectName} poster`}
                     sx={{
                       width: 100,
