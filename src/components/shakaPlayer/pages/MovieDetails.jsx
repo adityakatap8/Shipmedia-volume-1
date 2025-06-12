@@ -13,7 +13,7 @@ import zIndex from "@mui/material/styles/zIndex";
 import Loader from "../../loader/Loader";
 import Cookies from "js-cookie";
 import defaultBanner from '../../../assets/Banner-Holder.png'
-import defaultPoster from '../../../assets/Logo-Holder.png'
+import defaultPoster from '../../../assets/Logo-holder.png'
 import { useSelector } from 'react-redux';
 
 const constructS3Url = (org, project, folderPath, fileName) => {
@@ -132,9 +132,9 @@ export default function MovieDetails() {
   if (!movieData) return <div>No data available.</div>; // If movieData is still null after loading, show message
 
   // Destructure the movieData into required parts
-  const projectInfoData = movieData?.projectInfo || {};
-  const creditsInfoData = movieData?.creditsInfo || {};
-  const specificationsInfoData = movieData?.specificationsInfo || {};
+  const projectInfoData = movieData?.projectInfoData || {};
+  const creditsInfoData = movieData?.creditsInfoData || {};
+  const specificationsInfoData = movieData?.specificationsInfoData || {};
 
 
   // Use the title directly, no need to sanitize it
@@ -155,13 +155,13 @@ export default function MovieDetails() {
 
 
   // Default URLs for logo and background images if not provided
- const backgroundImageURL = projectInfoData.projectBannerS3Url || defaultBanner;
-const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
-
+  const backgroundImageURL = banner ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner} ` : defaultBanner;;
+  const logoImageURL = poster
+    ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
+    : defaultPoster;
 
   // Trailer URL construction using the title directly
-  const trailerVideoURL = projectInfoData.projectTrailerS3Url || '';
-
+  const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
   const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
 
   console.log("main trailer url", trailerVideoURL)
@@ -285,27 +285,27 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
                     </div>
 
                     {/* Dubbed Language Options */}
-                   {/* Dubbed Language Options */}
-{dubbedFiles.map((item, index) => {
-  const finalUrl = item.dubbedTrailerUrl;  // Use URL directly
+                    {dubbedFiles.map((item, index) => {
+                      const finalUrl = item.dubbedTrailerUrl?.startsWith("s3://")
+                        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${item.dubbedTrailerUrl.replace("s3://", "")}`
+                        : item.dubbedTrailerUrl;
 
-  return (
-    <div
-      key={index}
-      className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black"
-      onClick={() => {
-        console.log(`Playing ${item.language} Dubbed Trailer URL:`, finalUrl);
-        setSelectedLanguage(item.language);
-        setTrailerUrl(finalUrl);
-        setIsTrailerPlaying(true);
-        setShowLanguageDropdown(false);
-      }}
-    >
-      {item.language}
-    </div>
-  );
-})}
-
+                      return (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black"
+                          onClick={() => {
+                            console.log(`Playing ${item.language} Dubbed Trailer URL:`, finalUrl);
+                            setSelectedLanguage(item.language);
+                            setTrailerUrl(finalUrl);
+                            setIsTrailerPlaying(true);
+                            setShowLanguageDropdown(false);
+                          }}
+                        >
+                          {item.language}
+                        </div>
+                      );
+                    })}
 
 
 

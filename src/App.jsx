@@ -31,7 +31,8 @@ import {
   userOrganizationManagement,
   dealDashboard,
   cartPage,
-  dealDetails
+  dealDetails,
+  userManagement
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -47,7 +48,6 @@ import ShakaPlayer from "../src/components/shakaPlayer/pages/ShakaPlayer";
 import { Toaster } from "../src/components/shakaPlayer/components/ui/toaster";
 import { Toaster as Sonner } from "../src/components/shakaPlayer/components/ui/sonner";
 import { PlayerMenu } from "../src/components/shakaPlayer/components/PlayerMenu";
-import UserManagement from './components/userManagement/managementPanel/userManagement';
 import ForgotPassword from './pages/forgotPasswordPage/forgotPassword';
 import { Navebar1 } from './components/dashboardNavbar/Navbar1';
 
@@ -200,7 +200,7 @@ function App() {
             } />
             <Route path="/user-management" element={
               <ProtectedRoute>
-                <DashboardLayout><UserManagement /></DashboardLayout>
+                <DashboardLayout>{userManagement()}</DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/user-org-register" element={

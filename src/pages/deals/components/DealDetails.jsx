@@ -824,7 +824,7 @@ export default function DealDashboard() {
                               wordBreak: "break-all",
                             }}
                           >
-                            {selectedMovie.s3SourceTrailerUrl}
+                            {selectedMovie.projectTrailerS3Url}
                           </Typography>
                         </Box>
 

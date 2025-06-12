@@ -205,9 +205,6 @@ function ProjectsForm() {
     console.log('Trailer Destination URL:', trailerDestinationUrl || 'No trailer URL provided');
     console.log('Movie Destination URL:', movieDestinationUrl || 'No movie URL provided');
 
-    // Retrieve the access keys from the old code directly (hardcoded as in the old version)
-    const accessKeyId = 'AKIATKPD3X56KBBSX2K2';  // Hardcoded as in old code
-    const secretAccessKey = '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';  // Hardcoded as in old code
 
     // Check if access keys exist
     if (!accessKeyId || !secretAccessKey) {
