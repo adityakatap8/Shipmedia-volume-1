@@ -289,7 +289,8 @@ export default function DealDashboard() {
         try {
             setLoading(true) // Show loader
             const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
-                dealId, // Include dealId in the request body
+                dealId,
+                userId: user._id,
             })
             console.log("Send Deal Response:", response.data)
             // Optionally, refresh the deals data or show a success message
