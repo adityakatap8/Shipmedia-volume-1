@@ -149,7 +149,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   // 🔧 1. Generate S3 URL utility
   const generateS3Url = (fileName, folderType = 'poster') => {
     const folder = projectInfo.projectName || projectName || 'unknown_project';
-    return `s3://mediashippers-filestash/${orgName}/${folder}/${folderType}/${fileName}`;
+    return `s3://testmediashippers /${orgName}/${folder}/${folderType}/${fileName}`;
   };
 
   // 🔎 2. Extract file name from provided S3 URL
@@ -210,7 +210,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
 
       // Use fallback to ensure project name is always present
       const folder = projectInfo.projectName || projectName || 'unknown_project';
-      const bannerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/trailer/${bannerFileName}`;
+      const bannerS3Url = `s3://testmediashippers /${orgName}/${folder}/trailer/${bannerFileName}`;
 
       const bannerUrl = URL.createObjectURL(file);
 
@@ -241,7 +241,7 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
 
       // Use fallback to ensure project name is always present
       const folder = projectInfo.projectName || projectName || 'unknown_project';
-      const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/trailer/${trailerFileName}`;
+      const trailerS3Url = `s3://testmediashippers /${orgName}/${folder}/trailer/${trailerFileName}`;
 
       const trailerUrl = URL.createObjectURL(file);
 
@@ -267,7 +267,7 @@ const onDropDubbedTrailer = (acceptedFiles) => {
     const trailerFileName = file.name;
 
     const folder = projectInfo.projectName || projectName || 'unknown_project';
-    const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/dubbed_trailer/${trailerFileName}`;
+    const trailerS3Url = `s3://testmediashippers /${orgName}/${folder}/dubbed_trailer/${trailerFileName}`;
 
     const previewUrl = URL.createObjectURL(file);
 
@@ -298,7 +298,7 @@ const onDropDubbedTrailer = (acceptedFiles) => {
 
       // Generate the S3 URL for the movie (similar to how we did with trailer)
       const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '_');  // Project folder (sanitized)
-      const movieS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/master/${file.name}`;  // S3 URL
+      const movieS3Url = `s3://testmediashippers /${orgName}/${projectFolder}/master/${file.name}`;  // S3 URL
 
       console.log(`Movie File Name: ${file.name}`);  // Log the movie file name
       console.log(`Movie S3 URL: ${movieS3Url}`);    // Log the generated S3 URL
@@ -479,12 +479,12 @@ useEffect(() => {
       const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '+'); // Replace spaces with '+'
 
       // Create base URL for film stills
-      let posterUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/film+stills/`;
-      let bannerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/film+stills/`;
+      let posterUrl = `s3://testmediashippers /${orgName}/${projectFolder}/film+stills/`;
+      let bannerUrl = `s3://testmediashippers /${orgName}/${projectFolder}/film+stills/`;
 
       // Create base URL for trailers and movies
-      let trailerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/`;
-      let movieUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/movies/`;
+      let trailerUrl = `s3://testmediashippers /${orgName}/${projectFolder}/trailers/`;
+      let movieUrl = `s3://testmediashippers /${orgName}/${projectFolder}/movies/`;
 
       // Append the poster URL if it exists 
       if (projectInfo.projectPoster) {

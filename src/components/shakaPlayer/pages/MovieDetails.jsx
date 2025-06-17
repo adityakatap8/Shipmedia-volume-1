@@ -18,7 +18,7 @@ import { useSelector } from 'react-redux';
 
 const constructS3Url = (org, project, folderPath, fileName) => {
 
-  return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${org}/${project}/${folderPath}/${fileName}`;
+  return `https://testmediashippers .s3.eu-north-1.amazonaws.com/${org}/${project}/${folderPath}/${fileName}`;
 };
 
 
@@ -30,7 +30,7 @@ const getCrewImageURL = (firstName, lastName, title) => {
   const sanitizedFirstName = firstName.trim().toLowerCase().replace(/\s+/g, '+');  // Convert to lowercase and handle spaces
   const sanitizedLastName = lastName.trim().toLowerCase().replace(/\s+/g, '+');    // Same for last name
   // Construct the URL using sanitized first and last names
-  return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${title}/cast+and+crew+details/${sanitizedFirstName}+${sanitizedLastName}.jpg`;
+  return `https://testmediashippers .s3.eu-north-1.amazonaws.com/${title}/cast+and+crew+details/${sanitizedFirstName}+${sanitizedLastName}.jpg`;
 };
 
 export default function MovieDetails() {
@@ -92,10 +92,10 @@ export default function MovieDetails() {
           const originalUrl = file.dubbedTrailerUrl;
           console.log(`Original Dubbed Trailer URL [${file.language}]:`, originalUrl);
 
-          // Only replace if it's an s3://mediashippers-filestash/ URL
-          if (originalUrl?.startsWith("s3://mediashippers-filestash/")) {
-            const relativePath = originalUrl.replace("s3://mediashippers-filestash/", "");
-            file.dubbedTrailerUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${relativePath}`;
+          // Only replace if it's an s3://testmediashippers / URL
+          if (originalUrl?.startsWith("s3://testmediashippers /")) {
+            const relativePath = originalUrl.replace("s3://testmediashippers /", "");
+            file.dubbedTrailerUrl = `https://testmediashippers .s3.eu-north-1.amazonaws.com/${relativePath}`;
           }
 
           console.log(`Converted Dubbed Trailer URL [${file.language}]:`, file.dubbedTrailerUrl);
@@ -161,7 +161,7 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
 
   // Trailer URL construction using the title directly
   const trailerVideoURL = projectInfoData.projectTrailerS3Url || '';
-  const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
+  const movieVideoURL = `https://testmediashippers .s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
 
   console.log("main trailer url", trailerVideoURL)
   // Play Movie handler
@@ -286,7 +286,7 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
                     {/* Dubbed Language Options */}
                     {dubbedFiles.map((item, index) => {
                       const finalUrl = item.dubbedTrailerUrl?.startsWith("s3://")
-                        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${item.dubbedTrailerUrl.replace("s3://", "")}`
+                        ? `https://testmediashippers .s3.eu-north-1.amazonaws.com/${item.dubbedTrailerUrl.replace("s3://", "")}`
                         : item.dubbedTrailerUrl;
 
                       return (

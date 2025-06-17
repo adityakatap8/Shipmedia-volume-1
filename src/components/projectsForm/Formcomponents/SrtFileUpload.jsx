@@ -20,12 +20,12 @@ function SrtFileUpload({
   // === Helpers ===
   const buildSrtS3Url = (fileName) => {
     const projFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
-    return `s3://mediashippers-filestash/${orgName}/${projFolder}/srt files/${fileName}`;
+    return `s3://testmediashippers /${orgName}/${projFolder}/srt files/${fileName}`;
   };
 
   const buildInfoDocS3Url = (fileName) => {
     const projFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
-    return `s3://mediashippers-filestash/${orgName}/${projFolder}/srt files/${fileName}`;
+    return `s3://testmediashippers /${orgName}/${projFolder}/srt files/${fileName}`;
   };
 
   // === SRT File Handlers ===

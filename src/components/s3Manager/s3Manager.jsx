@@ -52,7 +52,7 @@ export default function S3Browser() {
   // Initialize currentPath when orgName is available
   useEffect(() => {
     if (user.orgName) {
-      setCurrentPath(["mediashippers-filestash", user.orgName]);
+      setCurrentPath(["testmediashippers ", user.orgName]);
     }
   }, [user.orgName]);
 
@@ -121,7 +121,7 @@ export default function S3Browser() {
 
   // Navigate to root
   const goHome = () => {
-    navigateTo(["mediashippers-filestash", orgName]);
+    navigateTo(["testmediashippers ", orgName]);
   };
 
   // Download a file

@@ -92,7 +92,7 @@ function ViewAndEditForm() {
     const encodedProject = encodeURIComponent(projectData.projectInfo.projectName.trim());
     const encodedFile = encodeURIComponent(fileName.trim());
 
-    return `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${encodedOrg}/${encodedProject}/${subfolder}/${encodedFile}`;
+    return `https://testmediashippers .s3.eu-north-1.amazonaws.com/${encodedOrg}/${encodedProject}/${subfolder}/${encodedFile}`;
   };
 
   const handleDeleteProject = async () => {
@@ -423,7 +423,7 @@ const handleEditRights = () => {
                       controls
                       src={file.dubbedTrailerUrl.replace(
                         's3://',
-                        'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/'
+                        'https://testmediashippers .s3.eu-north-1.amazonaws.com/'
                       )}
                     >
                       Your browser does not support the video tag.
@@ -449,7 +449,7 @@ const handleEditRights = () => {
                     <a
                       href={file.dubbedSubtitleUrl.replace(
                         's3://',
-                        'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/'
+                        'https://testmediashippers .s3.eu-north-1.amazonaws.com/'
                       )}
                       target="_blank"
                       rel="noopener noreferrer"

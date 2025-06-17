@@ -99,7 +99,7 @@ function S3Manager() {
 
       console.log("Uploading file to folder path:", folderPath);
 
-      const s3Url = `https://s3.eu-north-1.amazonaws.com/mediashippers-filestash/${orgName}/${folderPath}/${file.name}`;
+      const s3Url = `https://s3.eu-north-1.amazonaws.com/testmediashippers /${orgName}/${folderPath}/${file.name}`;
       try {
         const response = await axios.put(s3Url, file, {
           headers: {

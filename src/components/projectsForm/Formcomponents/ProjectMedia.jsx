@@ -77,7 +77,7 @@ function ProjectMedia({ onInputChange, errors, setProjectInfoErrors, userId, pro
 
       // Generate the S3 URL dynamically
       const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '_');  // Sanitize project title
-      const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${trailerFileName}`;  // S3 URL
+      const trailerS3Url = `s3://testmediashippers /${orgName}/${projectFolder}/trailer/${trailerFileName}`;  // S3 URL
 
       console.log(`Trailer File Name: ${trailerFileName}`);  // Log the file name
       console.log(`Trailer S3 URL: ${trailerS3Url}`);  // Log the generated S3 URL
@@ -102,7 +102,7 @@ function ProjectMedia({ onInputChange, errors, setProjectInfoErrors, userId, pro
 
       // Generate the S3 URL for the movie (similar to how we did with trailer)
       const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '_');  // Project folder (sanitized)
-      const movieS3Url = `s3://mediashippers-filestash/${orgName}/${projectFolder}/master/${file.name}`;  // S3 URL
+      const movieS3Url = `s3://testmediashippers /${orgName}/${projectFolder}/master/${file.name}`;  // S3 URL
 
       console.log(`Movie File Name: ${file.name}`);  // Log the movie file name
       console.log(`Movie S3 URL: ${movieS3Url}`);    // Log the generated S3 URL
@@ -174,12 +174,12 @@ function ProjectMedia({ onInputChange, errors, setProjectInfoErrors, userId, pro
           const projectFolder = projectInfo.projectTitle.replace(/\s+/g, '+'); // Replace spaces with '+'
     
           // Create base URL for film stills
-          let posterUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/film+stills/`;
-          let bannerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/film+stills/`;
+          let posterUrl = `s3://testmediashippers /${orgName}/${projectFolder}/film+stills/`;
+          let bannerUrl = `s3://testmediashippers /${orgName}/${projectFolder}/film+stills/`;
     
           // Create base URL for trailers and movies (assuming you want these to be stored separately)
-          let trailerUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailers/`;
-          let movieUrl = `s3://mediashippers-filestash/${orgName}/${projectFolder}/movies/`;
+          let trailerUrl = `s3://testmediashippers /${orgName}/${projectFolder}/trailers/`;
+          let movieUrl = `s3://testmediashippers /${orgName}/${projectFolder}/movies/`;
     
           // Append the poster URL if it exists
           if (projectInfo.projectPoster) {

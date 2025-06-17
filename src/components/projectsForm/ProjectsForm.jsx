@@ -82,6 +82,10 @@ function ProjectsForm() {
 
   const { userData } = useContext(UserContext);
 
+  const accessKeyId = import.meta.env.VITE_ACCESS_KEY_ID || '';
+  const secretAccessKey = import.meta.env.VITE_SECRET_ACCESS_KEY || ''; 
+
+
 
   useEffect(() => {
     console.log('Updated srtFiles:', srtFiles);
@@ -370,7 +374,7 @@ const validateForm = () => {
 
   // utils/uploadFilesToS3.js
 
-  const uploadFilesToS3 = async (
+  const  uploadFilesToS3 = async (
     {
       projectPoster,
       projectBanner,
@@ -380,8 +384,18 @@ const validateForm = () => {
     },
     projectName,
     orgName,
-    userId // ✅ Accept userId here
+    userId
   ) => {
+    console.log('Uploading to S3 with the following parameters:');
+    console.log('Project Poster:', projectPoster);
+    console.log('Project Banner:', projectBanner);
+    console.log('Project Trailer:', projectTrailer);
+    console.log('Dubbed Files:', dubbedFiles);
+    console.log('SRT Files:', srtFiles);
+    console.log('Project Name:', projectName);
+    console.log('Organization Name:', orgName);
+    console.log('User ID:', userId);
+
     const formData = new FormData();
 
     // Append main assets
@@ -420,23 +434,33 @@ const validateForm = () => {
     // Meta
     formData.append('projectName', projectName);
     formData.append('orgName', orgName);
-    formData.append('userId', userId); // ✅ Append userId
+    formData.append('userId', userId);
 
-    const response = await fetch('https://media-shippers-backend.vercel.app/api/files/upload-file', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const response = await fetch('https://media-shippers-backend.vercel.app/api/files/upload-file', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(err);
+      console.log('S3 Upload Response:', response);
+
+      if (!response.ok) {
+        const err = await response.text();
+        console.error('Error from S3 upload:', err);
+        throw new Error(err);
+      }
+
+      const result = await response.json();
+      console.log('S3 Upload Result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error during S3 upload:', error);
+      throw error;
     }
-
-    return await response.json();
   };
 
 
@@ -458,6 +482,7 @@ const handleSubmit = async (event) => {
   const isValid = validateForm();
 
   if (!isValid) {
+    console.error('Form validation failed:', errors);
     setIsUploading(false);
     return;
   }
@@ -467,7 +492,7 @@ const handleSubmit = async (event) => {
     projectBanner,
     trailerFile: projectTrailer,
     projectName,
-    orgName: organizationName
+    orgName: organizationName,
   } = formData.projectInfo;
 
   const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
@@ -477,6 +502,10 @@ const handleSubmit = async (event) => {
   try {
     let uploadedFiles = {};
     const orgNameToUse = organizationName || orgName;
+
+    console.log('Preparing to upload files...');
+    console.log('Dubbed Files:', formData.dubbedFiles);
+    console.log('SRT Info:', formData.srtInfo);
 
     let dubbedFilesArray = [];
     if (Array.isArray(formData.dubbedFiles)) {
@@ -488,7 +517,7 @@ const handleSubmit = async (event) => {
     }
 
     let srtFilesArray = [];
-    console.log("🐛 Raw srtInfo value in formData:", formData.srtInfo);
+    console.log('Raw SRT Info value in formData:', formData.srtInfo);
 
     if (Array.isArray(formData.srtInfo)) {
       srtFilesArray = formData.srtInfo
@@ -497,7 +526,7 @@ const handleSubmit = async (event) => {
           srtFile: entry.srtFile,
           infoDocFile: entry.infoDocFile,
         }))
-        .filter(item => item.srtFile || item.infoDocFile);
+        .filter((item) => item.srtFile || item.infoDocFile);
     } else if (
       formData.srtInfo &&
       (Array.isArray(formData.srtInfo.srtFiles) || Array.isArray(formData.srtInfo.infoDocuments))
@@ -507,7 +536,7 @@ const handleSubmit = async (event) => {
 
       if (Array.isArray(srt.srtFiles)) {
         srtFilesArray.push(
-          ...srt.srtFiles.map(f => ({
+          ...srt.srtFiles.map((f) => ({
             language: f.language || '',
             srtFile: f,
             infoDocFile: null,
@@ -526,6 +555,8 @@ const handleSubmit = async (event) => {
       }
     }
 
+    console.log('Prepared SRT Files Array:', srtFilesArray);
+
     if (
       shouldUploadPoster ||
       shouldUploadBanner ||
@@ -533,18 +564,21 @@ const handleSubmit = async (event) => {
       dubbedFilesArray.length > 0 ||
       srtFilesArray.length > 0
     ) {
+      console.log('Uploading files to S3...');
       uploadedFiles = await uploadFilesToS3(
         {
           projectPoster: shouldUploadPoster ? projectPoster : null,
           projectBanner: shouldUploadBanner ? projectBanner : null,
           projectTrailer: shouldUploadTrailer ? projectTrailer : null,
           dubbedFiles: dubbedFilesArray,
-          srtFiles: srtFilesArray
+          srtFiles: srtFilesArray,
         },
         projectName,
         orgNameToUse,
         userId
       );
+
+      console.log('Uploaded Files:', uploadedFiles);
 
       if (uploadedFiles.projectPosterUrl)
         formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
@@ -555,6 +589,7 @@ const handleSubmit = async (event) => {
       if (uploadedFiles.projectTrailerUrl)
         formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
     } else {
+      console.log('Skipping file upload...');
       const { posterUrl, bannerUrl, trailerUrl } = formData.projectInfo;
 
       if (posterUrl) formData.projectInfo.s3SourcePosterUrl = posterUrl;
@@ -566,16 +601,20 @@ const handleSubmit = async (event) => {
       srtFiles: uploadedFiles?.srtFiles || [],
       infoDocuments: uploadedFiles?.infoDocuments || [],
       projectName,
-      userId
+      userId,
     };
 
-    const cleanedDubbedFiles = dubbedFilesArray.map(file => ({
+    console.log('Cleaned SRT Info:', cleanSrtInfo);
+
+    const cleanedDubbedFiles = dubbedFilesArray.map((file) => ({
       language: file.language,
       dubbedTrailerFileName: file.dubbedTrailerFileName,
       dubbedTrailerUrl: file.dubbedTrailerUrl,
       dubbedSubtitleFileName: file.dubbedSubtitleFileName,
       dubbedSubtitleUrl: file.dubbedSubtitleUrl,
     }));
+
+    console.log('Cleaned Dubbed Files:', cleanedDubbedFiles);
 
     const updatedFormData = {
       projectInfo: {
@@ -588,27 +627,26 @@ const handleSubmit = async (event) => {
         projectBannerS3Url: formData.projectInfo.s3SourceBannerUrl,
         trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
         trailerUrl: formData.projectInfo.s3SourceTrailerUrl,
-        movieFileName: formData.projectInfo.movieFileName || ''
+        movieFileName: formData.projectInfo.movieFileName || '',
       },
       creditsInfo: { ...formData.creditsInfo, projectName, userId },
       specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
       rightsInfo: {
         rights: formData.rightsInfo.rights || [],
         projectName,
-        userId
+        userId,
       },
-
       srtInfo: { srtInfo: cleanSrtInfo },
-      dubbedFiles: cleanedDubbedFiles
+      dubbedFiles: cleanedDubbedFiles,
     };
 
-    console.log('✅ Submitting full form data:', updatedFormData);
+    console.log('Submitting full form data:', updatedFormData);
 
     const response = await fetch('https://media-shippers-backend.vercel.app/api/projectForm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       credentials: 'include',
       body: JSON.stringify(updatedFormData),
@@ -617,27 +655,30 @@ const handleSubmit = async (event) => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.message);
 
+    console.log('Form submission successful:', result);
+
     dispatch(setProjectFolderSuccess(projectName));
     alert('✅ Project saved successfully!');
 
     const transferResult = await transferFileToLocation();
     if (transferResult.success) {
       alert('✅ File transfer successful!');
-      navigate('/showcase-projects'); // ✅ REDIRECT here after both alerts
+      navigate('/showcase-projects');
     } else {
       alert(`⚠️ File transfer failed: ${transferResult.error}`);
     }
-
   } catch (error) {
     console.error('❌ Error during submission:', error);
     alert('Error saving project: ' + error.message);
-    dispatch(setProjectFolderFailure({
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-    }));
+    dispatch(
+      setProjectFolderFailure({
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      })
+    );
   } finally {
-    setIsUploading(false); // ✅ hides loader
+    setIsUploading(false);
   }
 };
 

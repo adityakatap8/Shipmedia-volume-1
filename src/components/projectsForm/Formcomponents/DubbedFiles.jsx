@@ -46,7 +46,7 @@ const handleChange = (index, e) => {
     const projectFolder = (projectInfo?.projectName || projectName || 'unknown_project').replace(/\s+/g, '+');
     const language = updatedEntries[index].language || 'unknown_language';
 
-    const constructedHttpsUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
+    const constructedHttpsUrl = `https://testmediashippers .s3.eu-north-1.amazonaws.com/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
 
     updatedEntries[index].dubbedTrailerFileName = fileName;
     updatedEntries[index].dubbedTrailerUrl = constructedHttpsUrl;
@@ -69,7 +69,7 @@ const handleFileChange = (index, e, fieldName) => {
   const fileName = file.name;
 
   if (fieldName === 'dubbedTrailerFile') {
-    const dubbedHttpsUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
+    const dubbedHttpsUrl = `https://testmediashippers .s3.eu-north-1.amazonaws.com/${orgName}/${projectFolder}/trailer/${language}/${fileName}`;
     updatedEntries[index].dubbedTrailerFileName = fileName;
     updatedEntries[index].dubbedTrailerUrl = dubbedHttpsUrl;
 
@@ -78,7 +78,7 @@ const handleFileChange = (index, e, fieldName) => {
   }
 
   if (fieldName === 'dubbedSubtitleFile') {
-    const subtitleHttpsUrl = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${projectFolder}/srt+files/${language}/${fileName}`;
+    const subtitleHttpsUrl = `https://testmediashippers .s3.eu-north-1.amazonaws.com/${orgName}/${projectFolder}/srt+files/${language}/${fileName}`;
     updatedEntries[index].dubbedSubtitleFileName = fileName;
     updatedEntries[index].dubbedSubtitleUrl = subtitleHttpsUrl;
   }

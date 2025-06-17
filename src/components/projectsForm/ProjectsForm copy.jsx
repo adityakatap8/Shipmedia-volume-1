@@ -194,10 +194,10 @@ function ProjectsForm() {
     const movieFileName = movieFileUrl ? movieFileUrl.split('/').pop() : null;
 
     // Constructing the destination URLs for all files
-    const posterDestinationUrl = posterFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/film stills/${posterFileName}` : null;
-    const bannerDestinationUrl = bannerFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/film stills/${bannerFileName}` : null;
-    const trailerDestinationUrl = trailerFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${trailerFileName}` : null;
-    const movieDestinationUrl = movieFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/master/${movieFileName}` : null;
+    const posterDestinationUrl = posterFileName ? `s3://testmediashippers /${orgName}/${projectFolder}/film stills/${posterFileName}` : null;
+    const bannerDestinationUrl = bannerFileName ? `s3://testmediashippers /${orgName}/${projectFolder}/film stills/${bannerFileName}` : null;
+    const trailerDestinationUrl = trailerFileName ? `s3://testmediashippers /${orgName}/${projectFolder}/trailer/${trailerFileName}` : null;
+    const movieDestinationUrl = movieFileName ? `s3://testmediashippers /${orgName}/${projectFolder}/master/${movieFileName}` : null;
 
     // Log the destination URLs for validation
     console.log('Poster Destination URL:', posterDestinationUrl || 'No poster URL provided');
@@ -277,9 +277,9 @@ function ProjectsForm() {
 //     let movieFileName = '';
 
 //     // Create base URL for film stills
-//     const basePosterUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//     const baseBannerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//     const baseTrailerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/trailers/`;
+//     const basePosterUrl = `s3://testmediashippers /${orgName}/${projectName}/film+stills/`;
+//     const baseBannerUrl = `s3://testmediashippers /${orgName}/${projectName}/film+stills/`;
+//     const baseTrailerUrl = `s3://testmediashippers /${orgName}/${projectName}/trailers/`;
 
 //     console.log('Base URLs for file uploads:', { basePosterUrl, baseBannerUrl, baseTrailerUrl });
 
@@ -532,9 +532,9 @@ const uploadFileToS3 = async (file, baseUrl) => {
 //   let movieFileName = '';
 
 //   // Create base URL for file uploads
-//   const basePosterUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//   const baseBannerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//   const baseTrailerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/trailers/`;
+//   const basePosterUrl = `s3://testmediashippers /${orgName}/${projectName}/film+stills/`;
+//   const baseBannerUrl = `s3://testmediashippers /${orgName}/${projectName}/film+stills/`;
+//   const baseTrailerUrl = `s3://testmediashippers /${orgName}/${projectName}/trailers/`;
 
 //   console.log('Base URLs for file uploads:', { basePosterUrl, baseBannerUrl, baseTrailerUrl });
 
