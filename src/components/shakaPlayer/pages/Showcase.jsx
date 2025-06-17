@@ -1639,7 +1639,7 @@ export default function MovieGrid() {
 
               const title = project?.projectTitle || "Untitled Project";
               const poster = project?.posterFileName;
-              const logoImageURL = project?.projectPosterS3Url || defaultPoster;
+             const logoImageURL = project.projectPosterS3Url || defaultPoster;
               console.log("poster filen name", poster)
               console.log("logo image url", logoImageURL)
               console.log("orgname", orgName)

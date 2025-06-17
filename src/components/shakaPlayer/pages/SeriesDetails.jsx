@@ -36,7 +36,7 @@ const SeriesDetails = () => {
             "description": "Strange events begin to occur in a small town.",
             "duration": "45m",
             "thumbnail": placeholder,
-            "url": "https://testmovies-1.s3.amazonaws.com/President_McKinley_taking_the_oath.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=TVNKCAoPVMi23jVXvJVS5oSgltM%3D&Expires=1737021210"
+            "url": ""
           },
           {
             "id": "ep_2",
@@ -45,7 +45,7 @@ const SeriesDetails = () => {
             "description": "More secrets come to light as the investigation continues.",
             "duration": "42m",
             "thumbnail": placeholder,
-            "url": "https://testmovies-1.s3.amazonaws.com/Popeye_the_Sailor_Meets_Sindbad_the_Sailor.mp4?AWSAccessKeyId=AKIATKPD3X56A554ASFB&Signature=HoqhCzAJgs456Z61IH86h%2BaPrRo%3D&Expires=1737021187"
+            "url": ""
           }
         ]
       }

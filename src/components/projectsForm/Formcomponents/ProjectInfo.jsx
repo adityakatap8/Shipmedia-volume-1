@@ -21,6 +21,8 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   const [accessKey, setAccessKey] = useState(''); // To store S3 access key
   const [secretKey, setSecretKey] = useState('');
 
+  const [dubbedTrailerUrl, setDubbedTrailerUrl] = useState(null);
+
   const [trailerUploadUrl, setTrailerUploadUrl] = useState('');
 
   useEffect(() => {
@@ -259,6 +261,28 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   };
 
 
+const onDropDubbedTrailer = (acceptedFiles) => {
+  if (acceptedFiles.length > 0) {
+    const file = acceptedFiles[0];
+    const trailerFileName = file.name;
+
+    const folder = projectInfo.projectName || projectName || 'unknown_project';
+    const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/dubbed_trailer/${trailerFileName}`;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    onInputChange({
+      dubbedTrailerFile: file,
+      dubbedTrailerFileName: trailerFileName,
+      dubbedTrailerUrl: trailerS3Url,
+    });
+
+    setDubbedTrailerUrl(previewUrl);
+
+    console.log(`Dubbed Trailer File Name: ${trailerFileName}`);
+    console.log(`Dubbed Trailer S3 URL: ${trailerS3Url}`);
+  }
+};
 
 
 
@@ -301,6 +325,18 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
     }, // Allow video files
     multiple: false
   });
+
+  const {
+  getRootProps: getRootPropsDubbedTrailer,
+  getInputProps: getInputPropsDubbedTrailer,
+} = useDropzone({
+  onDrop: onDropDubbedTrailer,
+  accept: {
+    'video/*': ['.mp4', '.mov', '.webm', '.ogg', '.mkv']
+  },
+  multiple: false
+});
+
 
   const { getRootProps: getRootPropsMovie, getInputProps: getInputPropsMovie } = useDropzone({
     onDrop: onDropMovie,
@@ -518,13 +554,13 @@ useEffect(() => {
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
-            <input
-              type="text"
-              name="projectName"
-              value={projectInfo.projectName}
-              readOnly // makes it non-editable
-              placeholder="Auto-generated project name"
-            />
+           <input
+  type="text"
+  name="projectName"
+  value={projectInfo.projectName || ''}
+  onChange={handleChange}
+  placeholder="Auto-generated project name"
+/>
             {errors.projectName && (
               <span className="error-text">{errors.projectName}</span>
             )}

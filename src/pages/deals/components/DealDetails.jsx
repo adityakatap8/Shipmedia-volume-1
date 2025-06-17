@@ -41,6 +41,7 @@ import {
   ArrowForward,
   MoreVert,
   Download,
+  Close as X,
 } from "@mui/icons-material"
 import { useParams } from "react-router-dom"
 import axios from "axios"
@@ -136,8 +137,17 @@ export default function DealDashboard() {
   const [deal, setDeal] = useState({})
   console.log("deal", deal)
   const [loading, setLoading] = useState(true) // Add loading state
-  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
-  const [trailerUrl, setTrailerUrl] = useState('');
+  const [isTrailerPlaying, setIsTrailerPlaying] = useState(false)
+  const [trailerUrl, setTrailerUrl] = useState("")
+  const [trailerLanguages, setTrailerLanguages] = useState([
+    { id: "english", name: "English", url: "" },
+    { id: "spanish", name: "Spanish", url: "" },
+    { id: "french", name: "French", url: "" },
+    { id: "german", name: "German", url: "" },
+    { id: "japanese", name: "Japanese", url: "" },
+  ])
+  const [selectedLanguage, setSelectedLanguage] = useState("")
+  const [showLanguageSelection, setShowLanguageSelection] = useState(false)
 
   const handleOpenModal = (movie) => {
     setSelectedMovie(movie)
@@ -166,9 +176,7 @@ export default function DealDashboard() {
     step: 0,
   }
 
-  const statusDetails = deal?.status
-    ? getStatusDetails(deal.status)
-    : defaultStatus
+  const statusDetails = deal?.status ? getStatusDetails(deal.status) : defaultStatus
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)
@@ -188,14 +196,43 @@ export default function DealDashboard() {
   }
 
   const handlePlayTrailer = () => {
-    setTrailerUrl(selectedMovie.projectTrailerS3Url);
-    setIsTrailerPlaying(true);
-  };
+    // If we have a selected movie with a trailer URL, populate the language options
+    if (selectedMovie && selectedMovie.projectTrailerS3Url) {
+      // For demo purposes, we'll use the same URL for all languages
+      // In a real implementation, you would have different URLs for each language
+      const updatedLanguages = trailerLanguages.map((lang) => ({
+        ...lang,
+        url: selectedMovie.projectTrailerS3Url,
+      }))
+      setTrailerLanguages(updatedLanguages)
+      setShowLanguageSelection(true)
+    }
+  }
+
+  const handleLanguageSelect = (languageId) => {
+    setSelectedLanguage(languageId)
+  }
+
+  const handlePlaySelectedLanguage = () => {
+    if (selectedLanguage) {
+      const selectedLang = trailerLanguages.find((lang) => lang.id === selectedLanguage)
+      if (selectedLang) {
+        setTrailerUrl(selectedLang.url)
+        setIsTrailerPlaying(true)
+        setShowLanguageSelection(false)
+      }
+    }
+  }
+
+  const handleCloseLanguageSelection = () => {
+    setShowLanguageSelection(false)
+    setSelectedLanguage("")
+  }
 
   const handleCloseTrailer = () => {
-    setIsTrailerPlaying(false);
-    setTrailerUrl("");
-  };
+    setIsTrailerPlaying(false)
+    setTrailerUrl("")
+  }
 
   useEffect(() => {
     console.log("Fetching deal details...")
@@ -890,6 +927,109 @@ export default function DealDashboard() {
                   </Grid>
                 </>
               )}
+              {/* Language Selection Modal */}
+              {showLanguageSelection && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    bgcolor: "rgba(0,0,0,0.85)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 9999,
+                  }}
+                >
+                  <Paper
+                    sx={{
+                      width: { xs: "90%", sm: "500px" },
+                      p: 4,
+                      borderRadius: 2,
+                      maxWidth: "90%",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                      <Typography variant="h6">Select Language</Typography>
+                      <IconButton onClick={handleCloseLanguageSelection} size="small">
+                        <X />
+                      </IconButton>
+                    </Box>
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Choose your preferred language for the trailer
+                    </Typography>
+
+                    <Box sx={{ mb: 3 }}>
+                      {trailerLanguages.map((language) => (
+                        <Box
+                          key={language.id}
+                          onClick={() => handleLanguageSelect(language.id)}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            p: 2,
+                            mb: 1,
+                            borderRadius: 1,
+                            cursor: "pointer",
+                            bgcolor:
+                              selectedLanguage === language.id ? `${theme.palette.primary.main}15` : "background.paper",
+                            border:
+                              selectedLanguage === language.id
+                                ? `1px solid ${theme.palette.primary.main}`
+                                : "1px solid #2a2e45",
+                            transition: "all 0.2s",
+                            "&:hover": {
+                              bgcolor: `${theme.palette.primary.main}10`,
+                            },
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: "50%",
+                              border: "2px solid",
+                              borderColor:
+                                selectedLanguage === language.id ? theme.palette.primary.main : "text.secondary",
+                              mr: 2,
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            {selectedLanguage === language.id && (
+                              <Box
+                                sx={{
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: "50%",
+                                  bgcolor: theme.palette.primary.main,
+                                }}
+                              />
+                            )}
+                          </Box>
+                          <Typography variant="body1">{language.name}</Typography>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      disabled={!selectedLanguage}
+                      onClick={handlePlaySelectedLanguage}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      Play Trailer
+                    </Button>
+                  </Paper>
+                </Box>
+              )}
+              {/* Trailer Player */}
               {isTrailerPlaying && trailerUrl && (
                 console.log("Playing trailer:", trailerUrl),
                 <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50">
@@ -908,7 +1048,6 @@ export default function DealDashboard() {
             </Box>
           </Fade>
         </Modal>
-
       </Box>
     </ThemeProvider>
   )
