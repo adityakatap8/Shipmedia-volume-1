@@ -132,9 +132,9 @@ export default function MovieDetails() {
   if (!movieData) return <div>No data available.</div>; // If movieData is still null after loading, show message
 
   // Destructure the movieData into required parts
-  const projectInfoData = movieData?.projectInfoData || {};
-  const creditsInfoData = movieData?.creditsInfoData || {};
-  const specificationsInfoData = movieData?.specificationsInfoData || {};
+  const projectInfoData = movieData?.projectInfo || {};
+  const creditsInfoData = movieData?.creditsInfo || {};
+  const specificationsInfoData = movieData?.specificationsInfo || {};
 
 
   // Use the title directly, no need to sanitize it
@@ -155,13 +155,12 @@ export default function MovieDetails() {
 
 
   // Default URLs for logo and background images if not provided
-  const backgroundImageURL = banner ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${banner} ` : defaultBanner;;
-  const logoImageURL = poster
-    ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/film+stills/${poster}`
-    : defaultPoster;
+ const backgroundImageURL = projectInfoData.projectBannerS3Url || defaultBanner;
+const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
+
 
   // Trailer URL construction using the title directly
-  const trailerVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/trailer/${trailer}`;
+  const trailerVideoURL = projectInfoData.projectTrailerS3Url || '';
   const movieVideoURL = `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${orgName}/${project}/master/${movie}`;
 
   console.log("main trailer url", trailerVideoURL)
@@ -535,5 +534,10 @@ export default function MovieDetails() {
     </div>
   );
 };
+
+
+
+
+
 
 
