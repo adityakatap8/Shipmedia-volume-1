@@ -18,6 +18,8 @@ import {
   Drawer,
   TextField,
   Select,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -40,6 +42,8 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EmailIcon from "@mui/icons-material/Email";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import axios
+
 function Home() {
   // Define theme directly in the component
 
@@ -65,6 +69,26 @@ function Home() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [anchorEl, setAnchorEl] = useState(null);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [formValues, setFormValues] = useState({
+    name: "",
+    email: "",
+    contact: "",
+    role: "",
+    company: "",
+    companySite: "",
+    password: "",
+  });
+
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    contact: "",
+    role: "",
+    company: "",
+    password: "",
+  });
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State for Snackbar
 
   const handleDrawerOpen = () => {
     setDrawerOpen(true); // Open the drawer
@@ -212,23 +236,7 @@ function Home() {
   };
 
   // Form state
-  const [formValues, setFormValues] = useState({
-    name: "",
-    email: "",
-    contact: "",
-    role: "",
-    company: "",
-    companySite: "",
-  });
-
-  const [formErrors, setFormErrors] = useState({
-    name: "",
-    email: "",
-    contact: "",
-    role: "",
-    company: "",
-    companySite: "",
-  });
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -251,23 +259,56 @@ function Home() {
     }
     if (!formValues.role) errors.role = "Role is required.";
     if (!formValues.company) errors.company = "Company Name is required.";
-    if (!formValues.companySite) {
-      errors.companySite = "Company Site is required.";
-    } else if (!/^https?:\/\/.+\..+$/.test(formValues.companySite)) {
-      errors.companySite = "Company Site URL is invalid.";
+    if (!formValues.password) {
+      errors.password = "Password is required.";
+    } else if (
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}/.test(
+        formValues.password
+      )
+    ) {
+      errors.password =
+        "Password must be at least 8 characters long, include 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
     }
     return errors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
     } else {
-      console.log("Form submitted successfully:", formValues);
-      // Perform form submission logic here
+      try {
+        // Map formValues to match server-side keys
+        const requestBody = {
+          name: formValues.name,
+          orgName: formValues.company, // Map 'company' to 'orgName'
+          email: formValues.email,
+          password: formValues.password,
+          phoneNumber: formValues.contact, // Map 'contact' to 'phoneNumber'
+          companySite: formValues.companySite,
+          role: formValues.role,
+        };
+
+        const response = await axios.post("http://localhost:3000/api/auth/register", requestBody);
+
+        if (response.status === 200) {
+          console.log("Registration successful");
+          setSnackbarOpen(true); // Open Snackbar
+          setTimeout(() => navigate("/login"), 2000); // Redirect to login page after 2 seconds
+        } else {
+          console.error("Registration failed:", response.data.message || "Unknown error");
+          alert(response.data.message || "Registration failed. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error during registration:", error);
+        alert(error.response?.data?.message || "An error occurred. Please try again later.");
+      }
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false); // Close Snackbar
   };
 
   return (
@@ -350,15 +391,27 @@ function Home() {
                       open={Boolean(anchorEl)}
                       onClose={handleClose}
                     >
-                      <MenuItem onClick={handleLoginRedirect}>Login</MenuItem>
                       <MenuItem onClick={handleDrawerOpen}>
                         Register
-                      </MenuItem>{" "}
-                      {/* Register button for mobile */}
+                      </MenuItem>
+                      <MenuItem onClick={handleLoginRedirect}>Login</MenuItem>
                     </Menu>
                   </>
                 ) : (
                   <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Button
+                      variant="contained"
+                      onClick={handleDrawerOpen} 
+                      sx={{
+                        ml: 3,
+                        backgroundColor: "#FF6B00",
+                        "&:hover": { backgroundColor: "#E05F00" },
+                        borderRadius: 0,
+                        px: 3,
+                      }}
+                    >
+                      Register
+                    </Button>
                     <Button
                       variant="contained"
                       onClick={handleLoginRedirect}
@@ -372,20 +425,6 @@ function Home() {
                       }}
                     >
                       Login
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={handleDrawerOpen} // Redirect to the register page
-                      endIcon={<ArrowForwardIcon />}
-                      sx={{
-                        ml: 3,
-                        backgroundColor: "#FF6B00",
-                        "&:hover": { backgroundColor: "#E05F00" },
-                        borderRadius: 0,
-                        px: 3,
-                      }}
-                    >
-                      Register
                     </Button>
                   </Box>
                 )}
@@ -1275,9 +1314,9 @@ function Home() {
                 <MenuItem value="" disabled>
                   Select your role
                 </MenuItem>
-                <MenuItem value="buyer">Buyer</MenuItem>
-                <MenuItem value="seller">Seller</MenuItem>
-                <MenuItem value="sales">Sales</MenuItem>
+                <MenuItem value="Buyer">Buyer</MenuItem>
+                <MenuItem value="Seller">Seller</MenuItem>
+                <MenuItem value="Sales">Sales</MenuItem>
               </Select>
               {formErrors.role && (
                 <Typography variant="caption" color="error">
@@ -1337,15 +1376,14 @@ function Home() {
                 htmlFor="phone"
                 sx={{ display: "block", mb: 1, textAlign: "left" }}
               >
-                Phone Number{" "}
-                <span style={{ color: "#ff6b6b" }}>*</span>
+                Phone Number <span style={{ color: "#ff6b6b" }}>*</span>
               </Typography>
               <TextField
                 id="phone"
                 name="contact"
-                fullWidth
+                fullWidth // Ensure this prop is applied
                 variant="outlined"
-                type="number"
+                type="normal"
                 placeholder="Enter your phone number"
                 value={formValues.contact}
                 onChange={handleChange}
@@ -1422,7 +1460,6 @@ function Home() {
             <Box sx={{ mb: 2 }}>
               <Typography
                 component="label"
-                htmlFor="site"
                 sx={{ display: "block", mb: 1, textAlign: "left" }}
               >
                 Company Site{" "}
@@ -1434,11 +1471,9 @@ function Home() {
                 fullWidth
                 variant="outlined"
                 placeholder="Enter your website URL"
-                type="url"
+                type="normal"
                 value={formValues.companySite}
                 onChange={handleChange}
-                error={!!formErrors.companySite}
-                helperText={formErrors.companySite}
                 size="small"
                 InputProps={{
                   sx: {
@@ -1459,6 +1494,26 @@ function Home() {
                     },
                   },
                 }}
+              />
+            </Box>
+
+            {/* Password Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography component="label" htmlFor="password" sx={{ display: "block", mb: 1, textAlign: "left" }}>
+                Password <span style={{ color: "red" }}>*</span>
+              </Typography>
+              <TextField
+                id="password"
+                name="password"
+                type="password"
+                size="small"
+                fullWidth
+                variant="outlined"
+                placeholder="Enter your password"
+                value={formValues.password}
+                onChange={handleChange}
+                error={!!formErrors.password}
+                helperText={formErrors.password}
               />
             </Box>
 
@@ -1499,6 +1554,18 @@ function Home() {
           </Typography>
         </Box>
       </Drawer>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000} // Snackbar will auto-hide after 3 seconds
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }} 
+      >
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: "100%" }}>
+          Registration successful! Redirecting to login...
+        </Alert>
+      </Snackbar>
     </ThemeProvider>
   );
 }
