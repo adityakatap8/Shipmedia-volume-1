@@ -50,6 +50,7 @@ import { Toaster as Sonner } from "../src/components/shakaPlayer/components/ui/s
 import { PlayerMenu } from "../src/components/shakaPlayer/components/PlayerMenu";
 import ForgotPassword from './pages/forgotPasswordPage/forgotPassword';
 import { Navebar1 } from './components/dashboardNavbar/Navbar1';
+import GuestUserPage from './components/guestUserPage/GuestUserPage';
 
 
 const queryClient = new QueryClient();
@@ -91,6 +92,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path='/dashnav' element={<Navebar1 />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verification" element={<GuestUserPage />} />
 
             {/* Protected Routes */}
             <Route path="/projects" element={
