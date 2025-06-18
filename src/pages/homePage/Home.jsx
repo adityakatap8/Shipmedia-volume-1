@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   AppBar,
   Box,
@@ -14,27 +14,32 @@ import {
   MenuItem,
   Link as MuiLink,
   CssBaseline,
-  Grid
-} from "@mui/material"
-import MenuIcon from "@mui/icons-material/Menu"
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
-import FacebookIcon from "@mui/icons-material/Facebook"
-import TwitterIcon from "@mui/icons-material/Twitter"
-import InstagramIcon from "@mui/icons-material/Instagram"
-import PinterestIcon from "@mui/icons-material/Pinterest"
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord"
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
+  Grid,
+  Drawer,
+  TextField,
+  Select,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import PinterestIcon from "@mui/icons-material/Pinterest";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import CloseIcon from "@mui/icons-material/Close"; // Import CloseIcon
 // import "./App.css"
-import logo from "../../assets/mediaShippers.png"
-import backgroundImage from "../../assets/earth-city-bg.jpeg"
-import buyer from "../../assets/Buyer2.png"
-import seller from "../../assets/Seller.png"
-import shippers from "../../assets/Shippers.png"
+import { Link as RouterLink } from "react-router-dom";
+import logo from "../../assets/mediaShippers.png";
+import backgroundImage from "../../assets/earth-city-bg.jpeg";
+import buyer from "../../assets/Buyer2.png";
+import seller from "../../assets/Seller.png";
+import shippers from "../../assets/Shippers.png";
 
-import LinkedInIcon from "@mui/icons-material/LinkedIn"
-import LocationOnIcon from "@mui/icons-material/LocationOn"
-import EmailIcon from "@mui/icons-material/Email"
-import { useNavigate } from "react-router-dom"
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import EmailIcon from "@mui/icons-material/Email";
+import { useNavigate } from "react-router-dom";
 function Home() {
   // Define theme directly in the component
 
@@ -56,19 +61,29 @@ function Home() {
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
     },
-  })
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  const [anchorEl, setAnchorEl] = useState(null)
+  });
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+
+  const handleDrawerOpen = () => {
+    setDrawerOpen(true); // Open the drawer
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false); // Close the drawer
+  };
+
   const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
   const handleClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   const handleLoginRedirect = () => {
-    console.log("login clicked")
-    navigate('/login'); // <-- your login path
+    console.log("login clicked");
+    navigate("/login"); // <-- your login path
   };
 
   const ServiceIcon = (type) => {
@@ -78,7 +93,7 @@ function Home() {
       filter: "invert(1)",
       opacity: 0.8,
       marginBottom: "15px",
-    }
+    };
 
     // Using simple div with background for icons
     return (
@@ -92,12 +107,26 @@ function Home() {
           marginBottom: "15px",
         }}
       >
-        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" style={iconStyle}>
+        <svg
+          width="50"
+          height="50"
+          viewBox="0 0 50 50"
+          fill="none"
+          style={iconStyle}
+        >
           {type === "ingestion" && (
-            <path d="M10 10 L40 10 L40 40 L10 40 Z M20 20 L30 20 L30 30 L20 30 Z" stroke="white" strokeWidth="2" />
+            <path
+              d="M10 10 L40 10 L40 40 L10 40 Z M20 20 L30 20 L30 30 L20 30 Z"
+              stroke="white"
+              strokeWidth="2"
+            />
           )}
           {type === "transcoding" && (
-            <path d="M10 10 L40 10 L40 40 L10 40 Z M15 20 L35 20 M15 30 L35 30" stroke="white" strokeWidth="2" />
+            <path
+              d="M10 10 L40 10 L40 40 L10 40 Z M15 20 L35 20 M15 30 L35 30"
+              stroke="white"
+              strokeWidth="2"
+            />
           )}
           {type === "dubbing" && (
             <path
@@ -107,25 +136,33 @@ function Home() {
             />
           )}
           {type === "metadata" && (
-            <path d="M10 10 L40 10 L40 40 L10 40 Z M15 20 L35 20 M15 30 L25 30" stroke="white" strokeWidth="2" />
+            <path
+              d="M10 10 L40 10 L40 40 L10 40 Z M15 20 L35 20 M15 30 L25 30"
+              stroke="white"
+              strokeWidth="2"
+            />
           )}
-          {type === "secure" && <path d="M25 10 L40 20 L25 30 L10 20 Z M25 30 L25 45" stroke="white" strokeWidth="2" />}
+          {type === "secure" && (
+            <path
+              d="M25 10 L40 20 L25 30 L10 20 Z M25 30 L25 45"
+              stroke="white"
+              strokeWidth="2"
+            />
+          )}
           {type === "delivery" && (
-            <path d="M10 15 L40 15 L40 35 L10 35 Z M15 25 L35 25 M25 15 L25 35" stroke="white" strokeWidth="2" />
+            <path
+              d="M10 15 L40 15 L40 35 L10 35 Z M15 25 L35 25 M25 15 L25 35"
+              stroke="white"
+              strokeWidth="2"
+            />
           )}
         </svg>
       </Box>
-    )
-  }
+    );
+  };
 
   // Service Card Component
-  const ServiceCard = ({
-    icon,
-    title,
-    description,
-
-
-  }) => {
+  const ServiceCard = ({ icon, title, description }) => {
     return (
       <Box sx={{ marginBottom: "20px", width: "100%" }}>
         <ServiceIcon type={icon} />
@@ -171,10 +208,67 @@ function Home() {
           View Details
         </Button>
       </Box>
-    )
-  }
+    );
+  };
 
+  // Form state
+  const [formValues, setFormValues] = useState({
+    name: "",
+    email: "",
+    contact: "",
+    role: "",
+    company: "",
+    companySite: "",
+  });
 
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    contact: "",
+    role: "",
+    company: "",
+    companySite: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues({ ...formValues, [name]: value });
+    setFormErrors({ ...formErrors, [name]: "" }); // Clear error on change
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formValues.name) errors.name = "Full Name is required.";
+    if (!formValues.email) {
+      errors.email = "Email is required.";
+    } else if (!/\S+@\S+\.\S+/.test(formValues.email)) {
+      errors.email = "Email is invalid.";
+    }
+    if (!formValues.contact) {
+      errors.contact = "Contact Number is required.";
+    } else if (!/^\d{10}$/.test(formValues.contact)) {
+      errors.contact = "Contact Number must be 10 digits.";
+    }
+    if (!formValues.role) errors.role = "Role is required.";
+    if (!formValues.company) errors.company = "Company Name is required.";
+    if (!formValues.companySite) {
+      errors.companySite = "Company Site is required.";
+    } else if (!/^https?:\/\/.+\..+$/.test(formValues.companySite)) {
+      errors.companySite = "Company Site URL is invalid.";
+    }
+    return errors;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+    } else {
+      console.log("Form submitted successfully:", formValues);
+      // Perform form submission logic here
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -220,10 +314,19 @@ function Home() {
             />
           </Box>
           {/* Navigation */}
-          <AppBar position="static" sx={{ backgroundColor: "transparent", padding: "10px 0", boxShadow: "none" }}>
+          <AppBar
+            position="static"
+            sx={{
+              backgroundColor: "transparent",
+              padding: "10px 0",
+              boxShadow: "none",
+            }}
+          >
             <Container maxWidth="xl">
               <Toolbar disableGutters>
-                <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}
+                >
                   <img
                     src={logo || "/placeholder.svg"}
                     alt="Media Shippers Logo"
@@ -242,14 +345,20 @@ function Home() {
                     >
                       <MenuIcon />
                     </IconButton>
-                    <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-                    
-                      <Button onClick={handleLoginRedirect}>Login</Button>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleClose}
+                    >
+                      <MenuItem onClick={handleLoginRedirect}>Login</MenuItem>
+                      <MenuItem onClick={handleDrawerOpen}>
+                        Register
+                      </MenuItem>{" "}
+                      {/* Register button for mobile */}
                     </Menu>
                   </>
                 ) : (
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                  
                     <Button
                       variant="contained"
                       onClick={handleLoginRedirect}
@@ -263,6 +372,20 @@ function Home() {
                       }}
                     >
                       Login
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleDrawerOpen} // Redirect to the register page
+                      endIcon={<ArrowForwardIcon />}
+                      sx={{
+                        ml: 3,
+                        backgroundColor: "#FF6B00",
+                        "&:hover": { backgroundColor: "#E05F00" },
+                        borderRadius: 0,
+                        px: 3,
+                      }}
+                    >
+                      Register
                     </Button>
                   </Box>
                 )}
@@ -321,11 +444,18 @@ function Home() {
             }}
           >
             <FiberManualRecordIcon sx={{ color: "white", fontSize: 16 }} />
-            <FiberManualRecordIcon sx={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }} />
-            <FiberManualRecordIcon sx={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }} />
+            <FiberManualRecordIcon
+              sx={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}
+            />
+            <FiberManualRecordIcon
+              sx={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}
+            />
           </Box>
           {/* Hero Content */}
-          <Container maxWidth="lg" sx={{ pt: { xs: 10, md: 15 }, pb: 10, position: "relative", zIndex: 2 }}>
+          <Container
+            maxWidth="lg"
+            sx={{ pt: { xs: 10, md: 15 }, pb: 10, position: "relative", zIndex: 2 }}
+          >
             <Box sx={{ maxWidth: "800px" }}>
               <Typography
                 variant="subtitle1"
@@ -334,7 +464,7 @@ function Home() {
                   mb: 2,
                   fontWeight: 500,
                   letterSpacing: 1,
-                  textAlign: "left"
+                  textAlign: "left",
                 }}
               >
                 WORLD OF MEDIA MARKETPLACE
@@ -347,7 +477,7 @@ function Home() {
                   color: "white",
                   lineHeight: 1.1,
                   mb: 2,
-                  textAlign: "left"
+                  textAlign: "left",
                 }}
               >
                 MEDIA
@@ -361,17 +491,14 @@ function Home() {
                   mb: 6,
                   maxWidth: "600px",
                   fontWeight: 400,
-
                 }}
               >
                 Spread your interesting stories from every corner to every screen
               </Typography>
-
             </Box>
           </Container>
         </Box>
       </Box>
-
 
       {/* About Buyer Section */}
       <Box
@@ -477,7 +604,6 @@ function Home() {
         </IconButton>
       </Box>
 
-
       {/* About seller Section */}
       <Box
         sx={{
@@ -546,8 +672,6 @@ function Home() {
               </Typography>
             </Box>
 
-
-
             {/* Right side - Content */}
             <Box sx={{ flex: 1 }}>
               <img
@@ -583,8 +707,6 @@ function Home() {
           <ArrowUpwardIcon />
         </IconButton>
       </Box>
-
-
 
       {/* About shippers Section */}
       <Box
@@ -719,92 +841,98 @@ function Home() {
       {/* services */}
 
       <Box
-          sx={{
-            padding: "40px 20px",
-            width: "100%",
-          }}
-        >
-          <Container maxWidth="lg">
-            {/* Services Header */}
-            <Box sx={{ marginBottom: "30px" }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  color: "#ff6b35",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  letterSpacing: "1px",
-                  marginBottom: "5px",
-                }}
-              >
-                SERVICES
-              </Typography>
-              <Typography
-                variant="h4"
-                component="h1"
-                sx={{
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "32px",
-                }}
-              >
-                My Services
-              </Typography>
+        sx={{
+          padding: "40px 20px",
+          width: "100%",
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Services Header */}
+          <Box sx={{ marginBottom: "30px" }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: "#ff6b35",
+                fontWeight: "bold",
+                fontSize: "14px",
+                letterSpacing: "1px",
+                marginBottom: "5px",
+              }}
+            >
+              SERVICES
+            </Typography>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                color: "white",
+                fontWeight: "bold",
+                fontSize: "32px",
+              }}
+            >
+              My Services
+            </Typography>
+          </Box>
+
+          {/* Services Grid - 3 rows with 2 columns */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "30px",
+              marginBottom: "40px",
+            }}
+          >
+            {/* Row 1 */}
+            <Box>
+              <ServiceCard
+                icon="ingestion"
+                title="Asset Ingestion & Validation"
+                description="We accept a wide variety of formats and securely ingest your video masters, QC reports, artwork, and metadata. Rigorous quality control checks ensure files meet platform and buyer specifications — minimizing rejection risks and costly rework."
+              />
+            </Box>
+            <Box>
+              <ServiceCard
+                icon="transcoding"
+                title="Transcoding & Packaging"
+                description="Need HLS, MPEG-DASH, ProRes, IMF, or custom deliverables? We transcode, package, and prepare your content according to the exact technical requirements of each Buyer or platform — globally."
+              />
             </Box>
 
-            {/* Services Grid - 3 rows with 2 columns */}
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "30px", marginBottom: "40px" }}>
-              {/* Row 1 */}
-              <Box>
-                <ServiceCard
-                  icon="ingestion"
-                  title="Asset Ingestion & Validation"
-                  description="We accept a wide variety of formats and securely ingest your video masters, QC reports, artwork, and metadata. Rigorous quality control checks ensure files meet platform and buyer specifications — minimizing rejection risks and costly rework."
-                />
-              </Box>
-              <Box>
-                <ServiceCard
-                  icon="transcoding"
-                  title="Transcoding & Packaging"
-                  description="Need HLS, MPEG-DASH, ProRes, IMF, or custom deliverables? We transcode, package, and prepare your content according to the exact technical requirements of each Buyer or platform — globally."
-                />
-              </Box>
-
-              {/* Row 2 */}
-              <Box>
-                <ServiceCard
-                  icon="dubbing"
-                  title="Dubbing, Subtitling & Localization"
-                  description="Our network of vetted subtitling and dubbing partners ensures you have seamless multi-language versions ready for any market. We also facilitate AI+Human hybrid services for faster turnarounds without sacrificing quality or cultural nuance."
-                />
-              </Box>
-              <Box>
-                <ServiceCard
-                  icon="metadata"
-                  title="Metadata & Artwork Management"
-                  description="From synopses to cast lists and key art — we gather, format, and validate all supporting materials. Media Shippers ensures every asset package is complete, compliant, and ready for final delivery."
-                />
-              </Box>
-
-              {/* Row 3 */}
-              <Box>
-                <ServiceCard
-                  icon="secure"
-                  title="Secure Delivery & Tracking"
-                  description="We use secure file delivery methods (Aspera, Signiant, SFTP, or your preferred platform) and provide full tracking until the Buyer acknowledges successful receipt."
-                />
-              </Box>
-              <Box>
-                <ServiceCard
-                  icon="delivery"
-                  title="Delivery Readiness Certification"
-                  description="Before dispatching, our internal checklist ensures: QC Passed, Metadata Complete, Deliverables Verified, Buyer Specifications Matched."
-                />
-              </Box>
+            {/* Row 2 */}
+            <Box>
+              <ServiceCard
+                icon="dubbing"
+                title="Dubbing, Subtitling & Localization"
+                description="Our network of vetted subtitling and dubbing partners ensures you have seamless multi-language versions ready for any market. We also facilitate AI+Human hybrid services for faster turnarounds without sacrificing quality or cultural nuance."
+              />
+            </Box>
+            <Box>
+              <ServiceCard
+                icon="metadata"
+                title="Metadata & Artwork Management"
+                description="From synopses to cast lists and key art — we gather, format, and validate all supporting materials. Media Shippers ensures every asset package is complete, compliant, and ready for final delivery."
+              />
             </Box>
 
-          </Container>
-        </Box>
+            {/* Row 3 */}
+            <Box>
+              <ServiceCard
+                icon="secure"
+                title="Secure Delivery & Tracking"
+                description="We use secure file delivery methods (Aspera, Signiant, SFTP, or your preferred platform) and provide full tracking until the Buyer acknowledges successful receipt."
+              />
+            </Box>
+            <Box>
+              <ServiceCard
+                icon="delivery"
+                title="Delivery Readiness Certification"
+                description="Before dispatching, our internal checklist ensures: QC Passed, Metadata Complete, Deliverables Verified, Buyer Specifications Matched."
+              />
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       {/* footer */}
 
@@ -818,7 +946,12 @@ function Home() {
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             {/* Logo Section */}
-            <Grid item xs={12} md={4} sx={{ textAlign: isMobile ? "center" : "left" }}>
+            <Grid
+              item
+              xs={12}
+              md={4}
+              sx={{ textAlign: isMobile ? "center" : "left" }}
+            >
               <Box
                 component="img"
                 src={logo}
@@ -843,7 +976,12 @@ function Home() {
             </Grid>
 
             {/* Follow Me Section */}
-            <Grid item xs={12} md={4} sx={{ textAlign: isMobile ? "center" : "left" }}>
+            <Grid
+              item
+              xs={12}
+              md={4}
+              sx={{ textAlign: isMobile ? "center" : "left" }}
+            >
               <Typography
                 variant="h6"
                 sx={{
@@ -865,7 +1003,13 @@ function Home() {
               >
                 Connect me with social media
               </Typography>
-              <Box sx={{ display: "flex", gap: "10px", justifyContent: isMobile ? "center" : "flex-start" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "10px",
+                  justifyContent: isMobile ? "center" : "flex-start",
+                }}
+              >
                 <IconButton size="small" sx={{ color: "#aaa" }}>
                   <FacebookIcon />
                 </IconButton>
@@ -882,7 +1026,12 @@ function Home() {
             </Grid>
 
             {/* Contact Us Section */}
-            <Grid item xs={12} md={4} sx={{ textAlign: isMobile ? "center" : "left" }}>
+            <Grid
+              item
+              xs={12}
+              md={4}
+              sx={{ textAlign: isMobile ? "center" : "left" }}
+            >
               <Typography
                 variant="h6"
                 sx={{
@@ -999,7 +1148,358 @@ function Home() {
           <ArrowForwardIcon sx={{ transform: "rotate(-45deg)" }} />
         </IconButton>
       </Box>
+
+      {/* Drawer */}
+      <Drawer
+        anchor="right"
+        open={isDrawerOpen}
+        onClose={handleDrawerClose}
+        sx={{
+          "& .MuiDrawer-paper": {
+            transition: "transform 0.3s ease-in-out", // Add animation for opening/closing
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 400,
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+            position: "relative", // Ensure the close button is positioned correctly
+          }}
+        >
+          {/* Close Icon */}
+          <IconButton
+            onClick={handleDrawerClose} // Close the drawer when clicked
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              color: "white",
+              "&:hover": {
+                color: "#ff6b6b",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          {/* Drawer Content */}
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            sx={{ color: "#fbe1d6", textAlign: "center" }}
+          >
+            Register
+          </Typography>
+
+          <form onSubmit={handleSubmit}>
+            {/* Full Name Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                component="label"
+                htmlFor="name"
+                sx={{ display: "block", mb: 1, textAlign: "left" }}
+              >
+                Full Name{" "}
+                <span style={{ color: "#ff6b6b" }}>*</span>
+              </Typography>
+              <TextField
+                id="name"
+                name="name"
+                fullWidth
+                type="normal"
+                variant="outlined"
+                placeholder="Enter your full name"
+                value={formValues.name}
+                onChange={handleChange}
+                error={!!formErrors.name}
+                helperText={formErrors.name}
+                size="small"
+                InputProps={{
+                  sx: {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                    color: "white",
+                    "&::placeholder": {
+                      color: "rgba(255, 255, 255, 0.6)",
+                      opacity: 1,
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                component="label"
+                htmlFor="role"
+                sx={{ display: "block", mb: 1, textAlign: "left" }}
+              >
+                Select Role{" "}
+                <span style={{ color: "#ff6b6b" }}>*</span>
+              </Typography>
+              <Select
+                id="role"
+                name="role"
+                fullWidth
+                size="small"
+                value={formValues.role}
+                onChange={handleChange}
+                error={!!formErrors.role}
+                displayEmpty
+                sx={{
+                  bgcolor: "rgba(255, 255, 255, 0.1)",
+                  color: formValues.role ? "white" : "#aaa",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.2)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.5)",
+                  },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Select your role
+                </MenuItem>
+                <MenuItem value="buyer">Buyer</MenuItem>
+                <MenuItem value="seller">Seller</MenuItem>
+                <MenuItem value="sales">Sales</MenuItem>
+              </Select>
+              {formErrors.role && (
+                <Typography variant="caption" color="error">
+                  {formErrors.role}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Email Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                component="label"
+                htmlFor="email"
+                sx={{ display: "block", mb: 1, textAlign: "left" }}
+              >
+                Email{" "}
+                <span style={{ color: "#ff6b6b" }}>*</span>
+              </Typography>
+              <TextField
+                id="email"
+                name="email"
+                fullWidth
+                variant="outlined"
+                placeholder="Enter your email"
+                value={formValues.email}
+                onChange={handleChange}
+                error={!!formErrors.email}
+                helperText={formErrors.email}
+                type="email"
+                size="small"
+                InputProps={{
+                  sx: {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                    color: "white",
+                    "&::placeholder": {
+                      color: "rgba(255, 255, 255, 0.6)",
+                      opacity: 1,
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Phone Number Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                component="label"
+                htmlFor="phone"
+                sx={{ display: "block", mb: 1, textAlign: "left" }}
+              >
+                Phone Number{" "}
+                <span style={{ color: "#ff6b6b" }}>*</span>
+              </Typography>
+              <TextField
+                id="phone"
+                name="contact"
+                fullWidth
+                variant="outlined"
+                type="number"
+                placeholder="Enter your phone number"
+                value={formValues.contact}
+                onChange={handleChange}
+                error={!!formErrors.contact}
+                helperText={formErrors.contact}
+                size="small"
+                InputProps={{
+                  sx: {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                    color: "white",
+                    "&::placeholder": {
+                      color: "rgba(255, 255, 255, 0.6)",
+                      opacity: 1,
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Organization Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                component="label"
+                htmlFor="orgName"
+                sx={{ display: "block", mb: 1, textAlign: "left" }}
+              >
+                Company{" "}
+                <span style={{ color: "#ff6b6b" }}>*</span>
+              </Typography>
+              <TextField
+                id="orgName"
+                name="company"
+                fullWidth
+                variant="outlined"
+                placeholder="Enter organization name"
+                type="normal"
+                value={formValues.company}
+                onChange={handleChange}
+                error={!!formErrors.company}
+                helperText={formErrors.company}
+                size="small"
+                InputProps={{
+                  sx: {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                    color: "white",
+                    "&::placeholder": {
+                      color: "rgba(255, 255, 255, 0.6)",
+                      opacity: 1,
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Address Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                component="label"
+                htmlFor="site"
+                sx={{ display: "block", mb: 1, textAlign: "left" }}
+              >
+                Company Site{" "}
+                <span style={{ color: "#ff6b6b" }}>*</span>
+              </Typography>
+              <TextField
+                id="site"
+                name="companySite"
+                fullWidth
+                variant="outlined"
+                placeholder="Enter your website URL"
+                type="url"
+                value={formValues.companySite}
+                onChange={handleChange}
+                error={!!formErrors.companySite}
+                helperText={formErrors.companySite}
+                size="small"
+                InputProps={{
+                  sx: {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                    color: "white",
+                    "&::placeholder": {
+                      color: "rgba(255, 255, 255, 0.6)",
+                      opacity: 1,
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{
+                backgroundColor: "#ec6b32",
+                textTransform: "none",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#d45a28",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 6px 20px rgba(236, 107, 50, 0.4)",
+                },
+              }}
+            >
+              Register
+            </Button>
+          </form>
+          <Typography
+            component={RouterLink}
+            to="/login" // Redirect to login page
+            sx={{
+              color: "#FF6B00",
+              textAlign: "right",
+              textDecoration: "none",
+              cursor: "pointer",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Click here to login
+          </Typography>
+        </Box>
+      </Drawer>
     </ThemeProvider>
-  )
+  );
 }
-export default Home
+export default Home;
