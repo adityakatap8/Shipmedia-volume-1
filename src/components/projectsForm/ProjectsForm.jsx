@@ -626,8 +626,8 @@ const handleSubmit = async (event) => {
         bannerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl),
         projectBannerS3Url: formData.projectInfo.s3SourceBannerUrl,
         trailerFileName: extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl),
-        trailerUrl: formData.projectInfo.s3SourceTrailerUrl,
-        movieFileName: formData.projectInfo.movieFileName || '',
+        projectTrailerS3Url: formData.projectInfo.s3SourceTrailerUrl,
+        movieFileName: formData.projectInfo.movieFileName || ''
       },
       creditsInfo: { ...formData.creditsInfo, projectName, userId },
       specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
