@@ -35,11 +35,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearAuthToken } from '../../redux/authSlice/authSlice';
 import logoIcon from "../../assets/LOGO UPSCALE.png"
 import CartIcon from "../cartIcon/CartIcon";
+import { useEffect } from "react";
 
 export function Navebar1({
   onLogout = () => console.log("Logout clicked"),
 }) {
   const { user } = useSelector((state) => state.auth.user);
+  console.log("user inside the navbar", user)
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [hasNotifications, setHasNotifications] = React.useState(true)
@@ -218,6 +220,12 @@ export function Navebar1({
       console.error('Error during logout:', error);
     }
   };
+
+  useEffect(() => {
+    if (user && !user.isApproved) {
+      navigate("/verification"); // Redirect to verification page if not verified
+    }
+  }, [user, navigate]);
 
   return (
     <AppBar position="sticky" style={appBarStyle}>

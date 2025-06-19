@@ -290,7 +290,7 @@ function Home() {
           role: formValues.role,
         };
 
-        const response = await axios.post("http://localhost:3000/api/auth/register", requestBody);
+        const response = await axios.post("https://media-shippers-backend.vercel.app/api/auth/register", requestBody);
 
         if (response.status === 200) {
           console.log("Registration successful");
