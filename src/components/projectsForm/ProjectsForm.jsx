@@ -784,7 +784,7 @@ if (formData.projectInfo.trailerOption === 'upload' && uploadedFiles.projectTrai
         bannerFileName: formData.projectInfo.bannerFileName,
         projectBannerS3Url: normalizeS3Url(formData.projectInfo.s3SourceBannerUrl),
         trailerFileName: formData.projectInfo.trailerFileName,
-       projectTrailerS3Url: formData.projectInfo.projectTrailerS3Url || normalizeS3Url(formData.projectInfo.s3SourceTrailerUrl),
+       projectTrailerS3Url: normalizeS3Url(formData.projectInfo.s3SourceTrailerUrl),
 
         movieFileName: formData.projectInfo.movieFileName || ''
       },
