@@ -21,6 +21,7 @@ import UserOrgManagement from '../userOrgRegister/userOrgForm';
 import DealDashboard from '../deals/dealDashboard';
 import CartPage from '../cart/CartPage';
 import DealDetails from '../deals/components/DealDetails';
+import UsersList from '../userOrgRegister/usersList';
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
@@ -40,6 +41,7 @@ export const viewAndEditForm = () => <ViewAndEditForm />
 export const browseFestival = () => <BrowseFestival />
 export const userManagement = () => <UserManagement />
 export const userOrganizationManagement = () => <UserOrgManagement />
+export const usersList = () => <UsersList />
 export const dealDashboard = () => <DealDashboard />
 export const cartPage = () => <CartPage />
 export const dealDetails = () => <DealDetails />
