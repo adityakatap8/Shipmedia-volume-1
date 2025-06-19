@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import { Button } from "@mui/material"
 import { Card, CardContent } from "@mui/material"
 import { AccessTime, Mail, CheckCircle, Visibility, Shield, Group } from "@mui/icons-material"
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 export default function TeamReviewPage() {
   const [mounted, setMounted] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const reviewSteps = [
     { icon: Visibility, label: "Under Review", completed: false, active: true },
@@ -25,6 +27,10 @@ export default function TeamReviewPage() {
 
     return () => clearInterval(interval)
   }, [])
+
+  const handleReturnToSite = () => {
+    navigate("/"); // Redirect to the root path (your website's homepage)
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-4 relative">
@@ -125,8 +131,9 @@ export default function TeamReviewPage() {
           <Button
             variant="outline"
             className="w-full border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-300 mb-6"
+            onClick={handleReturnToSite} // Handle button click
           >
-            Return to Dashboard
+            Return to Site
           </Button>
 
           {/* Help section */}
