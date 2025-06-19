@@ -301,9 +301,6 @@ function ProjectsForm() {
 
 
 
- const accessKeyId = import.meta.env.VITE_ACCESS_KEY_ID || '';
-  const secretAccessKey = import.meta.env.VITE_SECRET_ACCESS_KEY || '';
-
 
 
 
@@ -323,7 +320,6 @@ function ProjectsForm() {
 };
 
 
-
 const transferFileToLocation = async () => {
   const { orgName } = user.user;
   const projectFolder = formData.projectInfo.projectName;
@@ -333,10 +329,8 @@ const transferFileToLocation = async () => {
   const trailerFileUrl = formData.projectInfo.s3SourceTrailerUrl;
   const movieFileUrl = formData.projectInfo.s3SourceMovieUrl;
 
-  // 🟦 Info Docs
   const infoDocUrlsToTransfer = (formData.projectInfo.s3SourceInfoDocs || []).filter(Boolean);
 
-  // 🟨 Subtitle Tracks (e.g., English, Hindi — not dubbed)
   const srtFilesToTransfer = (formData.srtFiles || []).filter(entry =>
     entry.srtUrl
   ).map(entry => ({
@@ -344,22 +338,15 @@ const transferFileToLocation = async () => {
     srtUrl: entry.srtUrl
   }));
 
-  // 🟥 Dubbed Trailer + Subtitle
- const dubbedFilesToTransfer = Array.isArray(formData.dubbedFiles)
-  ? formData.dubbedFiles.filter(entry =>
-      entry.dubbedTrailerUrl || entry.dubbedSubtitleUrl
-    ).map(entry => ({
-      language: entry.language,
-      dubbedTrailerUrl: entry.dubbedTrailerUrl || '',
-      dubbedSubtitleUrl: entry.dubbedSubtitleUrl || ''
-    }))
-  : [];
-
-
-  if (!accessKeyId || !secretAccessKey) {
-    console.error("Access keys are missing!");
-    return { success: false, error: "Missing access keys" };
-  }
+  const dubbedFilesToTransfer = Array.isArray(formData.dubbedFiles)
+    ? formData.dubbedFiles.filter(entry =>
+        entry.dubbedTrailerUrl || entry.dubbedSubtitleUrl
+      ).map(entry => ({
+        language: entry.language,
+        dubbedTrailerUrl: entry.dubbedTrailerUrl || '',
+        dubbedSubtitleUrl: entry.dubbedSubtitleUrl || ''
+      }))
+    : [];
 
   try {
     const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
@@ -379,8 +366,6 @@ const transferFileToLocation = async () => {
         dubbedFiles: dubbedFilesToTransfer,
         infoDocs: infoDocUrlsToTransfer,
         srtFiles: srtFilesToTransfer,
-        accessKeyId,
-        secretAccessKey,
       }),
     });
 
@@ -404,6 +389,88 @@ const transferFileToLocation = async () => {
     return { success: false, error: error.message };
   }
 };
+
+
+// const transferFileToLocation = async () => {
+//   const { orgName } = user.user;
+//   const projectFolder = formData.projectInfo.projectName;
+
+//   const posterFileUrl = formData.projectInfo.s3SourcePosterUrl;
+//   const bannerFileUrl = formData.projectInfo.s3SourceBannerUrl;
+//   const trailerFileUrl = formData.projectInfo.s3SourceTrailerUrl;
+//   const movieFileUrl = formData.projectInfo.s3SourceMovieUrl;
+
+//   // 🟦 Info Docs
+//   const infoDocUrlsToTransfer = (formData.projectInfo.s3SourceInfoDocs || []).filter(Boolean);
+
+//   // 🟨 Subtitle Tracks (e.g., English, Hindi — not dubbed)
+//   const srtFilesToTransfer = (formData.srtFiles || []).filter(entry =>
+//     entry.srtUrl
+//   ).map(entry => ({
+//     language: entry.language,
+//     srtUrl: entry.srtUrl
+//   }));
+
+//   // 🟥 Dubbed Trailer + Subtitle
+//  const dubbedFilesToTransfer = Array.isArray(formData.dubbedFiles)
+//   ? formData.dubbedFiles.filter(entry =>
+//       entry.dubbedTrailerUrl || entry.dubbedSubtitleUrl
+//     ).map(entry => ({
+//       language: entry.language,
+//       dubbedTrailerUrl: entry.dubbedTrailerUrl || '',
+//       dubbedSubtitleUrl: entry.dubbedSubtitleUrl || ''
+//     }))
+//   : [];
+
+
+//   if (!accessKeyId || !secretAccessKey) {
+//     console.error("Access keys are missing!");
+//     return { success: false, error: "Missing access keys" };
+//   }
+
+//   try {
+//     const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
+//       method: 'POST',
+//       headers: {
+//         'Authorization': `Bearer ${token}`,
+//         'Content-Type': 'application/json'
+//       },
+//       credentials: 'include',
+//       body: JSON.stringify({
+//         orgName,
+//         projectFolder,
+//         posterFileUrl,
+//         bannerFileUrl,
+//         trailerFileUrl,
+//         movieFileUrl,
+//         dubbedFiles: dubbedFilesToTransfer,
+//         infoDocs: infoDocUrlsToTransfer,
+//         srtFiles: srtFilesToTransfer,
+//         accessKeyId,
+//         secretAccessKey,
+//       }),
+//     });
+
+//     const result = await response.json();
+
+//     if (response.ok) {
+//       console.log('✅ File transfers completed successfully:', result.message);
+//       return {
+//         success: true,
+//         message: result.message,
+//         dubbedFiles: result.dubbedFiles,
+//         srtFiles: result.srtFiles,
+//         infoDocs: result.infoDocs,
+//       };
+//     } else {
+//       console.error('❌ File transfer failed:', result.error);
+//       return { success: false, error: result.error || 'Unknown error from server' };
+//     }
+//   } catch (error) {
+//     console.error('❗ Error during file transfer:', error);
+//     return { success: false, error: error.message };
+//   }
+// };
 
 
 
