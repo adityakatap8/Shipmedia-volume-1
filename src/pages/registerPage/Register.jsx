@@ -111,7 +111,7 @@ export default function Register() {
 
     try {
       const response = await axios.post(
-        `https://www.mediashippers.com/api/auth/register`,
+        `https://media-shippers-backend.vercel.app/api/auth/register`,
         {
           name,
           orgName,

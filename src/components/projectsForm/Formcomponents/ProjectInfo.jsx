@@ -141,10 +141,62 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   }, [projectInfo]);
 
   // Handle input changes for the URL input field (when URL option is selected)
-  const handlePosterUrlChange = (e) => {
-    const { value } = e.target;
-    onInputChange({ projectPosterUrl: value }); // Store the URL directly when the user inputs it
-  };
+ const handlePosterUrlChange = (url) => {
+  if (url) {
+    const fileName = extractFileNameFromUrl(url);
+    const s3Url = generateS3Url(fileName, 'poster');
+
+    onInputChange({
+      s3SourcePosterUrl: url,
+      projectPosterUrl: url,
+      projectPosterName: fileName,
+      projectPoster: null,
+      projectPosterS3Url: s3Url,
+      posterS3Url: s3Url
+    });
+
+    console.log("Poster via S3 URL:", { url, fileName, s3Url });
+  }
+};
+
+const handleBannerUrlChange = (url) => {
+  if (url) {
+    const fileName = extractFileNameFromUrl(url);
+    const s3Url = generateS3Url(fileName, 'banner');
+
+    onInputChange({
+      s3SourceBannerUrl: url,
+      projectBannerUrl: url,
+      projectBannerName: fileName,
+      projectBanner: null,
+      projectBannerS3Url: s3Url,
+      bannerUrl: s3Url
+    });
+
+    console.log("Banner via S3 URL:", { url, fileName, s3Url });
+  }
+};
+
+const handleTrailerUrlChange = (url) => {
+  if (url) {
+    const fileName = extractFileNameFromUrl(url);
+    const s3Url = generateS3Url(fileName, 'trailer');
+
+    onInputChange({
+      s3SourceTrailerUrl: url,         // Raw URL entered by user
+      trailerFileName: fileName,       // Just the filename
+      trailerFile: null,               // Clear previous file if any
+      projectTrailerS3Url: s3Url,      // ✅ Main field used for saving
+      trailerUrl: s3Url                // Still used for ShakaPlayer preview
+    });
+
+    setTrailerUrl(url); // Show preview (ShakaPlayer)
+
+    console.log("Trailer via S3 URL:", { url, fileName, s3Url });
+  }
+};
+
+
 
   // 🔧 1. Generate S3 URL utility
   const generateS3Url = (fileName, folderType = 'poster') => {
@@ -658,7 +710,7 @@ useEffect(() => {
                   type="text"
                   name="s3SourcePosterUrl"
                   value={projectInfo.s3SourcePosterUrl || ''}
-                  onChange={handleUrlChange} // Use the actual URL handler
+                  onChange={handlePosterUrlChange} // Use the actual URL handler
                   placeholder="Enter S3 Source URL for Poster"
                 />
                 {errors.s3SourcePosterUrl && (
@@ -696,9 +748,6 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
-
-
 
       {/* Project Banner Section */}
       <div className="form-section">
@@ -766,7 +815,7 @@ useEffect(() => {
                   type="text"
                   name="s3SourceBannerUrl"  // Unique name for the S3 URL
                   value={projectInfo.s3SourceBannerUrl || ''}
-                  onChange={handleChange}
+                  onChange={handleBannerUrlChange}
                   placeholder="Enter S3 Source URL for Banner"
                 />
                 {errors.s3SourceBannerUrl && <div className="error">{errors.s3SourceBannerUrl}</div>}
@@ -803,7 +852,6 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
 
       {/* Trailer File Upload */}
       <div className="form-section">
@@ -867,12 +915,12 @@ useEffect(() => {
             {projectInfo.trailerOption === 'url' && (
               <div className="input optional form-field-input">
                 <input
-                  type="text"
-                  name="s3SourceTrailerUrl"
-                  value={projectInfo.s3SourceTrailerUrl || ''}
-                  onChange={handleChange}
-                  placeholder="Enter S3 Source URL for Trailer"
-                />
+  type="text"
+  name="s3SourceTrailerUrl"
+  value={projectInfo.s3SourceTrailerUrl || ''}
+  onChange={(e) => handleTrailerUrlChange(e.target.value)}
+  placeholder="Enter S3 Source URL for Trailer"
+/>
                 {errors.s3SourceTrailerUrl && <div className="error">{errors.s3SourceTrailerUrl}</div>}
 
                 {projectInfo.s3SourceTrailerUrl && (

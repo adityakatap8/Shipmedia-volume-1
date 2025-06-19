@@ -214,20 +214,64 @@ const handleFileChange = (index, e, fieldName) => {
           </div>
 
           {/* Subtitle Upload */}
-          <div className="form-section">
-            <div className="form-label grid-3 span-12-phone">
-              <h3>Upload Subtitle (SRT)</h3>
-            </div>
-            <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-              <input
-                type="file"
-                accept=".srt"
-                onChange={(e) => handleFileChange(index, e, 'dubbedSubtitleFile')}
-              />
-              {entry.dubbedSubtitleFile && <p>{entry.dubbedSubtitleFile.name}</p>}
-              {errors?.srtFile && <div className="error">{errors.srtFile}</div>}
-            </div>
-          </div>
+         {/* Subtitle Upload or URL */}
+<div className="form-section">
+  <div className="form-label grid-3 span-12-phone">
+    <h3>Upload Subtitle (SRT) or Provide S3 URL</h3>
+  </div>
+  <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+    <div className="upload-or-url-option d-flex text-white" style={{ gap: '20px' }}>
+      <label>
+        <input
+          type="radio"
+          name={`subtitleOption-${index}`}
+          value="upload"
+          checked={entry.subtitleOption === 'upload'}
+          onChange={() => handleChange(index, { target: { name: 'subtitleOption', value: 'upload' } })}
+        />
+        Upload Subtitle
+      </label>
+      <label>
+        <input
+          type="radio"
+          name={`subtitleOption-${index}`}
+          value="url"
+          checked={entry.subtitleOption === 'url'}
+          onChange={() => handleChange(index, { target: { name: 'subtitleOption', value: 'url' } })}
+        />
+        Provide S3 URL
+      </label>
+    </div>
+
+    {/* Upload option */}
+    {entry.subtitleOption === 'upload' && (
+      <div className="form-field-input">
+        <input
+          type="file"
+          accept=".srt"
+          onChange={(e) => handleFileChange(index, e, 'dubbedSubtitleFile')}
+        />
+        {entry.dubbedSubtitleFile && <p>{entry.dubbedSubtitleFile.name}</p>}
+        {errors?.srtFile && <div className="error">{errors.srtFile}</div>}
+      </div>
+    )}
+
+    {/* URL option */}
+    {entry.subtitleOption === 'url' && (
+      <div className="form-field-input">
+        <input
+          type="url"
+          name="dubbedSubtitleUrl"
+          value={entry.dubbedSubtitleUrl || ''}
+          onChange={(e) => handleChange(index, e)}
+          placeholder="Paste public subtitle S3 URL"
+        />
+        {errors?.srtUrl && <div className="error">{errors.srtUrl}</div>}
+      </div>
+    )}
+  </div>
+</div>
+
         </div>
       ))}
 

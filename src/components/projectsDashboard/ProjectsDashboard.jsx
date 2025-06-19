@@ -560,7 +560,7 @@ function ProjectDashboard() {
                     }}
                     onClick={() => navigate(`/view-form/${project.id}`)}
                   >
-                    View Project
+                    Edit Project
                   </Button>
                 </CardContent>
               </Card>
