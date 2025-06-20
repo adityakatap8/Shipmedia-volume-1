@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   Table,
   TableBody,
@@ -23,257 +23,10 @@ import {
 } from "@mui/material"
 import { Search, Edit, Visibility, Add } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
-
-// Sample data from your API response
-const userData = {
-  success: true,
-  users: [
-    {
-      isVerified: false,
-      isApproved: false,
-      isActive: true,
-      name: "sachin gokhale",
-      orgName: "capemay studios",
-      email: "Sachin@capemaystudios.com",
-      __v: 0,
-      role: "Seller",
-      createdBy: "683e9cf35dd500977b5d2052",
-      createdAt: "2025-06-19T05:39:41.539Z",
-      updatedAt: "2025-06-19T05:39:41.539Z",
-    },
-    {
-      role: "Buyer",
-      isVerified: false,
-      isApproved: false,
-      isActive: false,
-      name: "Privil",
-      orgName: "EntTech",
-      email: "privil.rodrigues@entertainmenttechnologists.com",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-      createdAt: "2025-06-19T05:39:41.540Z",
-      updatedAt: "2025-06-19T05:39:41.540Z",
-    },
-    {
-      role: "Buyer",
-      isVerified: false,
-      isApproved: false,
-      isActive: true,
-      name: "John",
-      orgName: "Info",
-      email: "sachin.suryawanshi@entertainmenttechnologists.com",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-      createdAt: "2025-06-19T05:39:41.541Z",
-      updatedAt: "2025-06-19T05:39:41.541Z",
-    },
-    {
-      isApproved: false,
-      name: "John Doe",
-      orgName: "MediaShippers",
-      email: "admin@example.com",
-      role: "Admin",
-      isVerified: false,
-      isActive: false,
-      createdAt: "2025-04-16T10:29:07.847Z",
-      updatedAt: "2025-04-16T10:29:07.847Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isVerified: false,
-      isApproved: false,
-      isActive: true,
-      name: "admin role",
-      orgName: "admin org",
-      email: "admin@mail.com",
-      __v: 0,
-      role: "Admin",
-      createdBy: "683e9cf35dd500977b5d2052",
-      createdAt: "2025-06-19T05:39:41.542Z",
-      updatedAt: "2025-06-19T05:39:41.542Z",
-    },
-    {
-      isVerified: false,
-      isApproved: false,
-      isActive: false,
-      name: "Buyer role",
-      orgName: "buyer org",
-      email: "buyer@mail.com",
-      __v: 0,
-      role: "Buyer",
-      createdBy: "683e9cf35dd500977b5d2052",
-      createdAt: "2025-06-19T05:39:41.543Z",
-      updatedAt: "2025-06-19T05:39:41.543Z",
-    },
-    {
-      role: "Buyer",
-      isVerified: false,
-      isApproved: false,
-      isActive: true,
-      name: "Lucy Crawford",
-      orgName: "ap ss",
-      email: "lucy.crawford@ganjingworld.com",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-      createdAt: "2025-06-19T05:39:41.544Z",
-      updatedAt: "2025-06-19T05:39:41.544Z",
-    },
-    {
-      isApproved: false,
-      _id: "68073f58c52781253d507666",
-      name: "John Doe",
-      orgName: "Tech Solutions",
-      email: "john.doe@techsolutions.com",
-      organizationId: "68073f58c52781253d507664",
-      role: "Admin",
-      isVerified: false,
-      isActive: false,
-      verificationToken: "5083fa8c-4ab0-4c44-b219-4d9e7bfe3b6a",
-      tokenExpiresAt: "2025-04-23T07:03:52.198Z",
-      createdAt: "2025-04-22T07:03:52.243Z",
-      updatedAt: "2025-04-22T07:03:52.243Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "6807404c51550b7719e3edf4",
-      name: "John Doe",
-      orgName: "info Solutions",
-      email: "sachin@entech.com",
-      organizationId: "6807406851550b7719e3edf8",
-      role: "Seller",
-      isVerified: false,
-      isActive: true,
-      verificationToken: "66f59cb5-bb35-40e4-ac27-d7c83b14a2ed",
-      tokenExpiresAt: "2025-04-23T07:07:56.786Z",
-      createdAt: "2025-04-22T07:07:56.787Z",
-      updatedAt: "2025-04-22T07:07:56.787Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "6807406851550b7719e3edfa",
-      name: "John Doe",
-      orgName: "info Solutions",
-      email: "aditya@entech.com",
-      organizationId: "6807406851550b7719e3edf8",
-      role: "Buyer",
-      isVerified: false,
-      isActive: false,
-      verificationToken: "274d83b7-74bb-4a85-8903-be7b867898fd",
-      tokenExpiresAt: "2025-04-23T07:08:24.675Z",
-      createdAt: "2025-04-22T07:08:24.676Z",
-      updatedAt: "2025-04-22T07:08:24.676Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "6808d7388056ce9a8797e550",
-      name: "Sukhada Joshi",
-      orgName: "info Solutions",
-      email: "sukhada@entech.com",
-      organizationId: "6808d7388056ce9a8797e54e",
-      role: "Admin",
-      isVerified: false,
-      isActive: true,
-      verificationToken: "709b8997-c158-492c-9667-5d548fa464dc",
-      tokenExpiresAt: "2025-04-24T12:04:08.752Z",
-      createdAt: "2025-04-23T12:04:08.795Z",
-      updatedAt: "2025-04-23T12:04:08.795Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "680b1c8df7d159f1c31ca423",
-      name: "xyz",
-      orgName: "Entech Solutions",
-      email: "xyz@gmail.com",
-      organizationId: "6807406851550b7719e3edf8",
-      role: "Buyer",
-      isVerified: false,
-      isActive: false,
-      verificationToken: "99d1db58-4503-41fa-8423-7950d83af20d",
-      tokenExpiresAt: "2025-04-26T05:24:29.618Z",
-      createdAt: "2025-04-25T05:24:29.621Z",
-      updatedAt: "2025-04-25T05:24:29.621Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "68147d0a1adcf9b3bd998fde",
-      name: "srija",
-      orgName: "Info",
-      email: "srija@gmail.com",
-      organizationId: "68147d0a1adcf9b3bd998fdc",
-      role: "Seller",
-      isVerified: false,
-      isActive: true,
-      verificationToken: "149ec1df-6357-4ce8-81d8-fc456f74fd16",
-      tokenExpiresAt: "2025-05-03T08:06:34.212Z",
-      createdAt: "2025-05-02T08:06:34.213Z",
-      updatedAt: "2025-05-02T08:06:34.213Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "683d7781781f337b83234860",
-      name: "sd sfjsd",
-      orgName: "Entech",
-      email: "s@gmail.com",
-      organizationId: "683d7781781f337b8323485e",
-      role: "Seller",
-      isVerified: false,
-      isActive: false,
-      verificationToken: "41f02db4-195a-4e61-999d-cc0f8d356bc8",
-      tokenExpiresAt: "2025-06-03T10:05:53.298Z",
-      createdAt: "2025-06-02T10:05:53.299Z",
-      updatedAt: "2025-06-02T10:05:53.299Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      isApproved: false,
-      _id: "683d8d5b3817b286af871542",
-      name: "Ashish Ashok Ningurkar",
-      orgName: "VP movies",
-      email: "ashishningurkar@gmail.com",
-      organizationId: "683d8d5b3817b286af871540",
-      role: "Seller",
-      isVerified: false,
-      isActive: true,
-      verificationToken: "e8d32d30-869b-4228-af95-22a33b21c110",
-      tokenExpiresAt: "2025-06-03T11:39:07.517Z",
-      createdAt: "2025-06-02T11:39:07.518Z",
-      updatedAt: "2025-06-02T11:39:07.518Z",
-      __v: 0,
-      createdBy: "683e9cf35dd500977b5d2052",
-    },
-    {
-      _id: "68529e07cf2c526d040aae3c",
-      name: "Vijay Devade",
-      orgName: "Entech",
-      email: "vijay@gmail.com",
-      role: "Seller",
-      isVerified: false,
-      isApproved: false,
-      isActive: false,
-      companySite: "www.mediashipper.com",
-      phoneNumber: 9887878787,
-      createdAt: "2025-06-18T11:07:51.455Z",
-      updatedAt: "2025-06-18T11:07:51.455Z",
-      __v: 0,
-    },
-  ],
-}
+import axios from "axios" // Import axios
 
 export default function UsersList() {
+  const [users, setUsers] = useState([]) // State to store users
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchTerm, setSearchTerm] = useState("")
@@ -286,7 +39,21 @@ export default function UsersList() {
 
   const navigate = useNavigate()
 
-  const users = userData.users
+  // Fetch users from the API when the page loads
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get("https://www.mediashippers.com/api/auth/all-users");
+      if (response.status === 200) {
+        setUsers(response.data.users); // Update users state with fetched data
+      } else {
+        console.error("Failed to fetch users:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+  
+  
 
   // Filtering and sorting logic
   const filteredAndSortedUsers = useMemo(() => {
@@ -378,10 +145,33 @@ export default function UsersList() {
     }
   }
 
-  const handleToggleActive = (userIndex) => {
-    // In a real app, this would make an API call
-    console.log(`Toggle active status for user at index ${userIndex}`)
-  }
+  const handleToggleActive = async (userId, currentApprovalStatus) => {
+    console.log("Toggling approval for user:", userId);
+    console.log("Current approval status:", currentApprovalStatus);
+  
+    if (!userId) {
+      console.error("User ID is missing");
+      return;
+    }
+  
+    try {
+      // Make the API call to toggle approval
+      const response = await axios.patch(`http://localhost:3000/api/auth/user/${userId}/toggle-approval`, {
+        isApproved: !currentApprovalStatus, // Toggle the current approval status
+      });
+  
+      if (response.status === 200) {
+        console.log(`User ${userId} approval status updated successfully:`, response.data);
+  
+        // Fetch updated user list to reflect changes in the table
+        fetchUsers();
+      } else {
+        console.error(`Failed to update approval status for user ${userId}:`, response.statusText);
+      }
+    } catch (error) {
+      console.error(`Error updating approval status for user ${userId}:`, error);
+    }
+  };
 
   const handleEditUser = (user) => {
     console.log("Edit user:", user)
@@ -392,6 +182,10 @@ export default function UsersList() {
   }
 
   const paginatedUsers = filteredAndSortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   return (
     <Box sx={{ padding: "18px", backgroundColor: "#0b192c", minHeight: "100vh" }}>
@@ -580,8 +374,8 @@ export default function UsersList() {
                   <TableCell sx={{ color: "#ffffff" }}>{formatDate(user.createdAt)}</TableCell>
                   <TableCell>
                     <Switch
-                      checked={user.isActive || false}
-                      onChange={() => handleToggleActive(index)}
+                      checked={user.isApproved || false}
+                      onChange={() => handleToggleActive(user._id, user.isApproved)} // Pass user ID and current approval status
                       color="primary"
                       size="small"
                     />
