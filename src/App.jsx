@@ -32,7 +32,8 @@ import {
   dealDashboard,
   cartPage,
   dealDetails,
-  userManagement
+  userManagement,
+  usersList
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -208,6 +209,10 @@ function App() {
             <Route path="/user-org-register" element={
               <ProtectedRoute>
                 <DashboardLayout>{userOrganizationManagement()}</DashboardLayout></ProtectedRoute>} />
+
+                <Route path="/users-list" element={
+              <ProtectedRoute>
+                <DashboardLayout>{usersList()}</DashboardLayout></ProtectedRoute>} />
 
             <Route path="/deals" element={
               <ProtectedRoute>
