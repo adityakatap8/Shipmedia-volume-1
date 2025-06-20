@@ -982,10 +982,10 @@ export default function MovieGrid() {
 
       if (response.status === 200) {
         console.log("Movies added to cart:", response.data);
-        setSnackbarMessage("Movies added to cart successfully!");
+        setSnackbarMessage(response.data.message || "Movies added to cart successfully.");
         setSnackbarSeverity("success");
         setSnackbarOpen(true); // Show success Snackbar
-        dispatch(setCartMovies(response.data));
+        dispatch(setCartMovies(response.data.cartMovies));
       } else {
         throw new Error("Unexpected response status");
       }
