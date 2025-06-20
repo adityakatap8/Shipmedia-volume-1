@@ -47,6 +47,7 @@ import { useParams } from "react-router-dom"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import ShakaPlayer from "../../../components/shakaPlayer/pages/ShakaPlayer"
+import Breadcrumb from "../../../components/breadcrumb/Breadcrumb" // Import Breadcrumb
 
 // Create a custom theme
 const theme = createTheme({
@@ -256,6 +257,11 @@ export default function DealDashboard() {
     )
   }
 
+  const breadcrumbItems = [
+    { label: "Deals", path: "/deals" },
+    { label: "Deal Details", path: `/deal-details/${dealId}` },
+  ]
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -263,9 +269,12 @@ export default function DealDashboard() {
         sx={{
           bgcolor: "background.default",
           minHeight: "100vh",
-          p: { xs: 2, md: 4 },
+          p: { xs: 2, md: 2 },
         }}
       >
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} />
+
         {/* Header */}
         <Box
           sx={{
