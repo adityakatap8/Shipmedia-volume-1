@@ -559,7 +559,7 @@ export default function DealDashboard() {
 
                 // Call the API
                 const response = await axios.patch(
-                    `http://localhost:3000/api/deal/${selectedDealId}/action`,
+                    `https://www.mediashippers.com/api/deal/${selectedDealId}/action`,
                     { movies: moviesPayload }
                 );
 
@@ -595,7 +595,7 @@ export default function DealDashboard() {
 
             // Call the API
             const response = await axios.patch(
-                `http://localhost:3000/api/deal/${selectedDealId}/action`,
+                `https://www.mediashippers.com/api/deal/${selectedDealId}/action`,
                 { movies: moviesPayload }
             );
 
