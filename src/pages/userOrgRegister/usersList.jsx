@@ -156,7 +156,7 @@ export default function UsersList() {
   
     try {
       // Make the API call to toggle approval
-      const response = await axios.patch(`http://localhost:3000/api/auth/user/${userId}/toggle-approval`, {
+      const response = await axios.patch(`https://www.mediashippers.com/api/auth/user/${userId}/toggle-approval`, {
         isApproved: !currentApprovalStatus, // Toggle the current approval status
       });
   
