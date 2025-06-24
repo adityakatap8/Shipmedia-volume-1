@@ -980,7 +980,7 @@ export default function MovieGrid() {
         movies,
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         console.log("Movies added to cart:", response.data);
         setSnackbarMessage(response.data.message || "Movies added to cart successfully.");
         setSnackbarSeverity("success");
