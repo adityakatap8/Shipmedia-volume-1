@@ -24,6 +24,7 @@ import {
   Backdrop,
   Fade,
   CircularProgress,
+  Checkbox,
 } from "@mui/material"
 import {
   AccessTime,
@@ -43,7 +44,7 @@ import {
   Download,
   Close as X,
 } from "@mui/icons-material"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import ShakaPlayer from "../../../components/shakaPlayer/pages/ShakaPlayer"
@@ -149,6 +150,10 @@ export default function DealDashboard() {
   ])
   const [selectedLanguage, setSelectedLanguage] = useState("")
   const [showLanguageSelection, setShowLanguageSelection] = useState(false)
+  const [selectedMovies, setSelectedMovies] = useState([])
+  console.log("selectedMovies", selectedMovies)
+
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleOpenModal = (movie) => {
     setSelectedMovie(movie)
@@ -233,6 +238,53 @@ export default function DealDashboard() {
   const handleCloseTrailer = () => {
     setIsTrailerPlaying(false)
     setTrailerUrl("")
+  }
+
+  const handleCheckboxChange = (movieId, status) => {
+    setSelectedMovies((prev) => {
+      if (status === "rejected") {
+        // Remove the movie from the selected list if unchecked
+        return prev.filter((movie) => movie.movieId !== movieId);
+      } else {
+        const existingMovie = prev.find((movie) => movie.movieId === movieId);
+        if (existingMovie) {
+          // Update the status if the movie is already selected
+          return prev.map((movie) =>
+            movie.movieId === movieId ? { ...movie, status } : movie
+          );
+        } else {
+          // Add the movie to the selected list
+          return [...prev, { movieId, status }];
+        }
+      }
+    });
+  }
+
+  const handleSubmitDeal = async () => {
+    try {
+      const payload = {
+        movies: deal.movieDetails.map((movie) => ({
+          movieId: movie._id,
+          status: selectedMovies.some((selected) => selected.movieId === movie._id)
+            ? "accepted"
+            : "rejected",
+          remarks: "",
+        })),
+      };
+
+      console.log("Payload:", payload);
+
+      const response = await axios.patch(
+        `https://www.mediashippers.com/api/deal/${dealId}/action`,
+        payload
+      );
+
+      // Redirect to /deals after successful submission
+      navigate("/deals");
+    } catch (error) {
+      console.error("Error submitting deal:", error)
+      alert("Failed to submit deal.")
+    }
   }
 
   useEffect(() => {
@@ -348,7 +400,7 @@ export default function DealDashboard() {
               </Box>
               <Divider sx={{ mb: 3 }} />
 
-              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent:'space-between', gap: 1 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Created Date
                 </Typography>
@@ -370,7 +422,7 @@ export default function DealDashboard() {
                 </Box>
               </Box> */}
 
-              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent:'space-between', gap: 1 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Rights
                 </Typography>
@@ -398,7 +450,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent:'space-between', gap: 1 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Territory
                 </Typography>
@@ -419,7 +471,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent:'space-between', gap: 1 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   License Term
                 </Typography>
@@ -440,7 +492,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent:'space-between', gap: 1 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Usage Rights
                 </Typography>
@@ -461,7 +513,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent:'space-between', gap: 1 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Payment Terms
                 </Typography>
@@ -525,6 +577,7 @@ export default function DealDashboard() {
                           sx={{
                             display: "flex",
                             height: "100%",
+                            position: "relative", // Add relative positioning for the checkbox
                             transition: "transform 0.2s",
                             "&:hover": {
                               transform: "translateY(-4px)",
@@ -532,6 +585,28 @@ export default function DealDashboard() {
                             },
                           }}
                         >
+                          {/* Checkbox in the top-right corner */}
+                          <Checkbox
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+
+                              "&.Mui-checked": {
+                                color: theme.palette.primary.main,
+                              },
+                            }}
+                            checked={deal.status === 'sent_to_shipper'? deal.movies.some(
+                              (dealMovie) => dealMovie.movieId === movie._id && dealMovie.status === "accepted"
+                            ) : selectedMovies.some(
+                              (selected) => selected.movieId === movie._id && selected.status === "accepted"
+                            )} // Check if the current movie's status is 'accepted'
+                            onChange={(e) =>
+                              handleCheckboxChange(movie._id, e.target.checked ? "accepted" : "rejected")
+                            }
+                            disabled={deal.status === "sent_to_shipper"}
+                          />
+
                           <CardMedia
                             component="img"
                             sx={{ width: 120, objectFit: "cover" }}
@@ -578,6 +653,17 @@ export default function DealDashboard() {
                       </Grid>
                     ))}
                   </Grid>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{ textTransform: "capitalize" }}
+                      onClick={handleSubmitDeal}
+                      disabled={deal.status === "sent_to_shipper" || selectedMovies.length === 0}
+                    >
+                      Submit Deal
+                    </Button>
+                  </Box>
                 </Box>
               )}
 
