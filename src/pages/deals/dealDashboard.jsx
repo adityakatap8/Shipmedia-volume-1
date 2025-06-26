@@ -669,7 +669,7 @@ export default function DealDashboard() {
                                     <KeyboardArrowRight fontSize="small" />
                                 )}
                             </IconButton>
-                            {deal.senderDetails.name}
+                            {deal.senderDetails?.name}
                         </Box>
                     )}
                     {isSubDeal && (
@@ -677,12 +677,12 @@ export default function DealDashboard() {
                             <Typography variant="body2" sx={{ color: "#a0a0b0", marginRight: 1 }}>
                                 └
                             </Typography>
-                            {deal.senderDetails.name}
+                            {deal.senderDetails?.name}
                         </Box>
                     )}
                 </TableCell>
             )}
-            {tabValue !== 1 && <TableCell sx={{ color: "inherit" }}>{deal.assignedToDetails.name}</TableCell>}
+            {tabValue !== 1 && <TableCell sx={{ color: "inherit" }}>{deal.assignedToDetails?.name}</TableCell>}
             <TableCell sx={{ color: "inherit" }}>
                 {new Date(deal.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
