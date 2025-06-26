@@ -683,8 +683,9 @@ const CartPage = () => {
                     setSelectedBuyer(newValue);
                   }}
                   options={buyers}
-                  getOptionLabel={(option) => option.name || option.email}
+                  getOptionLabel={(option) => `${option.orgName} (${option.email})`} // Display orgName and email
                   isOptionEqualToValue={(option, value) => option._id === value._id} // Ensure proper comparison
+                  disableClearable // Disable the default clear icon
                   renderInput={(params) => (
                     <TextField
                       {...params}
