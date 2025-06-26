@@ -9,6 +9,8 @@ import UserDetails from "./components/UserDetails"
 import DocumentUpload from "./components/DocumentUpload"
 import OrganizationDetails from "./components/OrganizationDetails"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import Breadcrumb from "../../components/breadcrumb/Breadcrumb"; // Import Breadcrumb
 
 const formSchema = z
     .object({
@@ -36,14 +38,19 @@ const formSchema = z
     })
 
 function UserOrgManagement() {
+    const navigate = useNavigate(); // Initialize useNavigate
     const [activeTab, setActiveTab] = useState(0)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isSuccess, setIsSuccess] = useState(false)
     const [files, setFiles] = useState({
         orgCorpPdf: null,
         orgGstPdf: null,
         orgAgreementPdf: null,
     })
+
+    const breadcrumbItems = [
+        { label: "Users", path: "/users-list" },
+        { label: "Organization Registration", path: "/user-org-register" },
+    ];
 
     const {
         control,
@@ -112,7 +119,8 @@ function UserOrgManagement() {
           
               console.log("Response from server:", response.data);
 
-            setIsSuccess(true)
+            // Redirect to /users-list on success
+            navigate("/users-list");
         } catch (error) {
             console.error("Registration error:", error)
             // You might want to show an error message to the user here
@@ -146,96 +154,6 @@ function UserOrgManagement() {
         }
     }
 
-    if (isSuccess) {
-        return (
-            <Card
-                style={{
-                    width: "100%",
-                    maxWidth: "64rem",
-                    backgroundColor: "#1e1e1e",
-                    color: "white",
-                    border: "1px solid #333",
-                }}
-            >
-                <CardHeader
-                    title={
-                        <Typography
-                            variant="h4"
-                            style={{
-                                fontWeight: "bold",
-                                color: "#F26430",
-                                textAlign: "center",
-                            }}
-                        >
-                            Registration Successful!
-                        </Typography>
-                    }
-                    subheader={
-                        <Typography
-                            variant="subtitle1"
-                            style={{
-                                color: "#aaa",
-                                textAlign: "center",
-                                marginTop: "8px",
-                            }}
-                        >
-                            Your organization and user have been registered successfully.
-                        </Typography>
-                    }
-                />
-                <CardContent
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "40px 16px",
-                    }}
-                >
-                    <div
-                        style={{
-                            borderRadius: "50%",
-                            backgroundColor: "rgba(242, 100, 48, 0.2)",
-                            padding: "24px",
-                            marginBottom: "24px",
-                        }}
-                    >
-                        <CheckCircleIcon
-                            style={{
-                                height: "80px",
-                                width: "80px",
-                                color: "#F26430",
-                            }}
-                        />
-                    </div>
-                    <Typography
-                        style={{
-                            textAlign: "center",
-                            color: "#aaa",
-                            maxWidth: "400px",
-                        }}
-                    >
-                        A verification email has been sent to your email address. Please check your inbox and follow the
-                        instructions to verify your account.
-                    </Typography>
-                    <Button
-                        variant="outlined"
-                        style={{
-                            marginTop: "24px",
-                            borderColor: "#F26430",
-                            color: "#F26430",
-                            "&:hover": {
-                                backgroundColor: "rgba(242, 100, 48, 0.1)",
-                            },
-                        }}
-                    >
-                        Go to Login
-                    </Button>
-                </CardContent>
-            </Card>
-        )
-    }
-
     return (
         <Card
             style={{
@@ -245,6 +163,9 @@ function UserOrgManagement() {
             }}
         >
             <CardContent sx={{padding: '16px'}}>
+                {/* Breadcrumb */}
+                <Breadcrumb items={breadcrumbItems} />
+
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     if (activeTab === 3) {

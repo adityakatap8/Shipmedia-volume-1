@@ -433,7 +433,7 @@ const transferFileToLocation = async () => {
 //   }
 
 //   try {
-//     const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
+//     const response = await fetch(`https://media-shippers-backend.vercel.app/api/folders/transfer-file`, {
 //       method: 'POST',
 //       headers: {
 //         'Authorization': `Bearer ${token}`,

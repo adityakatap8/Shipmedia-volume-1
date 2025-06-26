@@ -242,14 +242,16 @@ export default function DealDashboard() {
     }
 
     // Send a message to a specific user
-    const sendMessage = async (message) => {
+    const handleSendMessage = async () => {
         try {
             const response = await axios.post(`https://media-shippers-backend.vercel.app/api/deal/${dealId}/message`, {
                 senderId: user._id,
                 receiverId: user.role === "Admin" ? selectedUser : user.createdBy,
-                message,
+                message: messageText,
             })
-            return response.data // Return the sent message
+            const history = await getChatHistory(dealId)
+            setChatHistory(history)
+            setMessageText("")
         } catch (error) {
             console.error("Error sending message:", error)
             return null
@@ -418,56 +420,56 @@ export default function DealDashboard() {
     }
 
     // Send message with attachments
-    const handleSendMessage = async () => {
-        if (!messageText.trim() && !audioBlob && !selectedFile && !selectedImage) return
+    // const handleSendMessage = async () => {
+    //     if (!messageText.trim() && !audioBlob && !selectedFile && !selectedImage) return
 
-        // Create FormData for attachments
-        const formData = new FormData()
-        formData.append("senderId", user._id)
-        formData.append("receiverId", user.role === "Admin" ? selectedUser : user.createdBy)
+    //     // Create FormData for attachments
+    //     const formData = new FormData()
+    //     formData.append("senderId", user._id)
+    //     formData.append("receiverId", user.role === "Admin" ? selectedUser : user.createdBy)
 
-        if (messageText.trim()) {
-            formData.append("message", messageText)
-        }
+    //     if (messageText.trim()) {
+    //         formData.append("message", messageText)
+    //     }
 
-        if (audioBlob) {
-            formData.append("audio", audioBlob, "voice-message.webm")
-        }
+    //     if (audioBlob) {
+    //         formData.append("audio", audioBlob, "voice-message.webm")
+    //     }
 
-        if (selectedFile) {
-            formData.append("file", selectedFile)
-        }
+    //     if (selectedFile) {
+    //         formData.append("file", selectedFile)
+    //     }
 
-        if (selectedImage) {
-            formData.append("image", selectedImage)
-        }
+    //     if (selectedImage) {
+    //         formData.append("image", selectedImage)
+    //     }
 
-        try {
-            // Assuming your API can handle multipart/form-data
-            const response = await axios.post(`https://media-shippers-backend.vercel.app/api/deal/${dealId}/message`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            })
+    //     try {
+    //         // Assuming your API can handle multipart/form-data
+    //         const response = await axios.post(`https://media-shippers-backend.vercel.app/api/deal/${dealId}/message`, formData, {
+    //             headers: {
+    //                 "Content-Type": "multipart/form-data",
+    //             },
+    //         })
 
-            // Refresh chat history
-            const history = await getChatHistory(dealId)
-            setChatHistory(history)
+    //         // Refresh chat history
+    //         const history = await getChatHistory(dealId)
+    //         setChatHistory(history)
 
-            // Reset all states
-            setMessageText("")
-            setAudioURL("")
-            setAudioBlob(null)
-            setSelectedFile(null)
-            setSelectedImage(null)
-            setPreviewImage(null)
+    //         // Reset all states
+    //         setMessageText("")
+    //         setAudioURL("")
+    //         setAudioBlob(null)
+    //         setSelectedFile(null)
+    //         setSelectedImage(null)
+    //         setPreviewImage(null)
 
-            if (fileInputRef.current) fileInputRef.current.value = ""
-            if (imageInputRef.current) imageInputRef.current.value = ""
-        } catch (error) {
-            console.error("Error sending message with attachments:", error)
-        }
-    }
+    //         if (fileInputRef.current) fileInputRef.current.value = ""
+    //         if (imageInputRef.current) imageInputRef.current.value = ""
+    //     } catch (error) {
+    //         console.error("Error sending message with attachments:", error)
+    //     }
+    // }
 
     const handleSendDeal = async (dealId) => {
         try {
@@ -1398,53 +1400,62 @@ export default function DealDashboard() {
                             sx={{
                                 flexGrow: 1,
                                 overflowY: "auto",
-                                padding: "16px",
-                                display: "flex",
-                                flexDirection: "column",
+                                padding: "16px"
                             }}
                         >
-                            {chatHistory.map((message, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        maxWidth: "80%",
-                                        marginBottom: "8px",
-                                        padding: "8px 12px",
-                                        borderRadius: "8px",
-                                        bgcolor: message.senderId === user._id ? "#3a7bd5" : "#2a2a3e",
-                                        color: "white",
-                                        alignSelf: message.senderId === user._id ? "flex-end" : "flex-start",
-                                        wordBreak: "break-word",
-                                    }}
-                                >
-                                    {message.message && <Typography variant="body1">{message.message}</Typography>}
-                                    {message.audio && (
-                                        <audio controls src={message.audio}>
-                                            Your browser does not support the audio element.
-                                        </audio>
-                                    )}
-                                    {message.file && (
-                                        <Box mt={1}>
-                                            <a href={message.file} target="_blank" rel="noopener noreferrer" style={{ color: "#a855f7" }}>
-                                                <FilePresent sx={{ mr: 0.5, verticalAlign: "middle" }} />
-                                                Download File
-                                            </a>
+                            {chatHistory.map((message, index) => {
+                                const messageDay = getMessageDay(message.createdAt);
+
+                                return (
+                                    <Box key={index} sx={{ display: "flex", flexDirection: "column", marginBottom: "16px" }}>
+                                        {/* Show the day label only if it's the first message of that day */}
+                                        {(index === 0 || getMessageDay(chatHistory[index - 1].createdAt) !== messageDay) && (
+                                            <Typography
+                                                variant="subtitle2"
+                                                sx={{
+                                                    color: "#a0a0b0",
+                                                    textAlign: "center",
+                                                    marginBottom: "8px",
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                {messageDay}
+                                            </Typography>
+                                        )}
+
+                                        {/* Message Bubble */}
+                                        <Box
+                                            sx={{
+                                                maxWidth: "70%",
+                                                marginBottom: "8px",
+                                                padding: "10px 14px",
+                                                borderRadius: "12px",
+                                                bgcolor: message.senderId === user._id ? "#dcf8c6" : "#ffffff", // Green for logged-in user, white for others
+                                                color: message.senderId === user._id ? "#000" : "#000", // Text color
+                                                alignSelf: message.senderId === user._id ? "flex-end" : "flex-start", // Align based on sender
+                                                boxShadow: "0 2px 4px rgba(0,0,0,0.2)", // Add shadow for bubble effect
+                                                wordBreak: "break-word", // Handle long text
+                                            }}
+                                        >
+                                            <Typography variant="body1" sx={{ fontSize: "14px", marginBottom: "4px" }}>
+                                                {message.message}
+                                            </Typography>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    display: "block",
+                                                    textAlign: "right",
+                                                    color: "#999",
+                                                    fontSize: "12px",
+                                                    marginTop: "4px",
+                                                }}
+                                            >
+                                                {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                            </Typography>
                                         </Box>
-                                    )}
-                                    {message.image && (
-                                        <Box mt={1}>
-                                            <img
-                                                src={message.image || "/placeholder.svg"}
-                                                alt="Uploaded"
-                                                style={{ maxWidth: "100%", maxHeight: "200px" }}
-                                            />
-                                        </Box>
-                                    )}
-                                    <Typography variant="caption" sx={{ display: "block", textAlign: "right", color: "#a0a0b0" }}>
-                                        {new Date(message.createdAt).toLocaleTimeString()}
-                                    </Typography>
-                                </Box>
-                            ))}
+                                    </Box>
+                                );
+                            })}
                         </Box>
 
                         {/* Chat Input */}
@@ -1490,7 +1501,7 @@ export default function DealDashboard() {
                                                 color: "white",
                                                 minWidth: "20px",
                                                 height: "40px",
-                                                bgcolor: "#2a2a3e",
+                                                bgcolor: "#2a2e3d",
                                                 "&:hover": { bgcolor: "#3a3a4e" },
                                             }}
                                         >
@@ -1608,7 +1619,7 @@ export default function DealDashboard() {
                                 }}
                                 InputProps={{
                                     sx: {
-                                        bgcolor: "#2a2a3e",
+                                        bgcolor: "#2a2e3d",
                                         color: "white",
                                         "& .MuiOutlinedInput-notchedOutline": {
                                             borderColor: "#3a3a4e",
@@ -1679,3 +1690,27 @@ export default function DealDashboard() {
         </>
     )
 }
+
+const getMessageDay = (messageDate) => {
+    const today = new Date();
+    const messageDateObj = new Date(messageDate);
+
+    // Check if the message is from today
+    if (messageDateObj.toDateString() === today.toDateString()) {
+        return "Today";
+    }
+
+    // Check if the message is from yesterday
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (messageDateObj.toDateString() === yesterday.toDateString()) {
+        return "Yesterday";
+    }
+
+    // Otherwise, it's a past date
+    return messageDateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+};

@@ -32,6 +32,8 @@ import {
   Rating,
   Checkbox,
   FormControlLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material"
 import {
   Search as SearchIcon,
@@ -262,12 +264,14 @@ export default function MovieGrid() {
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [rightsAnchorEl, setRightsAnchorEl] = useState(null); // Add state for rights popover
   const [contentCategoryAnchorEl, setContentCategoryAnchorEl] = useState(null);
-
-
-
-
-
   const [loading, setLoading] = useState(true);
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State to control Snackbar visibility
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // State to store the message
+  const [snackbarSeverity, setSnackbarSeverity] = useState("error"); // State to store the severity (error, success, etc.)
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false); // Close the Snackbar
+  };
 
 
 
@@ -976,34 +980,28 @@ export default function MovieGrid() {
         movies,
       });
 
-      if (response.status === 200) {
-        console.log('Movies added to cart:', response.data);
-        toast({
-          variant: 'success',
-          title: 'Success',
-          description: 'Movies added to cart successfully!',
-        });
-        dispatch(setCartMovies(response.data));
-        navigate('/cart');
+      if (response.status === 200 || response.status === 201) {
+        console.log("Movies added to cart:", response.data);
+        setSnackbarMessage(response.data.message || "Movies added to cart successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true); // Show success Snackbar
+        dispatch(setCartMovies(response.data.cartMovies));
       } else {
-        throw new Error('Unexpected response status');
+        throw new Error("Unexpected response status");
       }
     } catch (error) {
       if (error.response) {
-        console.error('Error:', error.response.data.message);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: error.response.data.message,
-        });
+        console.error("Error:", error.response.data.message);
+        setSnackbarMessage(error.response.data.message);
       } else {
-        console.error('Failed to add movies to cart:', error.message);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to add movies to cart.',
-        });
+        console.error("Failed to add movies to cart:", error.message);
+        setSnackbarMessage("Failed to add movies to cart.");
       }
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true); // Show error Snackbar
+    } finally {
+      setSelectedItems([]); // Clear selected items after adding to cart
+      setSelectAll(false); // Reset select all checkbox
     }
   };
 
@@ -1033,6 +1031,16 @@ export default function MovieGrid() {
 
   return (
     <>
+    <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000} // Automatically hide after 6 seconds
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }} // Position: Top-Right
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       {loading ? (
         <Loader />  // Show loader when loading is true
       ) : (

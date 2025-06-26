@@ -24,6 +24,7 @@ import {
   Backdrop,
   Fade,
   CircularProgress,
+  Checkbox,
 } from "@mui/material"
 import {
   AccessTime,
@@ -43,10 +44,11 @@ import {
   Download,
   Close as X,
 } from "@mui/icons-material"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import ShakaPlayer from "../../../components/shakaPlayer/pages/ShakaPlayer"
+import Breadcrumb from "../../../components/breadcrumb/Breadcrumb" // Import Breadcrumb
 
 // Create a custom theme
 const theme = createTheme({
@@ -148,6 +150,10 @@ export default function DealDashboard() {
   ])
   const [selectedLanguage, setSelectedLanguage] = useState("")
   const [showLanguageSelection, setShowLanguageSelection] = useState(false)
+  const [selectedMovies, setSelectedMovies] = useState([])
+  console.log("selectedMovies", selectedMovies)
+
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleOpenModal = (movie) => {
     setSelectedMovie(movie)
@@ -234,6 +240,53 @@ export default function DealDashboard() {
     setTrailerUrl("")
   }
 
+  const handleCheckboxChange = (movieId, status) => {
+    setSelectedMovies((prev) => {
+      if (status === "rejected") {
+        // Remove the movie from the selected list if unchecked
+        return prev.filter((movie) => movie.movieId !== movieId);
+      } else {
+        const existingMovie = prev.find((movie) => movie.movieId === movieId);
+        if (existingMovie) {
+          // Update the status if the movie is already selected
+          return prev.map((movie) =>
+            movie.movieId === movieId ? { ...movie, status } : movie
+          );
+        } else {
+          // Add the movie to the selected list
+          return [...prev, { movieId, status }];
+        }
+      }
+    });
+  }
+
+  const handleSubmitDeal = async () => {
+    try {
+      const payload = {
+        movies: deal.movieDetails.map((movie) => ({
+          movieId: movie._id,
+          status: selectedMovies.some((selected) => selected.movieId === movie._id)
+            ? "accepted"
+            : "rejected",
+          remarks: "",
+        })),
+      };
+
+      console.log("Payload:", payload);
+
+      const response = await axios.patch(
+        `https://media-shippers-backend.vercel.app/api/deal/${dealId}/action`,
+        payload
+      );
+
+      // Redirect to /deals after successful submission
+      navigate("/deals");
+    } catch (error) {
+      console.error("Error submitting deal:", error)
+      alert("Failed to submit deal.")
+    }
+  }
+
   useEffect(() => {
     console.log("Fetching deal details...")
     fetchDealDetails()
@@ -256,6 +309,11 @@ export default function DealDashboard() {
     )
   }
 
+  const breadcrumbItems = [
+    { label: "Deals", path: "/deals" },
+    { label: "Deal Details", path: `/deal-details/${dealId}` },
+  ]
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -263,9 +321,12 @@ export default function DealDashboard() {
         sx={{
           bgcolor: "background.default",
           minHeight: "100vh",
-          p: { xs: 2, md: 4 },
+          p: { xs: 2, md: 2 },
         }}
       >
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} />
+
         {/* Header */}
         <Box
           sx={{
@@ -303,7 +364,7 @@ export default function DealDashboard() {
         </Box>
 
         {/* Deal Progress */}
-        <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+        <Paper sx={{ p: 2, mb: 4, borderRadius: 3 }}>
           <Typography variant="h6" sx={{ mb: 3 }}>
             Deal Progress
           </Typography>
@@ -339,7 +400,7 @@ export default function DealDashboard() {
               </Box>
               <Divider sx={{ mb: 3 }} />
 
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Created Date
                 </Typography>
@@ -349,9 +410,9 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3 }}>
+              {/* <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Assigned To
+                  Updated Date
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Avatar sx={{ width: 28, height: 28, mr: 1, bgcolor: theme.palette.primary.main }}>
@@ -359,9 +420,9 @@ export default function DealDashboard() {
                   </Avatar>
                   <Typography variant="body1">ID: {deal.assignedTo.substring(0, 8)}...</Typography>
                 </Box>
-              </Box>
+              </Box> */}
 
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Rights
                 </Typography>
@@ -389,7 +450,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Territory
                 </Typography>
@@ -410,7 +471,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   License Term
                 </Typography>
@@ -431,7 +492,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Usage Rights
                 </Typography>
@@ -452,7 +513,7 @@ export default function DealDashboard() {
                 </Box>
               </Box>
 
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Payment Terms
                 </Typography>
@@ -516,6 +577,7 @@ export default function DealDashboard() {
                           sx={{
                             display: "flex",
                             height: "100%",
+                            position: "relative", // Add relative positioning for the checkbox
                             transition: "transform 0.2s",
                             "&:hover": {
                               transform: "translateY(-4px)",
@@ -523,6 +585,28 @@ export default function DealDashboard() {
                             },
                           }}
                         >
+                          {/* Checkbox in the top-right corner */}
+                          <Checkbox
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+
+                              "&.Mui-checked": {
+                                color: theme.palette.primary.main,
+                              },
+                            }}
+                            checked={deal.status === 'sent_to_shipper'? deal.movies.some(
+                              (dealMovie) => dealMovie.movieId === movie._id && dealMovie.status === "accepted"
+                            ) : selectedMovies.some(
+                              (selected) => selected.movieId === movie._id && selected.status === "accepted"
+                            )} // Check if the current movie's status is 'accepted'
+                            onChange={(e) =>
+                              handleCheckboxChange(movie._id, e.target.checked ? "accepted" : "rejected")
+                            }
+                            disabled={deal.status === "sent_to_shipper"}
+                          />
+
                           <CardMedia
                             component="img"
                             sx={{ width: 120, objectFit: "cover" }}
@@ -569,6 +653,17 @@ export default function DealDashboard() {
                       </Grid>
                     ))}
                   </Grid>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{ textTransform: "capitalize" }}
+                      onClick={handleSubmitDeal}
+                      disabled={deal.status === "sent_to_shipper" || selectedMovies.length === 0}
+                    >
+                      Submit Deal
+                    </Button>
+                  </Box>
                 </Box>
               )}
 
@@ -717,19 +812,23 @@ export default function DealDashboard() {
             >
               {selectedMovie && (
                 <>
+                  {/* Cross Icon for Closing Modal */}
+                  <IconButton
+                    onClick={handleCloseModal}
+                    sx={{
+                      position: "absolute",
+                      top: 16,
+                      right: 16,
+                      color: "text.secondary",
+                    }}
+                  >
+                    <X />
+                  </IconButton>
+
                   <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3, alignItems: "center" }}>
                     <Typography variant="h5" component="h2" fontWeight={700}>
                       {selectedMovie.projectTitle}
                     </Typography>
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      size="small"
-                      onClick={handleCloseModal}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      Close
-                    </Button>
                   </Box>
 
                   <Grid container spacing={4}>
@@ -742,6 +841,7 @@ export default function DealDashboard() {
                             borderRadius: 2,
                             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                             mb: 2,
+                            height: 250,
                           }}
                           image={selectedMovie.projectPosterS3Url}
                           alt={selectedMovie.projectTitle}
@@ -770,9 +870,6 @@ export default function DealDashboard() {
                           >
                             Watch Trailer
                           </Button>
-                          <Button fullWidth variant="outlined" startIcon={<Download />} sx={{ borderRadius: 2 }}>
-                            Download Info
-                          </Button>
                         </Paper>
                       </Box>
                     </Grid>
@@ -781,10 +878,9 @@ export default function DealDashboard() {
                       <Paper
                         elevation={0}
                         sx={{
-                          p: 3,
+                          p: 2,
                           borderRadius: 2,
                           border: "1px solid #2a2e45",
-                          mb: 3,
                         }}
                       >
                         <Typography variant="h6" gutterBottom>
@@ -797,253 +893,26 @@ export default function DealDashboard() {
                         <Grid container spacing={3} sx={{ mt: 1 }}>
                           <Grid item xs={12} sm={6}>
                             <Typography variant="subtitle2" color="text.secondary">
-                              Project Name
+                              Created Date
                             </Typography>
-                            <Typography variant="body1" fontWeight={500} sx={{ mb: 2 }}>
-                              {selectedMovie.projectName}
-                            </Typography>
-
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Project ID
-                            </Typography>
-                            <Typography variant="body1" fontWeight={500} sx={{ mb: 2 }}>
-                              {selectedMovie._id}
+                            <Typography variant="body1" fontWeight={500}>
+                              {formatDate(selectedMovie.createdAt)}
                             </Typography>
                           </Grid>
 
                           <Grid item xs={12} sm={6}>
                             <Typography variant="subtitle2" color="text.secondary">
-                              Created Date
-                            </Typography>
-                            <Typography variant="body1" fontWeight={500} sx={{ mb: 2 }}>
-                              {formatDate(selectedMovie.createdAt)}
-                            </Typography>
-
-                            <Typography variant="subtitle2" color="text.secondary">
                               Last Updated
                             </Typography>
-                            <Typography variant="body1" fontWeight={500} sx={{ mb: 2 }}>
+                            <Typography variant="body1" fontWeight={500}>
                               {formatDate(selectedMovie.updatedAt)}
                             </Typography>
                           </Grid>
                         </Grid>
                       </Paper>
-
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          p: 3,
-                          borderRadius: 2,
-                          border: "1px solid #2a2e45",
-                        }}
-                      >
-                        <Typography variant="h6" gutterBottom>
-                          Storage Information
-                        </Typography>
-
-                        <Typography variant="subtitle2" color="text.secondary">
-                          S3 Source Trailer URL
-                        </Typography>
-                        <Box
-                          sx={{
-                            p: 2,
-                            bgcolor: "#131b2e",
-                            borderRadius: 1,
-                            mb: 2,
-                            overflowX: "auto",
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            component="code"
-                            sx={{
-                              fontFamily: "monospace",
-                              wordBreak: "break-all",
-                            }}
-                          >
-                            {selectedMovie.projectTrailerS3Url}
-                          </Typography>
-                        </Box>
-
-                        <Typography variant="subtitle2" color="text.secondary">
-                          User ID
-                        </Typography>
-                        <Box
-                          sx={{
-                            p: 2,
-                            bgcolor: "#131b2e",
-                            borderRadius: 1,
-                            mb: 2,
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            component="code"
-                            sx={{
-                              fontFamily: "monospace",
-                            }}
-                          >
-                            {selectedMovie.userId}
-                          </Typography>
-                        </Box>
-
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Info Documents
-                        </Typography>
-                        {selectedMovie.infoDocFileName && selectedMovie.infoDocFileName.length > 0 ? (
-                          <Box sx={{ mt: 1 }}>
-                            {selectedMovie.infoDocFileName.map((doc, index) => (
-                              <Box
-                                key={index}
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  p: 1.5,
-                                  bgcolor: "#131b2e",
-                                  borderRadius: 1,
-                                  mb: 1,
-                                }}
-                              >
-                                <img src="/document-icon.png" alt="Document" style={{ width: 30, marginRight: 10 }} />
-                                <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                                  {doc}
-                                </Typography>
-                              </Box>
-                            ))}
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                            No info documents available
-                          </Typography>
-                        )}
-                      </Paper>
-
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-                        <Button variant="outlined" onClick={handleCloseModal} sx={{ borderRadius: 2 }}>
-                          Close
-                        </Button>
-                      </Box>
                     </Grid>
                   </Grid>
                 </>
-              )}
-              {/* Language Selection Modal */}
-              {showLanguageSelection && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    bgcolor: "rgba(0,0,0,0.85)",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    zIndex: 9999,
-                  }}
-                >
-                  <Paper
-                    sx={{
-                      width: { xs: "90%", sm: "500px" },
-                      p: 4,
-                      borderRadius: 2,
-                      maxWidth: "90%",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                      <Typography variant="h6">Select Language</Typography>
-                      <IconButton onClick={handleCloseLanguageSelection} size="small">
-                        <X />
-                      </IconButton>
-                    </Box>
-
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                      Choose your preferred language for the trailer
-                    </Typography>
-
-                    <Box sx={{ mb: 3 }}>
-                      {trailerLanguages.map((language) => (
-                        <Box
-                          key={language.id}
-                          onClick={() => handleLanguageSelect(language.id)}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            p: 2,
-                            mb: 1,
-                            borderRadius: 1,
-                            cursor: "pointer",
-                            bgcolor:
-                              selectedLanguage === language.id ? `${theme.palette.primary.main}15` : "background.paper",
-                            border:
-                              selectedLanguage === language.id
-                                ? `1px solid ${theme.palette.primary.main}`
-                                : "1px solid #2a2e45",
-                            transition: "all 0.2s",
-                            "&:hover": {
-                              bgcolor: `${theme.palette.primary.main}10`,
-                            },
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: "50%",
-                              border: "2px solid",
-                              borderColor:
-                                selectedLanguage === language.id ? theme.palette.primary.main : "text.secondary",
-                              mr: 2,
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            {selectedLanguage === language.id && (
-                              <Box
-                                sx={{
-                                  width: 10,
-                                  height: 10,
-                                  borderRadius: "50%",
-                                  bgcolor: theme.palette.primary.main,
-                                }}
-                              />
-                            )}
-                          </Box>
-                          <Typography variant="body1">{language.name}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      disabled={!selectedLanguage}
-                      onClick={handlePlaySelectedLanguage}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      Play Trailer
-                    </Button>
-                  </Paper>
-                </Box>
-              )}
-              {/* Trailer Player */}
-              {isTrailerPlaying && trailerUrl && (
-                console.log("Playing trailer:", trailerUrl),
-                <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50">
-                  <div className="relative w-[80%] max-w-5xl">
-                    <ShakaPlayer width="100%" height="100%" url={trailerUrl} />
-                    <button
-                      onClick={handleCloseTrailer}
-                      className="absolute top-2 right-2 text-white text-3xl player-close-button"
-                      style={{ zIndex: 10 }}
-                    >
-                      X
-                    </button>
-                  </div>
-                </div>
               )}
             </Box>
           </Fade>
