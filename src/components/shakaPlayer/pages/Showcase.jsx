@@ -208,7 +208,7 @@ export default function MovieGrid() {
         setSpecificationsData(formattedSpecs);
 
         // Save project IDs and user IDs if needed
-       
+
         allUserIds.current = [...new Set(projects.map((p) => p.userId))];
 
         console.log("✅ All project + form data loaded");
@@ -333,10 +333,10 @@ export default function MovieGrid() {
       const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
       console.log("project Years:", projectYear);
       return updatedYears.length > 0
-        ? updatedYears.includes(projectYear) 
+        ? updatedYears.includes(projectYear)
         : true;
     });
-    
+
     console.log("Filtered Data by Year:", filteredData);
     setProjectData(filteredData); // Update the filtered movies state
   };
@@ -354,11 +354,19 @@ export default function MovieGrid() {
     setSortAnchorEl(null); // Close the sort popover
   
     if (option === "title") {
-      // Sort projectData alphabetically by projectTitle (case-insensitive)
+      // Sort projectData alphabetically by projectTitle (A-Z)
       const sortedData = [...projectData].sort((a, b) => {
         const titleA = a.projectTitle?.toLowerCase() || "";
         const titleB = b.projectTitle?.toLowerCase() || "";
-        return titleA.localeCompare(titleB, undefined, { sensitivity: 'base' });
+        return titleA.localeCompare(titleB, undefined, { sensitivity: "base" });
+      });
+      setProjectData(sortedData); // Update the sorted project data
+    } else if (option === "title-desc") {
+      // Sort projectData reverse alphabetically by projectTitle (Z-A)
+      const sortedData = [...projectData].sort((a, b) => {
+        const titleA = a.projectTitle?.toLowerCase() || "";
+        const titleB = b.projectTitle?.toLowerCase() || "";
+        return titleB.localeCompare(titleA, undefined, { sensitivity: "base" });
       });
       setProjectData(sortedData); // Update the sorted project data
     } else {
@@ -416,43 +424,60 @@ export default function MovieGrid() {
   };
 
   const handleLanguageFilter = (language) => {
+    let updatedLanguages;
+  
     if (selectedLanguages.includes(language)) {
-      setSelectedLanguages(selectedLanguages.filter((l) => l !== language)); // Remove language
+      // Remove the language if already selected
+      updatedLanguages = selectedLanguages.filter((l) => l !== language);
     } else {
-      setSelectedLanguages([...selectedLanguages, language]); // Add language
+      // Add the language to the selected list
+      updatedLanguages = [...selectedLanguages, language];
     }
-
-    // Filter project data based on the selected language
-    const filteredData = originalProjectData.filter(
-      (project) =>
-        project?.formData?.specificationsInfo?.language?.toLowerCase() === language.toLowerCase()
-    );
-
-    console.log("Filtered Data:", filteredData);
-    setProjectData(filteredData); // Update the filtered movies state
+  
+    setSelectedLanguages(updatedLanguages);
+  
+    // Filter project data based on the updated languages
+    const filteredData =
+      updatedLanguages.length > 0
+        ? originalProjectData.filter((project) =>
+            updatedLanguages.some(
+              (selectedLanguage) =>
+                project?.formData?.specificationsInfo?.language?.toLowerCase() ===
+                selectedLanguage.toLowerCase()
+            )
+          )
+        : [...originalProjectData]; // Reset to original data if no languages are selected
+  
+    setProjectData(filteredData); // Update the filtered project data
   };
 
   const handleContentCategoryFilter = (category) => {
-    const copyOfFilteredData = [...projectData];
+    let updatedCategories;
+  
     if (selectedContentCategories.includes(category)) {
-      setSelectedContentCategories(selectedContentCategories.filter((c) => c !== category)); // Remove category
+      // Remove category if already selected
+      updatedCategories = selectedContentCategories.filter((c) => c !== category);
     } else {
-      setSelectedContentCategories([...selectedContentCategories, category]); // Add category
+      // Add category to the selected list
+      updatedCategories = [...selectedContentCategories, category];
     }
-
-    // Filter project data based on the selected content category
-    const filteredData = copyOfFilteredData.filter((project) =>
-      selectedContentCategories.length > 0
-        ? selectedContentCategories.some((selectedCategory) =>
-          project?.formData?.specificationsInfo?.projectType
-            ?.toLowerCase()
-            .includes(selectedCategory.toLowerCase())
-        )
-        : true
-    );
-
-    console.log("Filtered Data by Content Category:", filteredData);
-    setProjectData(filteredData); // Update the filtered movies state
+  
+    setSelectedContentCategories(updatedCategories);
+  
+    // Filter project data based on the updated categories
+    const filteredData =
+      updatedCategories.length > 0
+        ? originalProjectData.filter((project) =>
+            updatedCategories.some((selectedCategory) => {
+              const projectType = project?.formData?.specificationsInfo?.projectType
+                ?.replace(/_/g, " ") // Replace underscores with spaces
+                ?.toLowerCase(); // Convert to lowercase for case-insensitive comparison
+              return projectType === selectedCategory.toLowerCase();
+            })
+          )
+        : [...originalProjectData]; // Reset to original data if no categories are selected
+  
+    setProjectData(filteredData); // Update the filtered project data
   };
 
   const handleRightsFilter = (right) => {
@@ -961,7 +986,7 @@ export default function MovieGrid() {
       case "title":
         return "Title A-Z"
       default:
-        return "Featured"
+        return "Titles"
     }
   }
 
@@ -1031,7 +1056,7 @@ export default function MovieGrid() {
 
   return (
     <>
-    <Snackbar
+      <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000} // Automatically hide after 6 seconds
         onClose={handleSnackbarClose}
@@ -1091,6 +1116,12 @@ export default function MovieGrid() {
                     onClick={() => handleSortChange("title")} // Sort A-Z
                   >
                     Title A-Z
+                  </Box>
+                  <Box
+                    sx={sortOption === "title-desc" ? styles.sortItemActive : styles.sortItem}
+                    onClick={() => handleSortChange("title-desc")} // Sort Z-A
+                  >
+                    Title Z-A
                   </Box>
                 </Box>
               </Box>
@@ -1647,7 +1678,7 @@ export default function MovieGrid() {
 
               const title = project?.projectTitle || "Untitled Project";
               const poster = project?.posterFileName;
-             const logoImageURL = project.projectPosterS3Url || defaultPoster;
+              const logoImageURL = project.projectPosterS3Url || defaultPoster;
               console.log("poster filen name", poster)
               console.log("logo image url", logoImageURL)
               console.log("orgname", orgName)
