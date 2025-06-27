@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../contexts/UserContext';
@@ -12,37 +12,66 @@ import RightsInfo from './Formcomponents/RightsInfo.jsx';
 import { setProjectFolderRequest, setProjectFolderSuccess, setProjectFolderFailure } from '../../redux/projectSlice/projectSlice.js';
 import { useProjectInfo } from '../../contexts/projectInfoContext.jsx';
 import SrtFileUpload from './Formcomponents/SrtFileUpload.jsx';
+import Cookies from 'js-cookie';
+import Loader from '../loader/Loader.jsx';
+import DubbedFiles from './Formcomponents/DubbedFiles.jsx';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+
+
 
 function ProjectsForm() {
+
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { orgName } = user.user;
+
   // Access user data from UserContext
 
+  const [srtFiles, setSrtFiles] = useState([]);
+  const [infoDocs, setInfoDocs] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+
+
+  const token = Cookies.get('token');
+
+
+
   const { projectName, movieName } = useProjectInfo();
+
   const [formData, setFormData] = useState({
+
     projectInfo: {
       s3SourcePosterUrl: '',
       s3SourceBannerUrl: '',
       s3SourceTrailerUrl: '',
       s3SourceMovieUrl: '',
-      srtFileName: '', // Store the SRT file name
-      infoDocFileName: [], // Store the Info Document file name
+
+    },
+    srtInfo: {
+      srtFiles: [],
+      infoDocuments: []
     },
     submitterInfo: {},
     creditsInfo: {},
     specificationsInfo: {},
-    screeningsInfo: {
-      screenings: [],
-      distributors: [],
-    },
+    // screeningsInfo: {
+    //   screenings: [],
+    //   distributors: [],
+    // },
     rightsInfo: [],
     userId: user?.userId || '',
   });
+  console.log("form data from specs:", formData)
+
   const [errors, setErrors] = useState({
     projectInfoErrors: {},
     submitterInfoErrors: {},
     creditsInfoErrors: {},
     specificationsInfoErrors: {},
-    screeningsErrors: {},
+    // screeningsErrors: {},
     rightsInfoErrors: {},
   });
   const [isSubmitterInfoVisible, setIsSubmitterInfoVisible] = useState(false);
@@ -52,34 +81,52 @@ function ProjectsForm() {
 
 
   const { userData } = useContext(UserContext);
-  const orgName = userData ? userData.orgName : '';
+
+  const accessKeyId = import.meta.env.VITE_ACCESS_KEY_ID || '';
+  const secretAccessKey = import.meta.env.VITE_SECRET_ACCESS_KEY || '';
 
 
 
-  //srt file
-  // Handle SRT file change
-  const handleSrtFileChange = (fileName) => {
-    // Store the SRT file name in the state
+  useEffect(() => {
+    console.log('Updated srtFiles:', srtFiles);
+    console.log('Updated infoDocs:', infoDocs);
+  }, [srtFiles, infoDocs]);
+
+  const handleSrtFileChange = (files) => {
+    // console.log('📥 SRT Files received:', files);
+    setSrtFiles(files);
+    handleCombinedFilesChange(files, infoDocs);
+  };
+
+  const handleInfoDocsChange = (files) => {
+    // console.log('📥 Info Docs received:', files);
+    setInfoDocs(files);
+    handleCombinedFilesChange(srtFiles, files);
+  };
+
+  const handleCombinedFilesChange = (srtFiles, infoDocs) => {
+    const combinedPairs = [];
+    const maxLength = Math.max(srtFiles.length, infoDocs.length);
+    for (let i = 0; i < maxLength; i++) {
+      combinedPairs.push({
+        srtFile: srtFiles[i] || null,
+        infoDocFile: infoDocs[i] || null,
+      });
+    }
     setFormData((prevData) => ({
-        ...prevData,
-        projectInfo: {
-            ...prevData.projectInfo,
-            srtFileName: fileName,  // Save the file name in the projectInfo object
-        },
+      ...prevData,
+      srtInfo: combinedPairs,
     }));
-};
+  };
 
-  // Handle Info Document file change
-  const handleInfoDocsChange = (fileNames) => {
-    // Store the Info Document file names in the state
-    setFormData((prevData) => ({
-        ...prevData,
-        projectInfo: {
-            ...prevData.projectInfo,
-            infoDocFileName: fileNames,  // Save the array of file names in projectInfo
-        },
-    }));
-};
+  useEffect(() => {
+    console.log("Current SRT Info:", formData.srtInfo);
+  }, [formData.srtInfo]);
+
+
+  useEffect(() => {
+    console.log("Current SRT Info:", formData.srtInfo);
+  }, [formData.srtInfo]);
 
   useEffect(() => {
     console.log('User orgName :', orgName);
@@ -114,18 +161,65 @@ function ProjectsForm() {
     }));
   };
 
-  const handleInputChange = (section, data) => {
+
+  const handleInputChange = useCallback((section, data) => {
+    console.log("📥 Inside handleInputChange:", section, data);
 
     setFormData((prevData) => {
-      if (prevData[section] !== data) {
-        return {
-          ...prevData,
-          [section]: { ...prevData[section], ...data },
-        };
+      const updatedSection = { ...prevData[section], ...data };
+      const updatedFormData = {
+        ...prevData,
+        [section]: updatedSection,
+      };
+
+      if (section === "projectInfo") {
+        const posterUrl = updatedSection.projectPosterUrl || updatedSection.posterUrl;
+        const bannerUrl = updatedSection.projectBannerUrl || updatedSection.bannerUrl;
+        const trailerUrl = updatedSection.projectTrailerUrl || updatedSection.trailerUrl;
+
+        if (posterUrl) {
+          console.log("🎞️ Poster URL:", posterUrl);
+        }
+        if (bannerUrl) {
+          console.log("🖼️ Banner URL:", bannerUrl);
+        }
+        if (trailerUrl) {
+          console.log("🎬 Trailer URL:", trailerUrl);
+        }
+
+        // ✅ Poster Source and Destination
+        if (updatedSection.s3SourcePosterUrl) {
+          console.log("🎞️ Poster Source:", updatedSection.s3SourcePosterUrl);
+        }
+        if (updatedSection.projectPosterS3Url) {
+          console.log("📦 Poster Destination:", updatedSection.projectPosterS3Url);
+        }
+
+        // ✅ Banner Source and Destination
+        if (updatedSection.s3SourceBannerUrl) {
+          console.log("🖼️ Banner Source:", updatedSection.s3SourceBannerUrl);
+        }
+        if (updatedSection.projectBannerS3Url) {
+          console.log("📦 Banner Destination:", updatedSection.projectBannerS3Url);
+        }
+
+        // ✅ Trailer Source and Destination
+        if (updatedSection.s3SourceTrailerUrl) {
+          console.log("🎬 Trailer Source:", updatedSection.s3SourceTrailerUrl);
+        }
+        if (updatedSection.projectTrailerS3Url) {
+          console.log("📦 Trailer Destination:", updatedSection.projectTrailerS3Url);
+        }
       }
-      return prevData;
+
+      return updatedFormData;
     });
-  };
+  }, []);
+
+
+
+
+
 
   const setRightsInfoErrors = (errors) => {
     setErrors((prevState) => ({
@@ -134,727 +228,989 @@ function ProjectsForm() {
     }));
   };
 
-  const handleRightsChange = (selectedRights) => {
+  const handleRightsChange = (rightsDataArray) => {
     setFormData((prevState) => ({
       ...prevState,
-      rightsInfo: selectedRights,
+      rightsInfo: {
+        rights: rightsDataArray, // wrap in object under `rights`
+      },
     }));
   };
 
+
+  const [shownErrorToasts, setShownErrorToasts] = useState(new Set());
   const validateForm = () => {
     let isValid = true;
+
     const tempErrors = {
       projectInfoErrors: {},
       submitterInfoErrors: {},
       creditsInfoErrors: {},
       specificationsInfoErrors: {},
-      screeningsErrors: {},
       rightsInfoErrors: {},
     };
 
+    // Use a local Set to track which toast errors have been shown during this validation run
+    const shownErrorToastsLocal = new Set();
+
+    const showErrorToast = (key, message) => {
+      if (!shownErrorToastsLocal.has(key)) {
+        toast.error(message);
+        shownErrorToastsLocal.add(key);
+      }
+    };
+
+    // === Validate Project Info ===
     if (!formData.projectInfo.projectTitle) {
-      isValid = false;
+      showErrorToast('projectTitle', 'Project title is required');
       tempErrors.projectInfoErrors.projectTitle = 'Project title is required.';
-    }
-
-    if (formData.screeningsInfo.screenings.length === 0) {
       isValid = false;
-      tempErrors.screeningsErrors.screenings = 'At least one screening is required.';
     }
 
-    if (formData.rightsInfo.length === 0) {
+    // === Validate Specifications ===
+    const spec = formData.specificationsInfo;
+
+    if (!spec.genres || !Array.isArray(spec.genres) || spec.genres.length === 0) {
+      showErrorToast('genres', 'Genre is required');
+      tempErrors.specificationsInfoErrors.genres = 'Genre is required.';
       isValid = false;
-      tempErrors.rightsInfoErrors = 'Please select at least one right.';
     }
 
+    if (!spec.completionDate) {
+      showErrorToast('yearOfRelease', 'Year of Release is required');
+      tempErrors.specificationsInfoErrors.completionDate = 'Year of Release is required.';
+      isValid = false;
+    }
+
+    if (!spec.language) {
+      showErrorToast('language', 'Language is required');
+      tempErrors.specificationsInfoErrors.language = 'Language is required.';
+      isValid = false;
+    }
+
+    if (!spec.projectType) {
+      showErrorToast('projectType', 'Title Type is required');
+      tempErrors.specificationsInfoErrors.projectType = 'Title Type is required.';
+      isValid = false;
+    }
+
+    // === Validate Rights Info ===
+    const rightsBlocks = formData.rightsInfo?.rights;
+
+    if (!rightsBlocks || rightsBlocks.length === 0) {
+      showErrorToast('rights', 'At least one Right block must be selected');
+      tempErrors.rightsInfoErrors.rights = 'At least one Right block must be selected.';
+      isValid = false;
+    } else {
+      rightsBlocks.forEach((block, index) => {
+        if (!block.rights || block.rights.length === 0) {
+          showErrorToast(`rights_${index}`, `At least one Right is required in block #${index + 1}`);
+          tempErrors.rightsInfoErrors[`rights_${index}`] = `At least one Right is required in block #${index + 1}`;
+          isValid = false;
+        }
+        if (!block.territories || block.territories.length === 0) {
+          showErrorToast(`territories_${index}`, `At least one Territory is required in block #${index + 1}`);
+          tempErrors.rightsInfoErrors[`territories_${index}`] = `At least one Territory is required in block #${index + 1}`;
+          isValid = false;
+        }
+      });
+    }
+
+    // Update error state
     setErrors(tempErrors);
+
+    // Optionally update React state if you want to keep shownErrorToasts for other logic
+    setShownErrorToasts(shownErrorToastsLocal);
+
     return isValid;
   };
 
-  const transferFileToLocation = async () => {
-    // Dynamically getting the orgName and projectFolder
-    const orgName = userData ? userData.orgName : ''; // Fallback if orgName is not set
-    const projectFolder = projectName || 'defaultProjectFolder'; // Fallback if projectName is not set
-
-    // Ensure we are using the most recent state for formData
-    const posterFileUrl = formData.projectInfo.s3SourcePosterUrl;
-    const bannerFileUrl = formData.projectInfo.s3SourceBannerUrl;
-    const trailerFileUrl = formData.projectInfo.s3SourceTrailerUrl;
-    const movieFileUrl = formData.projectInfo.s3SourceMovieUrl;
-
-    console.log("Poster URL:", posterFileUrl);
-    console.log("Banner URL:", bannerFileUrl);
-    console.log("Trailer URL:", trailerFileUrl);
-    console.log("Movie URL:", movieFileUrl);
-
-    // Extracting the file names from the source URLs if they exist
-    const posterFileName = posterFileUrl ? posterFileUrl.split('/').pop() : null;
-    const bannerFileName = bannerFileUrl ? bannerFileUrl.split('/').pop() : null;
-    const trailerFileName = trailerFileUrl ? trailerFileUrl.split('/').pop() : null;
-    const movieFileName = movieFileUrl ? movieFileUrl.split('/').pop() : null;
-
-    // Constructing the destination URLs for all files
-    const posterDestinationUrl = posterFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/film stills/${posterFileName}` : null;
-    const bannerDestinationUrl = bannerFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/film stills/${bannerFileName}` : null;
-    const trailerDestinationUrl = trailerFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/trailer/${trailerFileName}` : null;
-    const movieDestinationUrl = movieFileName ? `s3://mediashippers-filestash/${orgName}/${projectFolder}/master/${movieFileName}` : null;
-
-    // Log the destination URLs for validation
-    console.log('Poster Destination URL:', posterDestinationUrl || 'No poster URL provided');
-    console.log('Banner Destination URL:', bannerDestinationUrl || 'No banner URL provided');
-    console.log('Trailer Destination URL:', trailerDestinationUrl || 'No trailer URL provided');
-    console.log('Movie Destination URL:', movieDestinationUrl || 'No movie URL provided');
 
 
-    // Check if access keys exist
-    if (!accessKeyId || !secretAccessKey) {
-      console.error("Access keys are missing!");
-      return;
-    }
 
-    try {
-      // Prepare the data to send to the backend
-      const response = await fetch(`/api/folders/transfer-file`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          posterFileUrl,
-          bannerFileUrl,
-          trailerFileUrl,
-          movieFileUrl,
-          orgName,
-          projectFolder,
-          accessKeyId, // Pass the accessKeyId to the backend
-          secretAccessKey, // Pass the secretAccessKey to the backend
-        }),
-      });
 
-      const result = await response.json();
-      if (response.ok) {
-        console.log('File transfers completed successfully:', result.message);
-      } else {
-        console.error('File transfer failed:', result.error);
-      }
-    } catch (error) {
-      console.error('Error during file transfer:', error);
-    }
-  };
+
+
+
 
 
 
   const extractFileNameFromUrl = (url) => {
-    if (url) {
-      // Extract filename from the URL (this assumes URL structure like "s3://bucket/folder/filename.jpg")
-      const parts = url.split('/');
-      return parts[parts.length - 1]; // Get the last part (filename)
+    if (!url) return '';
+    const parts = String(url).split('/');
+    return parts[parts.length - 1];
+  };
+
+  const convertS3UriToHttps = (s3Uri) => {
+    if (!s3Uri || !s3Uri.startsWith('s3://')) return s3Uri;
+
+    const [, bucketAndPath] = s3Uri.split('s3://');
+    const [bucket, ...keyParts] = bucketAndPath.split('/');
+
+    // Encode each path segment individually, not the slashes
+    const encodedKey = keyParts.map(encodeURIComponent).join('/');
+
+    return `https://${bucket}.s3.amazonaws.com/${encodedKey}`;
+  };
+
+  // Define normalizeUrl once
+  const normalizeUrl = (sourceUrl) => {
+    console.log('🌐 Original URL:', sourceUrl);
+
+    if (!sourceUrl) return '';
+
+    let normalizedSourceUrl = sourceUrl;
+
+    if (sourceUrl.startsWith('s3://')) {
+      // Convert raw S3 URI to HTTPS
+      const [, path] = sourceUrl.split('s3://');
+      const [bucket, ...keyParts] = path.split('/');
+      const encodedPath = keyParts.map(encodeURIComponent).join('/');
+      normalizedSourceUrl = `https://${bucket}.s3.amazonaws.com/${encodedPath}`;
+    } else if (sourceUrl.startsWith('https://')) {
+      try {
+        const url = new URL(sourceUrl);
+
+        // ✅ Check if path is already encoded
+        const decodedPath = decodeURIComponent(url.pathname);
+        const isAlreadyEncoded = url.pathname !== decodedPath;
+
+        if (isAlreadyEncoded) {
+          console.log('⚠️ Skipping normalization — already encoded:', sourceUrl);
+          return sourceUrl;
+        }
+
+        const pathParts = url.pathname.split('/').map(encodeURIComponent);
+        normalizedSourceUrl = `${url.origin}/${pathParts.join('/')}`;
+      } catch (e) {
+        console.error('❌ Failed to parse URL:', sourceUrl);
+        return sourceUrl;
+      }
     }
-    return '';
+
+    console.log('✅ Normalized HTTPS URL:', normalizedSourceUrl);
+    return normalizedSourceUrl;
   };
 
 
+  // Use normalizeUrl inside transferFileToLocation
+  // const transferFileToLocation = async () => {
+  //   const { orgName } = user.user;
+  //   const projectFolder = formData.projectInfo.projectName;
 
-//   const handleSubmit = async (event) => {
-//     event.preventDefault();
-//     setIsFormSubmitted(true);
+  //   // SOURCE URLs (from formData)
+  //   const posterSourceUrl = formData.projectInfo.s3SourcePosterUrl; // source s3://
+  //   const bannerSourceUrl = formData.projectInfo.s3SourceBannerUrl;
+  //   const trailerSourceUrl = formData.projectInfo.s3SourceTrailerUrl;
+  //   const movieSourceUrl = formData.projectInfo.s3SourceMovieUrl;
 
-//     console.log('Form submission started');
+  //   // DESTINATION URLs (you build these based on orgName/projectFolder)
+  //   const posterDestUrl = formData.projectInfo.projectPosterS3Url; // destination s3://
+  //   const bannerDestUrl = formData.projectInfo.projectBannerS3Url;
+  //   const trailerDestUrl = formData.projectInfo.projectTrailerS3Url;
+  //   const movieDestUrl = formData.projectInfo.projectMovieS3Url;
 
-//     // Perform form validation
-//     const errors = validateForm();
-//     if (errors !== true) {
-//         console.log("Form validation failed with the following errors:", errors);
-//         alert('Please fix the errors before submitting.');
-//         return;
-//     }
-//     console.log('Form validation passed');
+  //   try {
+  //     const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`,
+  //         'Content-Type': 'application/json',
+  //       },
+  //       credentials: 'include',
+  //       body: JSON.stringify({
+  //         files: [
+  //           { sourceUrl: posterSourceUrl, destinationUrl: posterDestUrl, fileType: 'film stills' },
+  //           { sourceUrl: bannerSourceUrl, destinationUrl: bannerDestUrl, fileType: 'film stills' },
+  //           { sourceUrl: trailerSourceUrl, destinationUrl: trailerDestUrl, fileType: 'trailer' },
+  //           { sourceUrl: movieSourceUrl, destinationUrl: movieDestUrl, fileType: 'movie' },
+  //         ].filter(file => file.sourceUrl && file.destinationUrl), // filter out empty
+  //         orgName,
+  //         projectFolder,
+  //       }),
+  //     });
 
-//     // Initialize filenames based on options
-//     let posterUrl = '';
-//     let bannerUrl = '';
-//     let trailerUrl = '';
-//     let movieFileName = '';
+  //     const result = await response.json();
 
-//     // Create base URL for film stills
-//     const basePosterUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//     const baseBannerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//     const baseTrailerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/trailers/`;
+  //     if (!response.ok || result.success === false || (result.errors && result.errors.length > 0)) {
+  //       const errorMessages = (result.errors || []).map(err => `${err.fileType}: ${err.error}`).join('\n') || result.error || 'File transfer failed.';
+  //       alert(`❌ Some files failed to transfer:\n${errorMessages}`);
+  //       return { success: false, fullResult: result };
+  //     }
 
-//     console.log('Base URLs for file uploads:', { basePosterUrl, baseBannerUrl, baseTrailerUrl });
+  //     alert('✅ All files transferred successfully.');
+  //     return { success: true, fullResult: result };
 
-//     try {
-//         // Debug: Ensure that banner and trailer files are being passed correctly
-//         console.log('Form Data:', formData.projectInfo);
+  //   } catch (error) {
+  //     console.error('❌ Transfer failed:', error);
+  //     alert(`❌ Fatal error: ${error.message}`);
+  //     return { success: false, error: error.message };
+  //   }
+  // };
 
-//         // Upload Poster
-//         if (formData.projectInfo.posterOption === 'upload' && formData.projectInfo.projectPoster) {
-//             console.log('Uploading poster:', formData.projectInfo.projectPoster);
-//             posterUrl = await uploadFileToS3(formData.projectInfo.projectPoster, basePosterUrl);
-//         } else if (formData.projectInfo.posterOption === 'url' && formData.projectInfo.s3SourcePosterUrl) {
-//             console.log('Using existing poster URL:', formData.projectInfo.s3SourcePosterUrl);
-//             posterUrl = formData.projectInfo.s3SourcePosterUrl;
-//         } else {
-//             console.log('No poster to upload.');
-//         }
+  const transferFileToLocation = async () => {
+    const { orgName } = user.user;
+    const projectFolder = formData.projectInfo.projectName;
 
-//         // Upload Banner
-//         if (formData.projectInfo.bannerOption === 'upload' && formData.projectInfo.bannerFileName) {
-//             console.log('Uploading banner:', formData.projectInfo.bannerFileName);
-//             bannerUrl = await uploadFileToS3(formData.projectInfo.bannerFileName, baseBannerUrl);
-//         } else if (formData.projectInfo.bannerOption === 'url' && formData.projectInfo.s3SourceBannerUrl) {
-//             console.log('Using existing banner URL:', formData.projectInfo.s3SourceBannerUrl);
-//             bannerUrl = formData.projectInfo.s3SourceBannerUrl;
-//         } else {
-//             console.log('No banner to upload.');
-//         }
+    const filesToTransfer = [
+      { sourceUrl: formData.projectInfo.s3SourcePosterUrl, destinationUrl: formData.projectInfo.projectPosterS3Url, fileType: 'film stills' },
+      { sourceUrl: formData.projectInfo.s3SourceBannerUrl, destinationUrl: formData.projectInfo.projectBannerS3Url, fileType: 'film stills' },
+      { sourceUrl: formData.projectInfo.s3SourceTrailerUrl, destinationUrl: formData.projectInfo.projectTrailerS3Url, fileType: 'trailer' },
+      { sourceUrl: formData.projectInfo.s3SourceMovieUrl, destinationUrl: formData.projectInfo.projectMovieS3Url, fileType: 'movie' },
+    ].filter(file => file.sourceUrl && file.destinationUrl);
 
-//         // Upload Trailer
-//         if (formData.projectInfo.trailerOption === 'upload' && formData.projectInfo.trailerFile) {
-//             console.log('Uploading trailer:', formData.projectInfo.trailerFile);
-//             trailerUrl = await uploadFileToS3(formData.projectInfo.trailerFile, baseTrailerUrl);
-//         } else if (formData.projectInfo.trailerOption === 'url' && formData.projectInfo.s3SourceTrailerUrl) {
-//             console.log('Using existing trailer URL:', formData.projectInfo.s3SourceTrailerUrl);
-//             trailerUrl = formData.projectInfo.s3SourceTrailerUrl;
-//         } else {
-//             console.log('No trailer to upload.');
-//         }
-
-//         // Movie File (keeping as per your request)
-//         movieFileName = formData.projectInfo.movieFileName || '';
-//         console.log('Using movie file name:', movieFileName);
-
-//         // Prepare the updated form data with the S3 URLs
-//         const updatedFormData = {
-//             projectInfo: {
-//                 ...formData.projectInfo,
-//                 projectName,
-//                 userId: user?.userId || '',
-//                 posterFileName: posterUrl, // Save the S3 URL of the poster
-//                 bannerFileName: bannerUrl, // Save the S3 URL of the banner
-//                 trailerFileName: trailerUrl, // Save the S3 URL of the trailer
-//                 movieFileName, // Save the movie file name (either URL or uploaded file)
-//             },
-//             submitterInfo: {
-//                 ...formData.submitterInfo,
-//                 projectName,
-//                 userId: user?.userId || '',
-//             },
-//             creditsInfo: {
-//                 ...formData.creditsInfo,
-//                 projectName,
-//                 userId: user?.userId || '',
-//             },
-//             specificationsInfo: {
-//                 ...formData.specificationsInfo,
-//                 projectName,
-//                 userId: user?.userId || '',
-//             },
-//             screeningsInfo: {
-//                 ...formData.screeningsInfo,
-//                 projectName,
-//                 userId: user?.userId || '',
-//             },
-//             rightsInfo: {
-//                 projectName,
-//                 userId: user?.userId || '',
-//                 rightsInfo: formData.rightsInfo,
-//             },
-//             userId: user?.userId || '',
-//         };
-
-//         console.log('Updated Form Data:', updatedFormData);
-//         console.log('Updated form data prepared successfully');
-
-//         // Dispatching request to start saving the project
-//         dispatch(setProjectFolderRequest());
-//         console.log('Dispatching setProjectFolderRequest');
-
-//         // Sending request to the server to save the project
-//         const response = await fetch('/api/projectForm/', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(updatedFormData),
-//         });
-
-//         // Check if the response is OK
-//         if (response.ok) {
-//             console.log('Server responded with OK');
-//             alert('Project saved successfully!');
-//             dispatch(setProjectFolderSuccess(formData.projectInfo.projectTitle));
-
-//             // Trigger file transfer API after successful project save
-//             console.log('Triggering file transfer...');
-//             const transferResult = await transferFileToLocation();
-//             console.log('File transfer result:', transferResult);
-//         } else {
-//             const errorData = await response.json();
-//             console.error('Error response from server:', errorData);
-//             alert('Failed to save project. Server error: ' + errorData.message);
-//             dispatch(setProjectFolderFailure({ message: errorData.message })); // Ensure the error is serializable
-//         }
-//     } catch (error) {
-//         // Catch network or unexpected errors
-//         console.error('Error saving project:', error);
-//         alert('Error saving project: ' + error.message);
-//         dispatch(setProjectFolderFailure({ message: error.message })); // Ensure the error is serializable
-//     }
-// };
-
-
-
-// const uploadFileToS3 = async (file, baseUrl) => {
-//   if (!file) {
-//       console.error('No file provided for upload.');
-//       return;
-//   }
-
-//   // Log the file object to inspect its structure
-//   console.log('File details before upload:', file);
-
-//   // Check if the file is a valid File object
-//   if (!(file instanceof File)) {
-//       console.error('Uploaded object is not a File:', file);
-//       throw new Error('Uploaded object is not a valid File.');
-//   }
-
-//   // Check if the file has a name property
-//   if (!file.name) {
-//       console.error('Uploaded file is missing a name property:', file);
-//       throw new Error('Uploaded file is missing a name property.');
-//   }
-
-//   // Construct the file name based on the base URL and file name
-//   const fileName = `${baseUrl}${file.name}`;
-//   const formData = new FormData();
-//   formData.append('file', file);
-
-//   try {
-//       const response = await fetch('/api/files/upload-file', {
-//           method: 'POST',
-//           body: formData,
-//       });
-
-//       // Check if the response is OK (status code 2xx)
-//       if (!response.ok) {
-//           const errorText = await response.text();
-//           console.error(`Failed to upload file: ${file.name}. Server returned: ${errorText}`);
-//           throw new Error(`Failed to upload file: ${file.name}`);
-//       }
-
-//       // Parse the response as JSON (assuming the response contains the file URL)
-//       const data = await response.json();
-
-//       // Log the successful upload response
-//       console.log('File uploaded successfully. File URL:', data.fileUrl);
-
-//       // Return the URL of the uploaded file (assuming the API returns this)
-//       return data.fileUrl;
-//   } catch (error) {
-//       // Log and throw any errors during the upload process
-//       console.error('Error during file upload:', error.message);
-//       throw error;
-//   }
-// };
-
-
-const uploadFileToS3 = async (file, baseUrl) => {
-  if (!file) {
-      console.error('No file provided for upload.');
-      return;
-  }
-
-  console.log('File details before upload:', file);
-
-  if (!(file instanceof File)) {
-      console.error('Uploaded object is not a valid File:', file);
-      throw new Error('Uploaded object is not a valid File.');
-  }
-
-  if (!file.name) {
-      console.error('Uploaded file is missing a name property:', file);
-      throw new Error('Uploaded file is missing a name property.');
-  }
-
-  const fileName = `${baseUrl}${file.name}`;
-  const formData = new FormData();
-  
-  formData.append('file', file);
-  formData.append('Filename', 'abcefg');
-  console.log("Hello world")
-  console.log("form data after append+++++++++=======:", formData);
-  console.log("file:----====>>>", file)
-
-  try {
-      const response = await fetch(`/api/files/upload-file`, {
-          method: 'POST',
-          body: formData,
+    try {
+      const response = await fetch(`https://www.mediashippers.com/api/folders/transfer-file`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ files: filesToTransfer, orgName, projectFolder }),
       });
 
-      if (!response.ok) {
-          // Log full response to see the error details
-          const errorText = await response.text();
-          console.error(`Failed to upload file: ${file.name}. Server returned: ${errorText}`);
-          throw new Error(`Failed to upload file: ${file.name}`);
+      const result = await response.json();
+
+      if (!response.ok || result.success === false) {
+        return { success: false, fullResult: result };
       }
 
-      const data = await response.json();
-      console.log('File uploaded successfully. File URL:', data.fileUrl);
-      return data.fileUrl;
-  } catch (error) {
-      console.error('Error during file upload:', error.message);
-      throw error;
-  }
-};
-
-// Update this part of the code where you handle form submission
-// const handleSubmit = async (event) => {
-//   event.preventDefault();
-//   setIsFormSubmitted(true);
-
-//   console.log('Form submission started');
-
-//   // Perform form validation
-//   const errors = validateForm();
-//   if (errors !== true) {
-//       console.log("Form validation failed with the following errors:", errors);
-//       alert('Please fix the errors before submitting.');
-//       return;
-//   }
-//   console.log('Form validation passed');
-
-//   // Initialize filenames based on options
-//   let posterUrl = '';
-//   let bannerUrl = '';
-//   let trailerUrl = '';
-//   let movieFileName = '';
-
-//   // Create base URL for file uploads
-//   const basePosterUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//   const baseBannerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/film+stills/`;
-//   const baseTrailerUrl = `s3://mediashippers-filestash/${orgName}/${projectName}/trailers/`;
-
-//   console.log('Base URLs for file uploads:', { basePosterUrl, baseBannerUrl, baseTrailerUrl });
-
-//   try {
-//       // Debug: Ensure that banner and trailer files are being passed correctly
-//       console.log('Form Data:', formData.projectInfo);
-
-//       // Upload Poster
-//       if (formData.projectInfo.posterOption === 'upload' && formData.projectInfo.projectPoster) {
-//           console.log('Uploading poster:', formData.projectInfo.projectPoster);
-//           posterUrl = await uploadFileToS3(formData.projectInfo.projectPoster, basePosterUrl);
-//       }
-
-//       // Upload Banner
-//       if (formData.projectInfo.bannerOption === 'upload' && formData.projectInfo.bannerFileName) {
-//           console.log('Uploading banner:', formData.projectInfo.bannerFileName);
-//           bannerUrl = await uploadFileToS3(formData.projectInfo.bannerFileName, baseBannerUrl);
-//       }
-
-//       // Upload Trailer
-//       if (formData.projectInfo.trailerOption === 'upload' && formData.projectInfo.trailerFile) {
-//           console.log('Uploading trailer:', formData.projectInfo.trailerFile);
-//           trailerUrl = await uploadFileToS3(formData.projectInfo.trailerFile, baseTrailerUrl);
-//       }
-
-//       movieFileName = formData.projectInfo.movieFileName || '';
-//       console.log('Using movie file name:', movieFileName);
-
-//       const updatedFormData = {
-//           projectInfo: {
-//               ...formData.projectInfo,
-//               projectName,
-//               userId: user?.userId || '',
-//               posterFileName,
-//               bannerFileName,
-//               trailerFileName,
-//               movieFileName,
-//           },
-//           submitterInfo: { ...formData.submitterInfo, projectName, userId: user?.userId || '' },
-//           creditsInfo: { ...formData.creditsInfo, projectName, userId: user?.userId || '' },
-//           specificationsInfo: { ...formData.specificationsInfo, projectName, userId: user?.userId || '' },
-//           screeningsInfo: { ...formData.screeningsInfo, projectName, userId: user?.userId || '' },
-//           rightsInfo: { projectName, userId: user?.userId || '', rightsInfo: formData.rightsInfo },
-//           userId: user?.userId || '',
-//       };
-
-//       console.log('Updated Form Data:', updatedFormData);
-
-//       const response = await fetch('/api/projectForm/', {
-//           method: 'POST',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify(updatedFormData),
-//       });
-
-//       if (response.ok) {
-//           console.log('Project saved successfully!');
-//           alert('Project saved successfully!');
-//       } else {
-//           const errorData = await response.json();
-//           console.error('Error:', errorData);
-//           alert('Failed to save project: ' + errorData.message);
-//       }
-//   } catch (error) {
-//       console.error('Error:', error);
-//       alert('Error saving project: ' + error.message);
-//   }
-// };
-
-
-// url code
-const handleSubmit = async (event) => {
-  event.preventDefault();
-  setIsFormSubmitted(true);
-
-  console.log('Form submission started');
-
-  // Perform form validation
-  const errors = validateForm();
-  if (errors !== true) {
-    console.log("Form validation failed with the following errors:", errors);
-    alert('Please fix the errors before submitting.');
-    return;
-  }
-  console.log('Form validation passed');
-
-  // Prepare updated form data
-  console.log('Preparing updated form data');
-
-  // Initialize filenames based on options
-  let posterFileName = '';
-  let bannerFileName = '';
-  let trailerFileName = '';
-  let movieFileName = '';
-
-  
-
-  // Check the selected options and extract the file names accordingly
-  if (formData.projectInfo.posterOption === 'upload' && formData.projectInfo.projectPoster) {
-    // If posterOption is 'upload', use the uploaded file URL to extract the filename
-    posterFileName = formData.projectInfo.projectPoster;
-  } else if (formData.projectInfo.posterOption === 'url' && formData.projectInfo.s3SourcePosterUrl) {
-    // If posterOption is 'url', use the S3 URL to extract the filename
-    posterFileName = extractFileNameFromUrl(formData.projectInfo.s3SourcePosterUrl);
-  }
-
-  if (formData.projectInfo.bannerOption === 'upload' && formData.projectInfo.bannerFileName) {
-    // If bannerOption is 'upload', use the uploaded file URL to extract the filename
-    bannerFileName = formData.projectInfo.bannerFileName;
-  } else if (formData.projectInfo.bannerOption === 'url' && formData.projectInfo.s3SourceBannerUrl) {
-    // If bannerOption is 'url', use the S3 URL to extract the filename
-    bannerFileName = extractFileNameFromUrl(formData.projectInfo.s3SourceBannerUrl);
-  }
-
-  if (formData.projectInfo.trailerOption === 'upload' && formData.projectInfo.trailerFile) {
-    // If trailerOption is 'upload', use the uploaded file URL to extract the filename
-    trailerFileName = formData.projectInfo.trailerFile;
-  } else if (formData.projectInfo.trailerOption === 'url' && formData.projectInfo.s3SourceTrailerUrl) {
-    // If trailerOption is 'url', use the S3 URL to extract the filename
-    trailerFileName = extractFileNameFromUrl(formData.projectInfo.s3SourceTrailerUrl);
-  }
-
-  // if (formData.projectInfo.movieOption === 'upload' && formData.projectInfo.projectMovie) {
-  //   // If movieOption is 'upload', use the uploaded file URL to extract the filename
-  //   movieFileName = formData.projectInfo.projectMovieUrl;
-  // } else if (formData.projectInfo.movieOption === 'url' && formData.projectInfo.s3SourceMovieUrl) {
-  //   // If movieOption is 'url', use the S3 URL to extract the filename
-  //   movieFileName = extractFileNameFromUrl(formData.projectInfo.s3SourceMovieUrl);
-  // }
-
-
-  movieFileName = formData.projectInfo.movieFileName || ''; 
-
-  // Prepare the data to send to the backend, including only filenames
-  const updatedFormData = {
-    projectInfo: {
-      ...formData.projectInfo,
-      projectName,
-      userId: user?.userId || '',
-      posterFileName, // Use only the filename here
-      bannerFileName, // Use only the filename here
-      trailerFileName, // Use only the filename here
-      movieFileName, // Use only the filename here
-    },
-    // submitterInfo: {
-    //   ...formData.submitterInfo,
-    //   projectName,
-    //   userId: user?.userId || '',
-    // },
-    creditsInfo: {
-      ...formData.creditsInfo,
-      projectName,
-      userId: user?.userId || '',
-    },
-    specificationsInfo: {
-      ...formData.specificationsInfo,
-      projectName,
-      userId: user?.userId || '',
-    },
-    screeningsInfo: {
-      ...formData.screeningsInfo,
-      projectName,
-      userId: user?.userId || '',
-    },
-    rightsInfo: {
-      projectName,
-      userId: user?.userId || '',
-      rightsInfo: formData.rightsInfo,
-    },
-    userId: user?.userId || '',
+      return { success: true, fullResult: result };
+    } catch (error) {
+      console.error('Transfer failed:', error);
+      return { success: false, error: error.message };
+    }
   };
 
-  console.log('Updated Form Data:', updatedFormData);
-  console.log('Updated form data prepared successfully');
 
-  // Dispatching request to start saving the project
-  dispatch(setProjectFolderRequest());
-  console.log('Dispatching setProjectFolderRequest');
 
-  try {
-    console.log('Sending request to the server...');
-    const response = await fetch(`/api/projectForm/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedFormData),
+
+  // utils/uploadFilesToS3.js
+  const uploadFilesToS3 = async (
+    {
+      projectPoster,
+      projectBanner,
+      projectTrailer,
+      dubbedFiles = [],
+      srtFiles = []
+    },
+    projectName,
+    orgName,
+    userId
+  ) => {
+    console.log('Uploading to S3 with the following parameters:');
+    console.log('Project Poster:', projectPoster);
+    console.log('Project Banner:', projectBanner);
+    console.log('Project Trailer:', projectTrailer);
+    console.log('Dubbed Files:', dubbedFiles);
+    console.log('SRT Files:', srtFiles);
+    console.log('Project Name:', projectName);
+    console.log('Organization Name:', orgName);
+    console.log('User ID:', userId);
+
+    const formData = new FormData();
+
+    // Append main assets
+    if (projectPoster) formData.append('projectPoster', projectPoster);
+    if (projectBanner) formData.append('projectBanner', projectBanner);
+    if (projectTrailer) formData.append('projectTrailer', projectTrailer);
+
+    // Append dubbed files
+    dubbedFiles.forEach((entry, index) => {
+      const { language, dubbedTrailerFile, dubbedSubtitleFile } = entry;
+
+      if (dubbedTrailerFile) {
+        formData.append(`dubbedTrailer_${index}`, dubbedTrailerFile);
+        formData.append(`dubbedTrailerLang_${index}`, language);
+      }
+
+      if (dubbedSubtitleFile) {
+        formData.append(`dubbedSubtitle_${index}`, dubbedSubtitleFile);
+        formData.append(`dubbedSubtitleLang_${index}`, language);
+      }
     });
 
-    // Check if the response is OK
-    if (response.ok) {
-      console.log('Server responded with OK');
-      // Project saved successfully
-      alert('Project saved successfully!');
-      dispatch(setProjectFolderSuccess(formData.projectInfo.projectTitle));
+    // Append SRT and infoDoc files
+    srtFiles.forEach((entry, index) => {
+      const { srtFile, infoDocFile } = entry;
 
-      // Trigger file transfer API after successful project save
-      console.log('Triggering file transfer...');
-      const transferResult = await transferFileToLocation();
-      console.log('File transfer result:', transferResult);
+      if (srtFile) {
+        formData.append(`srtFile_${index}`, srtFile);
+      }
 
-      // If the file transfer is successful, redirect the user
-      // navigate('/video-catalogue');
-    } else {
-      // Handle error response from the server
-      const errorData = await response.json();
-      console.error('Error response from server:', errorData);
-      alert('Failed to save project. Server error: ' + errorData.message);
-      dispatch(setProjectFolderFailure(errorData));
+      if (infoDocFile) {
+        formData.append(`infoDocFile_${index}`, infoDocFile);
+      }
+    });
+
+    // Meta
+    formData.append('projectName', projectName);
+    formData.append('orgName', orgName);
+    formData.append('userId', userId);
+
+    try {
+      const response = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('S3 Upload Response:', response);
+
+      if (!response.ok) {
+        const err = await response.text();
+        console.error('Error from S3 upload:', err);
+        throw new Error(err);
+      }
+
+      const result = await response.json();
+      console.log('S3 Upload Result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error during S3 upload:', error);
+      throw error;
     }
-  } catch (error) {
-    // Catch network or unexpected errors
-    console.error('Error saving project:', error);
-    alert('Error saving project: ' + error.message);
-    dispatch(setProjectFolderFailure(error));
-  }
-};
+  };
+
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault();
+  //   setIsFormSubmitted(true);
+  //   setIsUploading(true);
+  //   console.log('Form submission started');
+
+  //   if (!orgName) {
+  //     alert('Organization name is not available.');
+  //     setIsUploading(false);
+  //     return;
+  //   }
+
+  //   const userId = user?.userId || '';
+  //   const isValid = validateForm();
+
+  //   if (!isValid) {
+  //     console.error('Form validation failed:', errors);
+  //     setIsUploading(false);
+  //     return;
+  //   }
+
+  //   const {
+  //     projectPoster,
+  //     projectBanner,
+  //     trailerFile: projectTrailer,
+  //     projectName,
+  //     orgName: organizationName,
+  //   } = formData.projectInfo;
+
+  //   const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
+  //   const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
+  //   const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
+
+  //   try {
+  //     let uploadedFiles = {};
+  //     const orgNameToUse = organizationName || orgName;
+
+  //     let dubbedFilesArray = Array.isArray(formData.dubbedFiles)
+  //       ? formData.dubbedFiles
+  //       : Object.values(formData.dubbedFiles || {}).filter(
+  //         (item) => typeof item === 'object' && item.language
+  //       );
+
+  //     let srtFilesArray = [];
+  //     const srt = formData.srtInfo;
+
+  //     if (Array.isArray(srt)) {
+  //       srtFilesArray = srt.map((entry) => ({
+  //         language: entry.language,
+  //         srtFile: entry.srtFile,
+  //         infoDocFile: entry.infoDocFile,
+  //       })).filter((item) => item.srtFile || item.infoDocFile);
+  //     } else if (srt) {
+  //       if (Array.isArray(srt.srtFiles)) {
+  //         srtFilesArray.push(...srt.srtFiles.map((f) => ({
+  //           language: f.language || '',
+  //           srtFile: f,
+  //           infoDocFile: null,
+  //         })));
+  //       }
+  //       if (Array.isArray(srt.infoDocuments)) {
+  //         srt.infoDocuments.forEach((doc, i) => {
+  //           if (srtFilesArray[i]) {
+  //             srtFilesArray[i].infoDocFile = doc;
+  //           } else {
+  //             srtFilesArray.push({ language: '', srtFile: null, infoDocFile: doc });
+  //           }
+  //         });
+  //       }
+  //     }
+
+  //     // 🔄 Upload files if selected
+  //     if (
+  //       shouldUploadPoster ||
+  //       shouldUploadBanner ||
+  //       shouldUploadTrailer ||
+  //       dubbedFilesArray.length > 0 ||
+  //       srtFilesArray.length > 0
+  //     ) {
+  //       uploadedFiles = await uploadFilesToS3(
+  //         {
+  //           projectPoster: shouldUploadPoster ? projectPoster : null,
+  //           projectBanner: shouldUploadBanner ? projectBanner : null,
+  //           projectTrailer: shouldUploadTrailer ? projectTrailer : null,
+  //           dubbedFiles: dubbedFilesArray,
+  //           srtFiles: srtFilesArray,
+  //         },
+  //         projectName,
+  //         orgNameToUse,
+  //         userId
+  //       );
+
+  //       // 🧷 Set uploaded source URLs
+  //       if (uploadedFiles.projectPosterUrl)
+  //         formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
+
+  //       if (uploadedFiles.projectBannerUrl)
+  //         formData.projectInfo.s3SourceBannerUrl = uploadedFiles.projectBannerUrl;
+
+  //       if (uploadedFiles.projectTrailerUrl)
+  //         formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
+  //     }
+
+  //     // 🧼 Do NOT convert s3:// to https:// — preserve raw S3 paths
+  //     if (formData.projectInfo.posterOption === 'url') {
+  //       formData.projectInfo.s3SourcePosterUrl = formData.projectInfo.projectPosterUrl;
+  //     }
+  //     if (formData.projectInfo.bannerOption === 'url') {
+  //       formData.projectInfo.s3SourceBannerUrl = formData.projectInfo.projectBannerUrl;
+  //     }
+  //     if (formData.projectInfo.trailerOption === 'url') {
+  //       formData.projectInfo.s3SourceTrailerUrl = formData.projectInfo.trailerUrl;
+  //     }
+  //     if (formData.projectInfo.movieOption === 'url') {
+  //       formData.projectInfo.s3SourceMovieUrl = formData.projectInfo.movieUrl;
+  //     }
+
+  //     // 🧾 Build final payload
+  //     const cleanSrtInfo = {
+  //       srtFiles: uploadedFiles?.srtFiles || [],
+  //       infoDocuments: uploadedFiles?.infoDocuments || [],
+  //       projectName,
+  //       userId,
+  //     };
+
+  //     const cleanedDubbedFiles = dubbedFilesArray.map((file) => ({
+  //       language: file.language,
+  //       dubbedTrailerFileName: file.dubbedTrailerFileName,
+  //       dubbedTrailerUrl: file.dubbedTrailerUrl,
+  //       dubbedSubtitleFileName: file.dubbedSubtitleFileName,
+  //       dubbedSubtitleUrl: file.dubbedSubtitleUrl,
+  //     }));
+
+  //     const updatedFormData = {
+  //       projectInfo: {
+  //         ...formData.projectInfo,
+  //         projectName,
+  //         userId,
+  //         posterFileName: extractFileNameFromUrl(formData.projectInfo.projectPosterS3Url),
+  //         projectPosterS3Url: formData.projectInfo.projectPosterS3Url,
+  //         bannerFileName: extractFileNameFromUrl(formData.projectInfo.projectBannerS3Url),
+  //         projectBannerS3Url: formData.projectInfo.projectBannerS3Url,
+  //         trailerFileName: extractFileNameFromUrl(formData.projectInfo.projectTrailerS3Url),
+  //         projectTrailerS3Url: formData.projectInfo.projectTrailerS3Url,
+  //         movieFileName: formData.projectInfo.movieFileName || '',
+  //       }
+  //       ,
+  //       creditsInfo: { ...formData.creditsInfo, projectName, userId },
+  //       specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
+  //       rightsInfo: {
+  //         rights: formData.rightsInfo.rights || [],
+  //         projectName,
+  //         userId,
+  //       },
+  //       srtInfo: { srtInfo: cleanSrtInfo },
+  //       dubbedFiles: cleanedDubbedFiles,
+  //     };
+
+  //     // 📨 Submit main project form
+  //     const response = await fetch('https://www.mediashippers.com/api/projectForm', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       credentials: 'include',
+  //       body: JSON.stringify(updatedFormData),
+  //     });
+
+  //     const result = await response.json();
+  //     if (!response.ok) throw new Error(result.message);
+
+  //     dispatch(setProjectFolderSuccess(projectName));
+  //     alert('✅ Project saved successfully!');
+
+  //     // 🔄 Log and call transfer API
+  //     console.log('➡️ Preparing file transfers:');
+  //     console.log('Poster from:', formData.projectInfo.s3SourcePosterUrl, '=>', formData.projectInfo.projectPosterS3Url);
+  //     console.log('Banner from:', formData.projectInfo.s3SourceBannerUrl, '=>', formData.projectInfo.projectBannerS3Url);
+  //     console.log('Trailer from:', formData.projectInfo.s3SourceTrailerUrl, '=>', formData.projectInfo.projectTrailerS3Url);
+
+  //     const transferResult = await transferFileToLocation();
+
+  //     if (transferResult.success) {
+  //       alert('✅ File transfer successful!');
+  //     } else {
+  //       console.error('⚠️ File transfer failed:', transferResult);
+
+  //       if (transferResult.fullResult?.errors?.length > 0) {
+  //         console.group('❌ Detailed Transfer Errors');
+  //         transferResult.fullResult.errors.forEach((err, index) => {
+  //           console.error(`${index + 1}. FileType: ${err.fileType}`);
+  //           console.error(`   Error: ${err.error}`);
+  //         });
+  //         console.groupEnd();
+  //       }
+
+  //       if (Array.isArray(transferResult.failedFiles) && transferResult.failedFiles.length > 0) {
+  //         const failedList = transferResult.failedFiles
+  //           .map(file => `• ${file.type}: ${file.reason || 'Unknown error'}`)
+  //           .join('\n');
+  //         alert(`⚠️ Some files failed to transfer:\n${failedList}`);
+  //       } else {
+  //         alert(`⚠️ File transfer failed: ${transferResult.error}`);
+  //       }
+  //     }
+
+  //   } catch (error) {
+  //     console.error('❌ Error during submission:', error);
+  //     alert('Error saving project: ' + error.message);
+  //     dispatch(setProjectFolderFailure({
+  //       message: error.message,
+  //       name: error.name,
+  //       stack: error.stack,
+  //     }));
+  //   } finally {
+  //     setIsUploading(false);
+  //   }
+  // };
+
+
+  // Converts s3://bucket-name/path/to/file.ext to https://bucket-name.s3.amazonaws.com/path/to/file.ext
+  const convertS3ToHttps = (s3Url) => {
+    if (!s3Url || typeof s3Url !== 'string') return '';
+
+    // Check if it's already an HTTPS URL
+    if (s3Url.startsWith('https://')) return s3Url;
+
+    try {
+      const s3Pattern = /^s3:\/\/([^/]+)\/(.+)$/;
+      const match = s3Url.match(s3Pattern);
+
+      if (!match) return s3Url;
+
+      const bucket = match[1];
+      const key = match[2].replace(/\s/g, '+'); // Replace spaces with + for S3
+      return `https://${bucket}.s3.amazonaws.com/${key}`;
+    } catch (err) {
+      console.warn('convertS3ToHttps failed:', err);
+      return s3Url;
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsFormSubmitted(true);
+    setIsUploading(true);
+    console.log('Form submission started');
+
+    if (!orgName) {
+      alert('Organization name is not available.');
+      setIsUploading(false);
+      return;
+    }
+
+    const userId = user?.userId || '';
+    const isValid = validateForm();
+
+    if (!isValid) {
+      console.error('Form validation failed:', errors);
+      setIsUploading(false);
+      return;
+    }
+
+    const {
+      projectPoster,
+      projectBanner,
+      trailerFile: projectTrailer,
+      projectName,
+      orgName: organizationName,
+    } = formData.projectInfo;
+
+    const shouldUploadPoster = formData.projectInfo.posterOption === 'upload' && projectPoster;
+    const shouldUploadBanner = formData.projectInfo.bannerOption === 'upload' && projectBanner;
+    const shouldUploadTrailer = formData.projectInfo.trailerOption === 'upload' && projectTrailer;
+
+    try {
+      let uploadedFiles = {};
+      const orgNameToUse = organizationName || orgName;
+
+      let dubbedFilesArray = Array.isArray(formData.dubbedFiles)
+        ? formData.dubbedFiles
+        : Object.values(formData.dubbedFiles || {}).filter(
+          (item) => typeof item === 'object' && item.language
+        );
+
+      let srtFilesArray = [];
+      const srt = formData.srtInfo;
+
+      if (Array.isArray(srt)) {
+        srtFilesArray = srt
+          .map((entry) => ({
+            language: entry.language,
+            srtFile: entry.srtFile,
+            infoDocFile: entry.infoDocFile,
+          }))
+          .filter((item) => item.srtFile || item.infoDocFile);
+      } else if (srt) {
+        if (Array.isArray(srt.srtFiles)) {
+          srtFilesArray.push(
+            ...srt.srtFiles.map((f) => ({
+              language: f.language || '',
+              srtFile: f,
+              infoDocFile: null,
+            }))
+          );
+        }
+        if (Array.isArray(srt.infoDocuments)) {
+          srt.infoDocuments.forEach((doc, i) => {
+            if (srtFilesArray[i]) {
+              srtFilesArray[i].infoDocFile = doc;
+            } else {
+              srtFilesArray.push({ language: '', srtFile: null, infoDocFile: doc });
+            }
+          });
+        }
+      }
+
+      if (
+        shouldUploadPoster ||
+        shouldUploadBanner ||
+        shouldUploadTrailer ||
+        dubbedFilesArray.length > 0 ||
+        srtFilesArray.length > 0
+      ) {
+        uploadedFiles = await uploadFilesToS3(
+          {
+            projectPoster: shouldUploadPoster ? projectPoster : null,
+            projectBanner: shouldUploadBanner ? projectBanner : null,
+            projectTrailer: shouldUploadTrailer ? projectTrailer : null,
+            dubbedFiles: dubbedFilesArray,
+            srtFiles: srtFilesArray,
+          },
+          projectName,
+          orgNameToUse,
+          userId
+        );
+
+        if (uploadedFiles.projectPosterUrl)
+          formData.projectInfo.s3SourcePosterUrl = uploadedFiles.projectPosterUrl;
+
+        if (uploadedFiles.projectBannerUrl)
+          formData.projectInfo.s3SourceBannerUrl = uploadedFiles.projectBannerUrl;
+
+        if (uploadedFiles.projectTrailerUrl)
+          formData.projectInfo.s3SourceTrailerUrl = uploadedFiles.projectTrailerUrl;
+      }
+
+      if (formData.projectInfo.posterOption === 'url') {
+        formData.projectInfo.s3SourcePosterUrl = formData.projectInfo.projectPosterUrl;
+      }
+      if (formData.projectInfo.bannerOption === 'url') {
+        formData.projectInfo.s3SourceBannerUrl = formData.projectInfo.projectBannerUrl;
+      }
+      if (formData.projectInfo.trailerOption === 'url') {
+        formData.projectInfo.s3SourceTrailerUrl = formData.projectInfo.trailerUrl;
+      }
+      if (formData.projectInfo.movieOption === 'url') {
+        formData.projectInfo.s3SourceMovieUrl = formData.projectInfo.movieUrl;
+      }
+
+      // ✅ Convert all s3:// links to https://
+      formData.projectInfo.projectPosterS3Url = convertS3ToHttps(formData.projectInfo.projectPosterS3Url);
+      formData.projectInfo.projectBannerS3Url = convertS3ToHttps(formData.projectInfo.projectBannerS3Url);
+      formData.projectInfo.projectTrailerS3Url = convertS3ToHttps(formData.projectInfo.projectTrailerS3Url);
+      formData.projectInfo.projectMovieS3Url = convertS3ToHttps(formData.projectInfo.projectMovieS3Url);
+      formData.projectInfo.s3SourcePosterUrl = convertS3ToHttps(formData.projectInfo.s3SourcePosterUrl);
+      formData.projectInfo.s3SourceBannerUrl = convertS3ToHttps(formData.projectInfo.s3SourceBannerUrl);
+      formData.projectInfo.s3SourceTrailerUrl = convertS3ToHttps(formData.projectInfo.s3SourceTrailerUrl);
+      formData.projectInfo.s3SourceMovieUrl = convertS3ToHttps(formData.projectInfo.s3SourceMovieUrl);
+
+      const cleanedDubbedFiles = dubbedFilesArray.map((file) => ({
+        language: file.language,
+        dubbedTrailerFileName: file.dubbedTrailerFileName,
+        dubbedTrailerUrl: convertS3ToHttps(file.dubbedTrailerUrl),
+        dubbedSubtitleFileName: file.dubbedSubtitleFileName,
+        dubbedSubtitleUrl: convertS3ToHttps(file.dubbedSubtitleUrl),
+      }));
+
+      const cleanSrtInfo = {
+        srtFiles:
+          (uploadedFiles.srtFiles || []).map((file) => ({
+            ...file,
+            srtFileUrl: convertS3ToHttps(file.srtFileUrl),
+          })) || [],
+        infoDocuments:
+          (uploadedFiles.infoDocuments || []).map((doc) => ({
+            ...doc,
+            infoDocUrl: convertS3ToHttps(doc.infoDocUrl),
+          })) || [],
+        projectName,
+        userId,
+      };
+
+      const updatedFormData = {
+        projectInfo: {
+          ...formData.projectInfo,
+          projectName,
+          userId,
+          posterFileName: extractFileNameFromUrl(formData.projectInfo.projectPosterS3Url),
+          bannerFileName: extractFileNameFromUrl(formData.projectInfo.projectBannerS3Url),
+          trailerFileName: extractFileNameFromUrl(formData.projectInfo.projectTrailerS3Url),
+          movieFileName: formData.projectInfo.movieFileName || '',
+          projectPosterS3Url: formData.projectInfo.projectPosterS3Url,
+          projectBannerS3Url: formData.projectInfo.projectBannerS3Url,
+          projectTrailerS3Url: formData.projectInfo.projectTrailerS3Url,
+          projectMovieS3Url: formData.projectInfo.projectMovieS3Url,
+        }
+        ,
+        creditsInfo: { ...formData.creditsInfo, projectName, userId },
+        specificationsInfo: { ...formData.specificationsInfo, projectName, userId },
+        rightsInfo: {
+          rights: formData.rightsInfo.rights || [],
+          projectName,
+          userId,
+        },
+        srtInfo: { srtInfo: cleanSrtInfo },
+        dubbedFiles: cleanedDubbedFiles,
+      };
+
+      // 🧾 Log the full payload for DB
+      console.log('📦 Data to submit to DB:', updatedFormData);
+
+      const response = await fetch('https://www.mediashippers.com/api/projectForm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(updatedFormData),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
+      dispatch(setProjectFolderSuccess(projectName));
+      alert('✅ Project saved successfully!');
+
+      console.log('➡️ Preparing file transfers:');
+      console.log('Poster from:', formData.projectInfo.s3SourcePosterUrl, '=>', formData.projectInfo.projectPosterS3Url);
+      console.log('Banner from:', formData.projectInfo.s3SourceBannerUrl, '=>', formData.projectInfo.projectBannerS3Url);
+      console.log('Trailer from:', formData.projectInfo.s3SourceTrailerUrl, '=>', formData.projectInfo.projectTrailerS3Url);
+
+      const transferResult = await transferFileToLocation();
+
+      if (transferResult.success) {
+        alert('✅ File transfer successful!');
+      } else {
+        console.error('⚠️ File transfer failed:', transferResult);
+
+        if (transferResult.fullResult?.errors?.length > 0) {
+          console.group('❌ Detailed Transfer Errors');
+          transferResult.fullResult.errors.forEach((err, index) => {
+            console.error(`${index + 1}. FileType: ${err.fileType}`);
+            console.error(`   Error: ${err.error}`);
+          });
+          console.groupEnd();
+        }
+
+        if (Array.isArray(transferResult.failedFiles) && transferResult.failedFiles.length > 0) {
+          const failedList = transferResult.failedFiles
+            .map(file => `• ${file.type}: ${file.reason || 'Unknown error'}`)
+            .join('\n');
+          alert(`⚠️ Some files failed to transfer:\n${failedList}`);
+        } else {
+          alert(`⚠️ File transfer failed: ${transferResult.error}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error during submission:', error);
+      alert('Error saving project: ' + error.message);
+      dispatch(setProjectFolderFailure({
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      }));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
   return (
-    <form className="container-fluid projects-form-container">
-      <div className='text-white'>
-        <h1>{user.userId}</h1>
-        {/* Display orgName below userId */}
-        <h1>{orgName}</h1>
-
-
-        <div className='text-white'>
-          <h2>Project Name: {projectName}</h2>
-          <h3>Movie Name: {movieName}</h3>
-        </div>
-
-        <ProjectInfo
-          onInputChange={(data) => handleInputChange('projectInfo', data)}
-          projectInfo={formData.projectInfo}
-          errors={isFormSubmitted ? errors.projectInfoErrors : {}}
-          setProjectInfoErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              projectInfoErrors: errors,
-            }))
-          }
-          userId={user.userId}
-          projectName={projectName}
-          movieName={movieName}
-          accessKey=""
-          secretKey=""
-          handleAccessKeyChange={() => { }}
-          handleSecretKeyChange={() => { }}
-          handleChange={(e) => handleInputChange('projectInfo', { s3SourcePosterUrl: e.target.value })}  // Use s3SourcePosterUrl here
-          resetProjectPoster={() => { }}
-
-        />
-
-
-        <SrtFileUpload
-          onSrtFileUpload={handleSrtFileChange}
-          onInfoDocsUpload={handleInfoDocsChange}
-        />
-
-        <RightsInfo
-          onRightsChange={handleRightsChange}
-          rightsInfo={formData.rightsInfo}
-          errors={errors.rightsInfoErrors}
-          setRightsInfoErrors={setRightsInfoErrors}
-        />
-
-        {/* <SubmitterInfo
-          onSubmitterInfoChange={(data) => handleInputChange('submitterInfo', data)}
-          formData={formData.submitterInfo}
-          formErrors={isFormSubmitted ? errors.submitterInfoErrors : {}}
-          setSubmitterInfoErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              submitterInfoErrors: errors,
-            }))
-          }
-          setIsSubmitterInfoVisible={setIsSubmitterInfoVisible}
-          isSubmitterInfoVisible={isSubmitterInfoVisible}
-        /> */}
-
-        <CreditsInfo
-          onInputChange={(data) => handleInputChange('creditsInfo', data)}
-          creditsInfo={formData.creditsInfo}
-          errors={isFormSubmitted ? errors.creditsInfoErrors : {}}
-          setCreditsInfoErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              creditsInfoErrors: errors,
-            }))
-          }
-        />
-        <SpecificationsInfo
-          onInputChange={(data) => handleInputChange('specificationsInfo', data)}
-          formData={formData.specificationsInfo}
-          errors={isFormSubmitted ? errors.specificationsInfoErrors : {}}
-          setSpecsErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              specificationsInfoErrors: errors,
-            }))
-          }
-        />
-        <ScreeningsInfo
-          onInputChange={(data) => handleInputChange('screeningsInfo', data)}
-          screeningsInfo={formData.screeningsInfo}
-          errors={isFormSubmitted ? errors.screeningsErrors : {}}
-          setScreeningErrors={(errors) =>
-            setErrors((prev) => ({
-              ...prev,
-              screeningsErrors: errors,
-            }))
-          }
+    <>
+      <div style={{ position: 'absolute' }}>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
       </div>
+      <form className="container-fluid projects-form-container">
+        {isUploading && <Loader />}
+        <div className='text-white'>
+          {/* <h1>{user.userId}</h1>
+    
+        <h1>{orgName}</h1> */}
 
-      <button type="submit" to="/video-catalogue" className="save-button" onClick={handleSubmit}>
-        Save Project
-      </button>
-    </form>
+
+          {/* <div className='text-white'>
+          <h2>Project Name: {projectName}</h2>
+          <h3>Movie Name: {movieName}</h3>
+        </div> */}
+
+          <ProjectInfo
+            onInputChange={(data) => handleInputChange('projectInfo', data)}
+            projectInfo={formData.projectInfo}
+            errors={isFormSubmitted ? errors.projectInfoErrors : {}}
+            setProjectInfoErrors={(errors) =>
+              setErrors((prev) => ({
+                ...prev,
+                projectInfoErrors: errors,
+              }))
+            }
+            userId={user.userId}
+            projectName={projectName}
+            movieName={movieName}
+            accessKey=""
+            secretKey=""
+            handleAccessKeyChange={() => { }}
+            handleSecretKeyChange={() => { }}
+            handleChange={(e) => handleInputChange('projectInfo', { s3SourcePosterUrl: e.target.value })}  // Use s3SourcePosterUrl here
+            resetProjectPoster={() => { }}
+
+          />
+
+          <SpecificationsInfo
+            onInputChange={(data) => handleInputChange('specificationsInfo', data)}
+            formData={formData.specificationsInfo}
+            setFormData={setFormData}
+            errors={isFormSubmitted ? errors.specificationsInfoErrors : {}}
+            setSpecsErrors={(errors) =>
+              setErrors((prev) => ({
+                ...prev,
+                specificationsInfoErrors: errors,
+              }))
+            }
+          />
+
+          <SrtFileUpload
+            onSrtFileChange={handleSrtFileChange}
+            onInfoDocsFileChange={handleInfoDocsChange}
+            orgName={user?.user?.orgName}
+            projectName={formData.projectInfo.projectName || formData.projectInfo.projectTitle}
+            projectInfo={formData.projectInfo}
+            language={formData.specificationsInfo.language || 'unknown_language'} // add if you track language somewhere
+          />
+
+
+          <DubbedFiles
+            onInputChange={(data) => handleInputChange('dubbedFiles', data)}
+            formData={formData.dubbedFiles}
+            setFormData={setFormData}
+            errors={isFormSubmitted ? errors.dubbedFilesErrors : {}}
+            setDubbedFilesErrors={(errors) =>
+              setErrors((prev) => ({
+                ...prev,
+                dubbedFilesErrors: errors,
+              }))
+            }
+            orgName={user?.user?.orgName}
+            projectName={formData.projectInfo.projectName || formData.projectInfo.projectTitle}
+            projectInfo={formData.projectInfo}
+          />
+
+
+
+
+
+
+
+
+
+
+
+
+          <RightsInfo
+            onRightsChange={handleRightsChange}
+            rightsInfo={formData.rightsInfo}
+            errors={errors.rightsInfoErrors}
+            setRightsInfoErrors={setRightsInfoErrors}
+          />
+
+
+
+          <CreditsInfo
+            onInputChange={(data) => handleInputChange('creditsInfo', data)}
+            creditsInfo={formData.creditsInfo}
+            errors={isFormSubmitted ? errors.creditsInfoErrors : {}}
+            setCreditsInfoErrors={(errors) =>
+              setErrors((prev) => ({
+                ...prev,
+                creditsInfoErrors: errors,
+              }))
+            }
+          />
+
+        </div>
+
+        <button
+          type="submit"
+          className="save-button"
+          onClick={handleSubmit}
+          disabled={isUploading}
+        >
+          {isUploading ? 'Saving...' : 'Save Project'}
+        </button>
+
+
+
+
+
+      </form>
+    </>
   );
 }
 

@@ -141,65 +141,72 @@ const ProjectInfo = ({ onInputChange, projectInfo, errors, setProjectInfoErrors,
   }, [projectInfo]);
 
   // Handle input changes for the URL input field (when URL option is selected)
- const handlePosterUrlChange = (url) => {
-  if (url) {
-    const fileName = extractFileNameFromUrl(url);
-    const s3Url = generateS3Url(fileName, 'poster');
+  const handlePosterUrlChange = (url) => {
+    if (url) {
+      const fileName = extractFileNameFromUrl(url);
+      const s3Url = generateS3Url(fileName, 'film stills');
 
-    onInputChange({
-      s3SourcePosterUrl: url,
-      projectPosterUrl: url,
-      projectPosterName: fileName,
-      projectPoster: null,
-      projectPosterS3Url: s3Url,
-      posterS3Url: s3Url
-    });
+      onInputChange({
+        s3SourcePosterUrl: url,
+        projectPosterUrl: url,
+        projectPosterName: fileName,
+        projectPoster: null,
+        projectPosterS3Url: s3Url,
+        posterS3Url: s3Url
+      });
 
-    console.log("Poster via S3 URL:", { url, fileName, s3Url });
-  }
-};
+      console.log("Poster via S3 URL:", { url, fileName, s3Url });
+    }
+  };
 
-const handleBannerUrlChange = (url) => {
-  if (url) {
-    const fileName = extractFileNameFromUrl(url);
-    const s3Url = generateS3Url(fileName, 'banner');
+  const handleBannerUrlChange = (url) => {
+    if (url) {
+      const fileName = extractFileNameFromUrl(url);
+      const s3Url = generateS3Url(fileName, 'film stills');
 
-    onInputChange({
-      s3SourceBannerUrl: url,
-      projectBannerUrl: url,
-      projectBannerName: fileName,
-      projectBanner: null,
-      projectBannerS3Url: s3Url,
-      bannerUrl: s3Url
-    });
+      onInputChange({
+        s3SourceBannerUrl: url,
+        projectBannerUrl: url,
+        projectBannerName: fileName,
+        projectBanner: null,
+        projectBannerS3Url: s3Url,
+        bannerUrl: s3Url
+      });
 
-    console.log("Banner via S3 URL:", { url, fileName, s3Url });
-  }
-};
+      console.log("Banner via S3 URL:", { url, fileName, s3Url });
+    }
+  };
+  
 
 const handleTrailerUrlChange = (url) => {
   if (url) {
     const fileName = extractFileNameFromUrl(url);
-    const s3Url = generateS3Url(fileName, 'trailer');
+
+    // ✅ No conversion to HTTPS — keep raw S3 URL
+    const s3DestinationUrl = generateS3Url(fileName, 'trailer');
 
     onInputChange({
-      s3SourceTrailerUrl: url,         // Raw URL entered by user
-      trailerFileName: fileName,       // Just the filename
-      trailerFile: null,               // Clear previous file if any
-      projectTrailerS3Url: s3Url,      // ✅ Main field used for saving
-      trailerUrl: s3Url                // Still used for ShakaPlayer preview
+      s3SourceTrailerUrl: url,              // ✅ raw s3:// URL
+      trailerFileName: fileName,
+      trailerFile: null,
+      projectTrailerS3Url: s3DestinationUrl,
+      trailerUrl: url                        // used directly for preview if needed
     });
 
-    setTrailerUrl(url); // Show preview (ShakaPlayer)
+    setTrailerUrl(url);
 
-    console.log("Trailer via S3 URL:", { url, fileName, s3Url });
+    console.log('🎬 Trailer set via input:');
+    console.log('  • Source (raw S3):', url);
+    console.log('  • Destination S3:', s3DestinationUrl);
   }
 };
 
 
 
+
+
   // 🔧 1. Generate S3 URL utility
-  const generateS3Url = (fileName, folderType = 'poster') => {
+  const generateS3Url = (fileName, folderType = 'film stills') => {
     const folder = projectInfo.projectName || projectName || 'unknown_project';
     return `s3://mediashippers-filestash/${orgName}/${folder}/${folderType}/${fileName}`;
   };
@@ -262,7 +269,7 @@ const handleTrailerUrlChange = (url) => {
 
       // Use fallback to ensure project name is always present
       const folder = projectInfo.projectName || projectName || 'unknown_project';
-      const bannerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/trailer/${bannerFileName}`;
+      const bannerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/film stills/${bannerFileName}`;
 
       const bannerUrl = URL.createObjectURL(file);
 
@@ -313,28 +320,28 @@ const handleTrailerUrlChange = (url) => {
   };
 
 
-const onDropDubbedTrailer = (acceptedFiles) => {
-  if (acceptedFiles.length > 0) {
-    const file = acceptedFiles[0];
-    const trailerFileName = file.name;
+  const onDropDubbedTrailer = (acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      const trailerFileName = file.name;
 
-    const folder = projectInfo.projectName || projectName || 'unknown_project';
-    const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/dubbed_trailer/${trailerFileName}`;
+      const folder = projectInfo.projectName || projectName || 'unknown_project';
+      const trailerS3Url = `s3://mediashippers-filestash/${orgName}/${folder}/dubbed_trailer/${trailerFileName}`;
 
-    const previewUrl = URL.createObjectURL(file);
+      const previewUrl = URL.createObjectURL(file);
 
-    onInputChange({
-      dubbedTrailerFile: file,
-      dubbedTrailerFileName: trailerFileName,
-      dubbedTrailerUrl: trailerS3Url,
-    });
+      onInputChange({
+        dubbedTrailerFile: file,
+        dubbedTrailerFileName: trailerFileName,
+        dubbedTrailerUrl: trailerS3Url,
+      });
 
-    setDubbedTrailerUrl(previewUrl);
+      setDubbedTrailerUrl(previewUrl);
 
-    console.log(`Dubbed Trailer File Name: ${trailerFileName}`);
-    console.log(`Dubbed Trailer S3 URL: ${trailerS3Url}`);
-  }
-};
+      console.log(`Dubbed Trailer File Name: ${trailerFileName}`);
+      console.log(`Dubbed Trailer S3 URL: ${trailerS3Url}`);
+    }
+  };
 
 
 
@@ -379,15 +386,15 @@ const onDropDubbedTrailer = (acceptedFiles) => {
   });
 
   const {
-  getRootProps: getRootPropsDubbedTrailer,
-  getInputProps: getInputPropsDubbedTrailer,
-} = useDropzone({
-  onDrop: onDropDubbedTrailer,
-  accept: {
-    'video/*': ['.mp4', '.mov', '.webm', '.ogg', '.mkv']
-  },
-  multiple: false
-});
+    getRootProps: getRootPropsDubbedTrailer,
+    getInputProps: getInputPropsDubbedTrailer,
+  } = useDropzone({
+    onDrop: onDropDubbedTrailer,
+    accept: {
+      'video/*': ['.mp4', '.mov', '.webm', '.ogg', '.mkv']
+    },
+    multiple: false
+  });
 
 
   const { getRootProps: getRootPropsMovie, getInputProps: getInputPropsMovie } = useDropzone({
@@ -472,46 +479,46 @@ const onDropDubbedTrailer = (acceptedFiles) => {
 
   console.log("User id from projectInfo", userId)
   console.log("orgname from projectInf", orgName)
-useEffect(() => {
-  const fetchProjectCount = async () => {
-    try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("Token missing");
+  useEffect(() => {
+    const fetchProjectCount = async () => {
+      try {
+        const token = Cookies.get("token");
+        if (!token) throw new Error("Token missing");
 
-      const res = await axios.get(
-        `https://www.mediashippers.com/api/projectsInfo/userProjects/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
+        const res = await axios.get(
+          `https://www.mediashippers.com/api/projectsInfo/userProjects/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
+        );
 
-      const projects = res.data?.projects || [];
-      const projectCount = projects.length;
+        const projects = res.data?.projects || [];
+        const projectCount = projects.length;
 
-      console.log('📊 Total number of projects created by user:', projectCount);
+        console.log('📊 Total number of projects created by user:', projectCount);
 
-      // Auto-generate project name
-      const autoName = generateProjectName(orgName, projectCount);
-      console.log('🆕 Auto-generated project name:', autoName);
+        // Auto-generate project name
+        const autoName = generateProjectName(orgName, projectCount);
+        console.log('🆕 Auto-generated project name:', autoName);
 
-      onInputChange({ projectName: autoName });
+        onInputChange({ projectName: autoName });
 
-    } catch (err) {
-      console.error('❌ Error fetching project count:', err);
-      setProjectInfoErrors(prev => ({
-        ...prev,
-        projectName: 'Failed to generate project name',
-      }));
+      } catch (err) {
+        console.error('❌ Error fetching project count:', err);
+        setProjectInfoErrors(prev => ({
+          ...prev,
+          projectName: 'Failed to generate project name',
+        }));
+      }
+    };
+
+    if (userId && orgName) {
+      fetchProjectCount();
     }
-  };
-
-  if (userId && orgName) {
-    fetchProjectCount();
-  }
-}, [userId, orgName]);
+  }, [userId, orgName]);
 
 
 
@@ -606,13 +613,13 @@ useEffect(() => {
         </div>
         <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
           <div className="input optional form-field-input">
-           <input
-  type="text"
-  name="projectName"
-  value={projectInfo.projectName || ''}
-  onChange={handleChange}
-  placeholder="Auto-generated project name"
-/>
+            <input
+              type="text"
+              name="projectName"
+              value={projectInfo.projectName || ''}
+              onChange={handleChange}
+              placeholder="Auto-generated project name"
+            />
             {errors.projectName && (
               <span className="error-text">{errors.projectName}</span>
             )}
@@ -710,7 +717,8 @@ useEffect(() => {
                   type="text"
                   name="s3SourcePosterUrl"
                   value={projectInfo.s3SourcePosterUrl || ''}
-                  onChange={handlePosterUrlChange} // Use the actual URL handler
+
+                  onChange={(e) => handlePosterUrlChange(e.target.value)}
                   placeholder="Enter S3 Source URL for Poster"
                 />
                 {errors.s3SourcePosterUrl && (
@@ -815,7 +823,7 @@ useEffect(() => {
                   type="text"
                   name="s3SourceBannerUrl"  // Unique name for the S3 URL
                   value={projectInfo.s3SourceBannerUrl || ''}
-                  onChange={handleBannerUrlChange}
+                  onChange={(e) => handleBannerUrlChange(e.target.value)}
                   placeholder="Enter S3 Source URL for Banner"
                 />
                 {errors.s3SourceBannerUrl && <div className="error">{errors.s3SourceBannerUrl}</div>}
@@ -915,12 +923,12 @@ useEffect(() => {
             {projectInfo.trailerOption === 'url' && (
               <div className="input optional form-field-input">
                 <input
-  type="text"
-  name="s3SourceTrailerUrl"
-  value={projectInfo.s3SourceTrailerUrl || ''}
-  onChange={(e) => handleTrailerUrlChange(e.target.value)}
-  placeholder="Enter S3 Source URL for Trailer"
-/>
+                  type="text"
+                  name="s3SourceTrailerUrl"
+                  value={projectInfo.s3SourceTrailerUrl || ''}
+                  onChange={(e) => handleTrailerUrlChange(e.target.value)}
+                  placeholder="Enter S3 Source URL for Trailer"
+                />
                 {errors.s3SourceTrailerUrl && <div className="error">{errors.s3SourceTrailerUrl}</div>}
 
                 {projectInfo.s3SourceTrailerUrl && (

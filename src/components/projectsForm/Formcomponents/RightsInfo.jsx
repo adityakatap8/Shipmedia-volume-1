@@ -1,87 +1,39 @@
 import React, { useState } from 'react';
 import Multiselect from 'multiselect-react-dropdown';
 import './index.css';
+import territoryGroupedOptions from './territoryGroupedOptions.js'
 
 function RightsInfo({ onRightsChange, errors }) {
-const rightsOptions = [
-  { name: 'All Rights', id: 0 }, // 👈 Represents every right
+  const rightsOptions = [
+    { name: 'All Rights', id: 0 }, // 👈 Represents every right
 
-  { name: 'SVOD (Subscription Video on Demand)', id: 1 },
-  { name: 'TVOD (Transactional Video on Demand)', id: 2 },
-  { name: 'AVOD (Advertising Video on Demand)', id: 3 },
+    { name: 'SVOD (Subscription Video on Demand)', id: 1 },
+    { name: 'TVOD (Transactional Video on Demand)', id: 2 },
+    { name: 'AVOD (Advertising Video on Demand)', id: 3 },
 
-  { name: 'Broadcast', id: 4 },
-  { name: 'Cable', id: 5 },
-  { name: 'Television Broadcast Rights', id: 6 },
+    { name: 'Broadcast', id: 4 },
+    { name: 'Cable', id: 5 },
+    { name: 'Television Broadcast Rights', id: 6 },
 
-  { name: 'Theatrical Rights', id: 7 },
-  { name: 'EST (Electronic Sell-Through) Rights', id: 8 },
-  { name: 'DVD/Blu-ray Distribution Rights', id: 9 },
-  { name: 'Home Video Rights', id: 10 },
-  { name: 'Foreign Distribution Rights', id: 11 },
-  { name: 'Airline/Ship Rights', id: 12 },
-  { name: 'Merchandising Rights', id: 13 },
-  { name: 'Music Rights', id: 14 },
-  { name: 'Product Placement Rights', id: 15 },
-  { name: 'Franchise/Sequel Rights', id: 16 },
-  { name: 'Mobile Rights', id: 17 },
-  { name: 'Interactive and Gaming Rights', id: 18 },
-  { name: 'Script/Adaptation Rights', id: 19 },
-  { name: 'Public Performance Rights', id: 20 },
-  { name: 'Specialty and Festival Rights', id: 21 },
-  { name: 'Censorship Rights', id: 22 },
-  { name: 'Outright Sale', id: 23 }
-];
+    { name: 'Theatrical Rights', id: 7 },
+    { name: 'EST (Electronic Sell-Through) Rights', id: 8 },
+    { name: 'DVD/Blu-ray Distribution Rights', id: 9 },
+    { name: 'Home Video Rights', id: 10 },
+    { name: 'Foreign Distribution Rights', id: 11 },
+    { name: 'Airline/Ship Rights', id: 12 },
+    { name: 'Merchandising Rights', id: 13 },
+    { name: 'Music Rights', id: 14 },
+    { name: 'Product Placement Rights', id: 15 },
+    { name: 'Franchise/Sequel Rights', id: 16 },
+    { name: 'Mobile Rights', id: 17 },
+    { name: 'Interactive and Gaming Rights', id: 18 },
+    { name: 'Script/Adaptation Rights', id: 19 },
+    { name: 'Public Performance Rights', id: 20 },
+    { name: 'Specialty and Festival Rights', id: 21 },
+    { name: 'Censorship Rights', id: 22 },
+    { name: 'Outright Sale', id: 23 }
+  ];
 
-const territoryGroupedOptions = [
-  {
-    name: 'Worldwide',
-    id: 'worldwide',
-    country: 'All Countries',
-    region: 'global'
-  },
-  
-
-  // Asia
-  { name: 'India', id: 'india', country: 'India', region: 'Asia' },
-  { name: 'China', id: 'china', country: 'China', region: 'Asia' },
-  { name: 'Japan', id: 'japan', country: 'Japan', region: 'Asia' },
-  { name: 'South Korea', id: 'south_korea', country: 'South Korea', region: 'Asia' },
-  { name: 'Indonesia', id: 'indonesia', country: 'Indonesia', region: 'Asia' },
-  { name: 'Thailand', id: 'thailand', country: 'Thailand', region: 'Asia' },
-  { name: 'Vietnam', id: 'vietnam', country: 'Vietnam', region: 'Asia' },
-  { name: 'Philippines', id: 'philippines', country: 'Philippines', region: 'Asia' },
-
-  // Europe
-  { name: 'Germany', id: 'germany', country: 'Germany', region: 'Europe' },
-  { name: 'France', id: 'france', country: 'France', region: 'Europe' },
-  { name: 'Italy', id: 'italy', country: 'Italy', region: 'Europe' },
-  { name: 'United Kingdom', id: 'united_kingdom', country: 'United Kingdom', region: 'Europe' },
-  { name: 'Spain', id: 'spain', country: 'Spain', region: 'Europe' },
-  { name: 'Netherlands', id: 'netherlands', country: 'Netherlands', region: 'Europe' },
-
-  // North America
-  { name: 'United States', id: 'united_states', country: 'United States', region: 'North America' },
-  { name: 'Canada', id: 'canada', country: 'Canada', region: 'North America' },
-  { name: 'Mexico', id: 'mexico', country: 'Mexico', region: 'North America' },
-
-  // Latin America
-  { name: 'Brazil', id: 'brazil', country: 'Brazil', region: 'LATAM (Latin America)' },
-  { name: 'Argentina', id: 'argentina', country: 'Argentina', region: 'LATAM (Latin America)' },
-  { name: 'Colombia', id: 'colombia', country: 'Colombia', region: 'LATAM (Latin America)' },
-  { name: 'Chile', id: 'chile', country: 'Chile', region: 'LATAM (Latin America)' },
-  { name: 'Peru', id: 'peru', country: 'Peru', region: 'LATAM (Latin America)' },
-
-  // Africa
-  { name: 'South Africa', id: 'south_africa', country: 'South Africa', region: 'Africa' },
-  { name: 'Nigeria', id: 'nigeria', country: 'Nigeria', region: 'Africa' },
-  { name: 'Egypt', id: 'egypt', country: 'Egypt', region: 'Africa' },
-  { name: 'Kenya', id: 'kenya', country: 'Kenya', region: 'Africa' },
-
-  // Oceania
-  { name: 'Australia', id: 'australia', country: 'Australia', region: 'Oceania' },
-  { name: 'New Zealand', id: 'new_zealand', country: 'New Zealand', region: 'Oceania' },
-];
 
 
 
@@ -105,24 +57,132 @@ const territoryGroupedOptions = [
     { name: 'Min Guarantee + Revenue Share', id: 3 },
   ];
 
-const getFlatTerritoryOptions = () => {
-  return territoryGroupedOptions.map(item => ({
-    name: item.name,
-    value: item.id,
-    region: item.region
-  }));
-};
+  const cleanPlatforms = (platforms) => {
+    return platforms.map(({ includeRegions, excludeCountries, ...rest }) => rest);
+  };
+
+  const getFlatTerritoryOptions = () => {
+    return territoryGroupedOptions.flatMap(group =>
+      (group?.countries || []).map(country => ({
+        name: country.name,
+        value: country.id,
+        region: group.groupName
+      }))
+    );
+  };
+
+  // Region-level options for "Including"
+  const getRegionOptions = () => [
+    { name: 'Worldwide', id: 'worldwide' },
+    ...territoryGroupedOptions.map(group => ({
+      name: group.groupName,
+      id: group.groupId,
+    })),
+  ];
+
+
+
+
+
+  // All countries across regions for "Excluding"
+  const getAllCountryOptions = () =>
+    territoryGroupedOptions.flatMap(group =>
+      group.countries.map(country => ({
+        ...country,
+        region: group.groupName,
+      }))
+    );
+
+
+  // Derive territories from selected regions & excluded countries
+  const formatTerritories = (includeRegions, excludeCountries) => {
+    const hasWorldwide = includeRegions.some(r => r.id === 'worldwide');
+
+    const includedRegions = hasWorldwide
+      ? [{ name: 'Worldwide', id: 'worldwide' }]
+      : [...includeRegions];
+
+    return {
+      includedRegions,
+      excludeCountries: [...excludeCountries]
+    };
+  };
+
+
+
+
+
+
+
+
+  const handleRegionChange = (includeRegions, index) => {
+    let filteredRegions = [...includeRegions];
+    const hasWorldwide = filteredRegions.some(r => r.id === 'worldwide');
+
+    filteredRegions = hasWorldwide
+      ? [{ name: 'Worldwide', id: 'worldwide' }]
+      : filteredRegions.filter(r => r.id !== 'worldwide');
+
+    const updated = [...platforms];
+    const excludeCountries = updated[index].excludeCountries || [];
+
+    updated[index] = {
+      ...updated[index],
+      includeRegions: filteredRegions,
+      excludeCountries,
+      territories: formatTerritories(filteredRegions, excludeCountries)
+    };
+
+    setPlatforms(updated);
+    onRightsChange?.(cleanPlatforms(updated));
+  };
+
+
+
+
+  const getFilteredRegionOptions = (index) => {
+    const selected = platforms[index]?.includeRegions || [];
+    const hasWorldwide = selected.some(r => r.id === 'worldwide');
+
+    if (hasWorldwide) {
+      return [{ name: 'Worldwide', id: 'worldwide' }];
+    }
+    return getRegionOptions();
+  };
+
+
+
+
+  const handleExcludeCountriesChange = (excludeCountries, index) => {
+    const updated = [...platforms];
+    const includeRegions = updated[index].includeRegions || [];
+
+    updated[index] = {
+      ...updated[index],
+      excludeCountries,
+      territories: formatTerritories(includeRegions, excludeCountries)
+    };
+
+    setPlatforms(updated);
+    onRightsChange?.(cleanPlatforms(updated));
+  };
+
+
+
+
 
 
   const flatTerritoryOptions = getFlatTerritoryOptions();
 
   const defaultPlatform = {
     rights: [],
-    territories: [],
-    licenseTerm: [],
+    includeRegions: [],
+    // excludeCountries: [],
+    // licenseTerm: [],
     usageRights: [],
     paymentTerms: [],
-    listPrice: ''
+    listPrice: '',
+    territories: []
   };
 
   const [platforms, setPlatforms] = useState([{ ...defaultPlatform }]);
@@ -131,34 +191,31 @@ const getFlatTerritoryOptions = () => {
     const updated = [...platforms];
     updated[index][field] = value;
     setPlatforms(updated);
-    onRightsChange?.(updated);
+    onRightsChange?.(cleanPlatforms(updated));
   };
 
+
   const handleAddPlatform = () => {
-    setPlatforms(prev => [...prev, { ...defaultPlatform }]);
+    const updated = [...platforms, { ...defaultPlatform }];
+    setPlatforms(updated);
+    onRightsChange?.(cleanPlatforms(updated));
   };
+
 
   const handleRemovePlatform = (index) => {
     const updated = platforms.filter((_, i) => i !== index);
     setPlatforms(updated);
-    onRightsChange?.(updated);
+    onRightsChange?.(cleanPlatforms(updated));
   };
 
-const handleTerritoryChange = (selectedList, index) => {
-  const isSelectAllSelected = selectedList.some(item => item.id === 'select_all');
 
-  let updatedList;
+  const handleTerritoryChange = (selectedList, index) => {
+    const filteredList = selectedList.filter(item => item.id !== 'worldwide');
+    handleChange(index, 'territories', filteredList);
+  };
 
-  if (isSelectAllSelected) {
-    // If Select All is chosen, select all countries (excluding 'Select All')
-    updatedList = territoryGroupedOptions.filter(item => item.id !== 'select_all');
-  } else {
-    // If any other item is deselected after selecting all, just use what's selected (excluding Select All)
-    updatedList = selectedList.filter(item => item.id !== 'select_all');
-  }
 
-  handleChange(index, 'territories', updatedList);
-};
+
 
 
   return (
@@ -201,18 +258,57 @@ const handleTerritoryChange = (selectedList, index) => {
               <div className="dropdown-row">
                 <div className="dropdown-container text-left">
                   <h3>Territories</h3>
-                  <Multiselect
-  options={territoryGroupedOptions}
-  selectedValues={platform.territories}
-  onSelect={(list) => handleTerritoryChange(list, index)}
-  onRemove={(list) => handleTerritoryChange(list, index)}
-  displayValue="name"
-  showCheckbox
-  closeIcon="cancel"
-/>
 
+                  {/* Side-by-side container */}
+                  <div className="flex gap-4 flex-wrap">
+
+                    {/* Included Regions */}
+                    <div className="flex-1 min-w-[300px]">
+                      <h4>Territories (Including Regions)</h4>
+                      <Multiselect
+                        options={getFilteredRegionOptions(index)}
+                        selectedValues={platform.includeRegions}
+                        onSelect={(selectedList, selectedItem) => {
+                          if (selectedItem.id === 'worldwide') {
+                            handleRegionChange([{ name: 'Worldwide', id: 'worldwide' }], index);
+                          } else {
+                            const newList = selectedList.filter(r => r.id !== 'worldwide');
+                            handleRegionChange(newList, index);
+                          }
+                        }}
+                        onRemove={(selectedList) => {
+                          handleRegionChange(selectedList, index);
+                        }}
+                        displayValue="name"
+                        showCheckbox
+                        closeIcon="cancel"
+                      />
+
+                      {platform.includeRegions.some(r => r.id === 'worldwide') && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          Other regions are hidden when "Worldwide" is selected.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Excluded Countries */}
+                    <div className="flex-1 min-w-[300px]">
+                      <h4>Territories (Excluding Countries)</h4>
+                      <Multiselect
+                        options={getAllCountryOptions()}
+                        selectedValues={platform.excludeCountries}
+                        onSelect={(list) => handleExcludeCountriesChange(list, index)}
+                        onRemove={(list) => handleExcludeCountriesChange(list, index)}
+                        displayValue="name"
+                        showCheckbox
+                        closeIcon="cancel"
+                      />
+                    </div>
+
+                  </div>
                 </div>
 
+                {/* License Term Dropdown */}
                 <div className="dropdown-container text-left">
                   <h3>License Term</h3>
                   <Multiselect
@@ -230,6 +326,7 @@ const handleTerritoryChange = (selectedList, index) => {
                   />
                 </div>
               </div>
+
 
               <div className="dropdown-row">
                 <div className="dropdown-container text-left">
