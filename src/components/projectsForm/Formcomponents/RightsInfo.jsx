@@ -84,14 +84,6 @@ function RightsInfo({ onRightsChange, errors }) {
 
 
 
-  // All countries across regions for "Excluding"
-  const getAllCountryOptions = () =>
-    territoryGroupedOptions.flatMap(group =>
-      group.countries.map(country => ({
-        ...country,
-        region: group.groupName,
-      }))
-    );
 
 
   // Derive territories from selected regions & excluded countries
@@ -214,6 +206,35 @@ function RightsInfo({ onRightsChange, errors }) {
     handleChange(index, 'territories', filteredList);
   };
 
+const getAllCountryOptions = (includedRegions) => {
+  // If no regions selected, return []
+  if (!includedRegions || includedRegions.length === 0) return [];
+
+  const isWorldwide = includedRegions.some((r) => r.id === 'worldwide');
+
+  if (isWorldwide) {
+    // Return all countries from all groups
+    return territoryGroupedOptions.flatMap((group) =>
+      group.countries.map((country) => ({
+        ...country,
+        region: group.groupName,
+      }))
+    );
+  }
+
+  // Otherwise, filter by selected region IDs
+  const selectedRegionIds = includedRegions.map((r) => r.id);
+
+  return territoryGroupedOptions
+    .filter((group) => selectedRegionIds.includes(group.groupId))
+    .flatMap((group) =>
+      group.countries.map((country) => ({
+        ...country,
+        region: group.groupName,
+      }))
+    );
+};
+
 
 
 
@@ -255,77 +276,77 @@ function RightsInfo({ onRightsChange, errors }) {
 
           {platform.rights.length > 0 && (
             <>
-              <div className="dropdown-row">
-                <div className="dropdown-container text-left">
-                  <h3>Territories</h3>
+             <div className="dropdown-row">
+  <div className="dropdown-container text-left">
+    <h3>Territories</h3>
 
-                  {/* Side-by-side container */}
-                  <div className="flex gap-4 flex-wrap">
+    <div className="flex gap-4 flex-wrap">
 
-                    {/* Included Regions */}
-                    <div className="flex-1 min-w-[300px]">
-                      <h4>Territories (Including Regions)</h4>
-                      <Multiselect
-                        options={getFilteredRegionOptions(index)}
-                        selectedValues={platform.includeRegions}
-                        onSelect={(selectedList, selectedItem) => {
-                          if (selectedItem.id === 'worldwide') {
-                            handleRegionChange([{ name: 'Worldwide', id: 'worldwide' }], index);
-                          } else {
-                            const newList = selectedList.filter(r => r.id !== 'worldwide');
-                            handleRegionChange(newList, index);
-                          }
-                        }}
-                        onRemove={(selectedList) => {
-                          handleRegionChange(selectedList, index);
-                        }}
-                        displayValue="name"
-                        showCheckbox
-                        closeIcon="cancel"
-                      />
+      {/* Included Regions */}
+      <div className="flex-1 min-w-[300px]">
+        <h4>Territories (Including Regions)</h4>
+        <Multiselect
+          options={getFilteredRegionOptions(index)}
+          selectedValues={platform.includeRegions}
+          onSelect={(selectedList, selectedItem) => {
+            if (selectedItem.id === 'worldwide') {
+              handleRegionChange([{ name: 'Worldwide', id: 'worldwide' }], index);
+            } else {
+              const newList = selectedList.filter(r => r.id !== 'worldwide');
+              handleRegionChange(newList, index);
+            }
+          }}
+          onRemove={(selectedList) => {
+            handleRegionChange(selectedList, index);
+          }}
+          displayValue="name"
+          showCheckbox
+          closeIcon="cancel"
+        />
+        {platform.includeRegions.some(r => r.id === 'worldwide') && (
+          <p className="text-sm text-gray-600 mt-1">
+            Other regions are hidden when "Worldwide" is selected.
+          </p>
+        )}
+      </div>
 
-                      {platform.includeRegions.some(r => r.id === 'worldwide') && (
-                        <p className="text-sm text-gray-600 mt-1">
-                          Other regions are hidden when "Worldwide" is selected.
-                        </p>
-                      )}
-                    </div>
+      {/* Excluded Countries */}
+      <div className="flex-1 min-w-[300px]">
+        <h4>Territories (Excluding Countries)</h4>
+        <Multiselect
+          options={getAllCountryOptions(platform.includeRegions)}
+          selectedValues={platform.excludeCountries}
+          onSelect={(list) => handleExcludeCountriesChange(list, index)}
+          onRemove={(list) => handleExcludeCountriesChange(list, index)}
+          displayValue="name"
+          showCheckbox
+          closeIcon="cancel"
+          disable={!platform.includeRegions || platform.includeRegions.length === 0}
+        />
+      </div>
 
-                    {/* Excluded Countries */}
-                    <div className="flex-1 min-w-[300px]">
-                      <h4>Territories (Excluding Countries)</h4>
-                      <Multiselect
-                        options={getAllCountryOptions()}
-                        selectedValues={platform.excludeCountries}
-                        onSelect={(list) => handleExcludeCountriesChange(list, index)}
-                        onRemove={(list) => handleExcludeCountriesChange(list, index)}
-                        displayValue="name"
-                        showCheckbox
-                        closeIcon="cancel"
-                      />
-                    </div>
+    </div>
+  </div>
 
-                  </div>
-                </div>
+  {/* License Term */}
+  <div className="dropdown-container text-left">
+    <h3>License Term</h3>
+    <Multiselect
+      options={licenseTermOptions}
+      selectedValues={platform.licenseTerm}
+      onSelect={(list, selectedItem) => {
+        handleChange(index, 'licenseTerm', [selectedItem]);
+      }}
+      onRemove={() => {
+        handleChange(index, 'licenseTerm', []);
+      }}
+      displayValue="name"
+      showCheckbox
+      closeIcon="cancel"
+    />
+  </div>
+</div>
 
-                {/* License Term Dropdown */}
-                <div className="dropdown-container text-left">
-                  <h3>License Term</h3>
-                  <Multiselect
-                    options={licenseTermOptions}
-                    selectedValues={platform.licenseTerm}
-                    onSelect={(list, selectedItem) => {
-                      handleChange(index, 'licenseTerm', [selectedItem]);
-                    }}
-                    onRemove={() => {
-                      handleChange(index, 'licenseTerm', []);
-                    }}
-                    displayValue="name"
-                    showCheckbox
-                    closeIcon="cancel"
-                  />
-                </div>
-              </div>
 
 
               <div className="dropdown-row">

@@ -6,12 +6,15 @@ import Loader from '../loader/Loader';
 import { UserContext } from '../../contexts/UserContext';
 import { useSelector } from 'react-redux';
 import Cookies from 'js-cookie';
+import { languageList, genresOptions, rightsOptions, territoryGroupedOptions, licenseTermOptions, paymentTermsOptions, usageRightsOptions, projectTypes } from '../../components/projectsForm/ViewAndEditDropdownData.js';
+import Multiselect from 'multiselect-react-dropdown';
+
 
 
 function ViewAndEditForm() {
 
 
-  
+
   const { projectId } = useParams();
   const [loading, setLoading] = useState(true);
   const [projectData, setProjectData] = useState(null);
@@ -22,9 +25,9 @@ function ViewAndEditForm() {
   const { user } = useSelector((state) => state.auth);
   const { orgName } = user.user;
 
-  
 
-const userId = user?.userId;
+
+  const userId = user?.userId;
 
   const token = Cookies.get("token");
 
@@ -63,8 +66,9 @@ const userId = user?.userId;
 
 
 
-const [bannerFile, setBannerFile] = useState(null);
-const [trailerFile, setTrailerFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [trailerFile, setTrailerFile] = useState(null);
+
 
 
 
@@ -197,50 +201,52 @@ const [trailerFile, setTrailerFile] = useState(null);
     setEditableRightsInfo(projectData.rightsInfo || {});
     setIsEditingRights(true);
   };
-// At the top of your file
-const BUCKET_NAME = import.meta.env.VITE_S3_BUCKET_NAME;
+  // At the top of your file
+  const BUCKET_NAME = import.meta.env.VITE_S3_BUCKET_NAME;
 
-const uploadFileToS3 = async (orgName, projectName, files) => {
-  const uploadedFiles = [];
+  const uploadFileToS3 = async (orgName, projectName, files) => {
+    const uploadedFiles = [];
 
-  for (const file of files) {
-    if (!file || !file.originalname || !file.buffer || !file.mimetype) {
-      throw new Error('Invalid file data encountered.');
+    for (const file of files) {
+      if (!file || !file.originalname || !file.buffer || !file.mimetype) {
+        throw new Error('Invalid file data encountered.');
+      }
+
+      let filePath;
+
+      if (file.type === 'projectPoster' || file.type === 'projectBanner') {
+        filePath = `${orgName}/${projectName}/film stills/${file.originalname}`;
+      } else if (file.type === 'projectTrailer') {
+        filePath = `${orgName}/${projectName}/trailer/${file.originalname}`;
+      }
+      // add other types here as needed...
+
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: filePath,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      };
+
+      try {
+        const uploadResult = await s3.upload(params).promise();
+        uploadedFiles.push(`https://${BUCKET_NAME}.s3.amazonaws.com/${uploadResult.Key}`);
+      } catch (error) {
+        console.error('Error uploading to S3:', error);
+        throw new Error(`Error uploading file to S3: ${error.message}`);
+      }
     }
 
-    let filePath;
+    return uploadedFiles;
+  };
 
-    if (file.type === 'projectPoster' || file.type === 'projectBanner') {
-      filePath = `${orgName}/${projectName}/film stills/${file.originalname}`;
-    } else if (file.type === 'projectTrailer') {
-      filePath = `${orgName}/${projectName}/trailer/${file.originalname}`;
-    }
-    // add other types here as needed...
-
-    const params = {
-      Bucket: BUCKET_NAME,
-      Key: filePath,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    };
-
-    try {
-      const uploadResult = await s3.upload(params).promise();
-      uploadedFiles.push(`https://${BUCKET_NAME}.s3.amazonaws.com/${uploadResult.Key}`);
-    } catch (error) {
-      console.error('Error uploading to S3:', error);
-      throw new Error(`Error uploading file to S3: ${error.message}`);
-    }
-  }
-
-  return uploadedFiles;
-};
-
-const [updatedProjectInfo, setUpdatedProjectInfo] = useState({});
+  const [updatedProjectInfo, setUpdatedProjectInfo] = useState({});
 
 const handleSaveProjectInfo = async () => {
   try {
     const formData = new FormData();
+
+    // Step 1: Upload Poster, Banner, Trailer
     if (posterFile) formData.append('projectPoster', posterFile);
     if (bannerFile) formData.append('projectBanner', bannerFile);
     if (trailerFile) formData.append('projectTrailer', trailerFile);
@@ -255,10 +261,87 @@ const handleSaveProjectInfo = async () => {
       headers: { Authorization: `Bearer ${token}` },
       credentials: 'include',
     });
+
     if (!uploadResponse.ok) throw new Error('File upload failed');
     const uploadedUrls = await uploadResponse.json();
 
-    const updatedData = {
+    // Step 2: Upload Dubbed + SRT + Info Docs
+    const dtForm = new FormData();
+    let hasFiles = false;
+    const updatedDubbedFiles = [...editableProjectInfo.dubbedFileData];
+
+    editableProjectInfo.dubbedFileData.forEach((file, index) => {
+      const lang = file.language || `lang-${index}`;
+      if (file.trailerType === 'upload' && file.trailerFile instanceof File) {
+        dtForm.append(`dubbedTrailer_${index}`, file.trailerFile);
+        dtForm.append(`dubbedTrailerLang_${index}`, lang);
+        hasFiles = true;
+      }
+
+      if (file.dubbedSubtitleFileObject instanceof File) {
+        dtForm.append(`dubbedSubtitle_${index}`, file.dubbedSubtitleFileObject);
+        dtForm.append(`dubbedSubtitleLang_${index}`, lang);
+        hasFiles = true;
+      }
+    });
+
+    editableSrtInfo.srtFiles?.forEach((file, index) => {
+      if (file.fileObject instanceof File) {
+        dtForm.append(`srtFile_${index}`, file.fileObject);
+        hasFiles = true;
+      }
+    });
+
+    editableSrtInfo.infoDocuments?.forEach((file, index) => {
+      if (file.fileObject instanceof File) {
+        dtForm.append(`infoDocFile_${index}`, file.fileObject);
+        hasFiles = true;
+      }
+    });
+
+    let srtInfoUpdate = {};
+    if (hasFiles) {
+      dtForm.append('projectName', editableProjectInfo.projectName);
+      dtForm.append('orgName', orgName);
+      dtForm.append('userId', userId);
+
+      const dtResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+        method: 'POST',
+        body: dtForm,
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+      });
+
+      if (!dtResponse.ok) throw new Error('Dubbed/SRT/InfoDoc upload failed');
+      const dtData = await dtResponse.json();
+
+      dtData.dubbedFiles?.forEach((df) => {
+        const index = updatedDubbedFiles.findIndex((d) => d.language === df.language);
+        if (index !== -1) {
+          if (df.dubbedTrailer) {
+            updatedDubbedFiles[index].dubbedTrailerUrl = df.dubbedTrailer.fileUrl || '';
+            updatedDubbedFiles[index].dubbedTrailerFileName = df.dubbedTrailer.fileName || '';
+          }
+          if (df.dubbedSubtitle) {
+            updatedDubbedFiles[index].dubbedSubtitleUrl = df.dubbedSubtitle.fileUrl || '';
+            updatedDubbedFiles[index].dubbedSubtitleFileName = df.dubbedSubtitle.fileName || '';
+          }
+        }
+      });
+
+      if (dtData.srtInfo) {
+        const srtFiles = dtData.srtInfo.srtFiles || [];
+        const infoDocuments = dtData.srtInfo.infoDocuments || [];
+
+        setEditableSrtInfo({ srtFiles, infoDocuments });
+
+        if (srtFiles.length > 0) srtInfoUpdate.srtFiles = srtFiles;
+        if (infoDocuments.length > 0) srtInfoUpdate.infoDocuments = infoDocuments;
+      }
+    }
+
+    // Step 3: Prepare updated project data
+    const updatedProjectData = {
       ...(uploadedUrls.projectPosterUrl && {
         projectPosterS3Url: uploadedUrls.projectPosterUrl,
         posterFileName: posterFile?.name,
@@ -271,24 +354,49 @@ const handleSaveProjectInfo = async () => {
         projectTrailerS3Url: uploadedUrls.projectTrailerUrl,
         trailerFileName: trailerFile?.name,
       }),
+      projectTitle: editableProjectInfo.projectTitle || '',
+      projectName: editableProjectInfo.projectName || '',
+      briefSynopsis: editableProjectInfo.briefSynopsis || '',
+      isPublic: editableProjectInfo.isPublic ?? false,
+      movieFileName: editableProjectInfo.movieFileName || '',
+      dubbedFileData: updatedDubbedFiles,
     };
 
-    const resp = await fetch(`https://www.mediashippers.com/api/project-form/update/${projectId}`, {
+    // ✅ Final patch payload including rightsInfo and other sections
+    const patchPayload = {
+      projectInfo: updatedProjectData,
+      ...(Object.keys(srtInfoUpdate).length > 0 && { srtInfo: srtInfoUpdate }),
+      ...(editableCreditsInfo && Object.keys(editableCreditsInfo).length > 0 && {
+        creditsInfo: editableCreditsInfo,
+      }),
+      ...(editableSpecificationsInfo && Object.keys(editableSpecificationsInfo).length > 0 && {
+        specificationsInfo: editableSpecificationsInfo,
+      }),
+      ...(editableRightsInfo && Object.keys(editableRightsInfo).length > 0 && {
+        rightsInfo: editableRightsInfo, // ✅ Include Rights Info
+      }),
+    };
+
+    const patchUrl = `https://www.mediashippers.com/api/project-form/update/${projectId}`;
+    const patchResponse = await fetch(patchUrl, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ projectInfo: updatedData }),
+      body: JSON.stringify(patchPayload),
     });
-    if (!resp.ok) throw new Error('Failed to update project info');
 
-    setEditableProjectInfo(prev => ({ ...prev, ...updatedData }));
-    setUpdatedProjectInfo(prev => ({ ...prev, ...updatedData }));
-    alert('✅ Project updated successfully!');
+    if (!patchResponse.ok) throw new Error('Failed to update MongoDB');
+
+    // Update local state
+    setEditableProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+    setUpdatedProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+
+    alert('✅ Project info updated successfully!');
   } catch (err) {
     console.error(err);
-    alert('Error saving project data');
+    alert('❌ Error saving project data');
   }
 };
 
@@ -298,6 +406,31 @@ const handleSaveProjectInfo = async () => {
 
 
 
+
+  const includedRegionOptions = territoryGroupedOptions.map((group) => ({
+    label: group.groupName,
+    value: group.groupId,
+  }));
+
+  const getCountryOptionsByRegionIds = (selectedRegions = []) => {
+    if (!selectedRegions.length) return [];
+
+    const isWorldwide = selectedRegions.some(r => r.id === 'worldwide');
+
+    const filteredGroups = isWorldwide
+      ? territoryGroupedOptions
+      : territoryGroupedOptions.filter(group =>
+        selectedRegions.some(r => r.id === group.groupId)
+      );
+
+    return filteredGroups.flatMap(group =>
+      group.countries.map(country => ({
+        name: country.name,
+        id: country.id,
+        region: group.groupName,
+      }))
+    );
+  };
 
 
 
@@ -319,39 +452,73 @@ const handleSaveProjectInfo = async () => {
       throw new Error('Missing S3_BUCKET_NAME or AWS_REGION in environment variables');
     }
 
-    const bucketBase = `https://${bucket}.s3.amazonaws.com/`;
-
-    if (!url.startsWith(bucketBase)) {
-      throw new Error('Invalid S3 URL format');
-    }
-
-    return decodeURIComponent(url.replace(bucketBase, ''));
-  }
-  // deleteFileFromS3.js
-
-
-
-
-
-  const deleteFileFromS3 = async (fileUrl, token) => {
-    const region = import.meta.env.VITE_AWS_REGION;
-    const bucket = import.meta.env.VITE_S3_BUCKET_NAME;
-
+    // Support both URL styles
     const possiblePrefixes = [
       `https://${bucket}.s3.${region}.amazonaws.com/`,
       `https://${bucket}.s3.amazonaws.com/`,
     ];
 
-    const matchedPrefix = possiblePrefixes.find(prefix => fileUrl.startsWith(prefix));
+    const matchedPrefix = possiblePrefixes.find(prefix => url.startsWith(prefix));
 
     if (!matchedPrefix) {
-      throw new Error('Invalid S3 file URL');
+      throw new Error('Invalid S3 URL format');
     }
 
-    const filePath = decodeURIComponent(fileUrl.replace(matchedPrefix, ''));
+    const rawPath = url.replace(matchedPrefix, '');
 
-    const response = await fetch(
-      `https://www.mediashippers.com/api/project-form/delete-file?fileUrl=${encodeURIComponent(fileUrl)}`,
+    // Proper decode and cleanup of any accidental "+"
+    const cleanPath = decodeURIComponent(rawPath).replace(/\+/g, ' ');
+
+    console.log('✅ Extracted file path:', cleanPath);
+    return cleanPath;
+  }
+
+  // deleteFileFromS3.js
+
+  // utils/deleteFileFromS3.js
+
+  const deleteFileFromS3 = async (
+    fileUrlOrPath,
+    token,
+    projectInfo,       // Required to resolve projectInfo._id
+    field,             // e.g. 'projectPosterS3Url', 'infoDocuments', 'srtFiles'
+    type,              // e.g. 'poster', 'infoDoc', 'srt', 'dubbed'
+    fileId = null,
+    arrayIndex = null,
+    srtInfoId = null
+  ) => {
+    console.log('================== 🔥 deleteFileFromS3 CALLED ==================');
+    console.log('📦 Type:', type);
+    console.log('🧾 Field:', field);
+    console.log('🆔 fileId:', fileId);
+    console.log('🔢 arrayIndex:', arrayIndex);
+    console.log('📘 srtInfoId passed:', srtInfoId);
+    console.log('🗂️ ProjectInfo:', projectInfo?._id);
+
+    if (!fileUrlOrPath || !token || !projectInfo) {
+      throw new Error('Missing required data for file deletion');
+    }
+
+    // Step 1: Extract file path
+    const isFullUrl = fileUrlOrPath.startsWith('https://') || fileUrlOrPath.startsWith('s3://');
+    let filePath;
+    try {
+      filePath = isFullUrl
+        ? fileUrlOrPath.split('.com/')[1]
+        : decodeURIComponent(fileUrlOrPath);
+    } catch (err) {
+      console.error('❌ Error extracting file path:', err.message);
+      throw new Error('Invalid file path or URL');
+    }
+
+    const cleanFilePath = filePath.replace(/\+/g, ' ').trim();
+    if (!cleanFilePath) throw new Error('Missing or invalid file path');
+
+    console.log('🧹 Cleaned filePath →', cleanFilePath);
+
+    // Step 2: Delete from S3
+    const s3Res = await fetch(
+      `https://www.mediashippers.com/api/project-form/delete-file?filePath=${encodeURIComponent(cleanFilePath)}`,
       {
         method: 'DELETE',
         headers: {
@@ -361,11 +528,72 @@ const handleSaveProjectInfo = async () => {
       }
     );
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error?.error || 'Failed to delete file from S3');
+    if (!s3Res.ok) {
+      const error = await s3Res.json().catch(() => ({}));
+      console.error('❌ Failed to delete from S3:', error?.error);
+      throw new Error(error?.error || 'S3 deletion failed');
     }
+
+    // Step 3: Determine MongoDB metadata document ID
+    let metadataCollection = 'project';
+    let metadataDocId = projectInfo?._id;
+
+    if (type === 'srt' || type === 'infoDoc') {
+      metadataCollection = 'srt';
+      metadataDocId =
+        srtInfoId ||
+        projectInfo?.srtFilesId ||
+        projectInfo?.srtInfoId ||
+        projectInfo?.srtInfo?._id;
+
+      console.log('📎 Final srt metadataDocId →', metadataDocId);
+    }
+
+    if (!metadataDocId) {
+      console.error('❌ Missing metadataDocId');
+      throw new Error('Metadata document ID is required');
+    }
+
+    // Step 4: Construct metadata deletion URL
+    const extraField =
+      type === 'dubbed' && field.includes('dubbedTrailerUrl')
+        ? field.replace('Url', 'FileName')
+        : null;
+
+    const metadataUrl =
+      `https://www.mediashippers.com/api/project-form/delete-file-metadata/${metadataDocId}` +
+      `?field=${field}&collection=${metadataCollection}` +
+      (fileId ? `&fileId=${fileId}` : '') +
+      (arrayIndex !== null ? `&index=${arrayIndex}` : '') +
+      (extraField ? `&extraField=${extraField}` : '');
+
+    console.log('🧪 Metadata delete URL →', metadataUrl);
+
+    // Step 5: Delete metadata from MongoDB
+    const dbRes = await fetch(metadataUrl, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!dbRes.ok) {
+      const dbError = await dbRes.json().catch(() => ({}));
+      console.error('❌ Failed to delete metadata:', dbError?.error);
+      throw new Error(dbError?.error || 'Metadata deletion failed');
+    }
+
+    console.log('✅ S3 file and metadata deleted successfully');
+    return true;
   };
+
+
+
+
+
+
+
 
 
 
@@ -487,496 +715,499 @@ const handleSaveProjectInfo = async () => {
 
         {/* Poster */}
         {/* Poster Section */}
-       {/* Poster Section */}
-<div className="info-row">
-  <strong>Poster:</strong>
+        {/* Poster Section */}
+        <div className="info-row">
+          <strong>Poster:</strong>
 
-  {isEditingProject ? (
-    <div className="form-field text-black">
-      <div className="d-flex mb-2">
-        <label className="me-3">
-          <input
-            type="radio"
-            name="posterInputType"
-            value="upload"
-            checked={editableProjectInfo.posterInputType === 'upload'}
-            onChange={() => {
-              setPosterFile(null);
-              setEditableProjectInfo((prev) => ({
-                ...prev,
-                posterInputType: 'upload',
-                projectPosterS3Url: prev.projectPosterS3Url || '',
-              }));
-            }}
-          /> Upload File
-        </label>
+          {isEditingProject ? (
+            <div className="form-field text-black">
+              <div className="d-flex mb-2">
+                <label className="me-3">
+                  <input
+                    type="radio"
+                    name="posterInputType"
+                    value="upload"
+                    checked={editableProjectInfo.posterInputType === 'upload'}
+                    onChange={() => {
+                      setPosterFile(null);
+                      setEditableProjectInfo((prev) => ({
+                        ...prev,
+                        posterInputType: 'upload',
+                        projectPosterS3Url: prev.projectPosterS3Url || '',
+                      }));
+                    }}
+                  /> Upload File
+                </label>
 
-        <label>
-          <input
-            type="radio"
-            name="posterInputType"
-            value="url"
-            checked={editableProjectInfo.posterInputType === 'url'}
-            onChange={() => {
-              setPosterFile(null);
-              setEditableProjectInfo((prev) => ({
-                ...prev,
-                posterInputType: 'url',
-                projectPosterS3Url: prev.projectPosterS3Url || '',
-              }));
-            }}
-          /> S3 URL
-        </label>
-      </div>
+                <label>
+                  <input
+                    type="radio"
+                    name="posterInputType"
+                    value="url"
+                    checked={editableProjectInfo.posterInputType === 'url'}
+                    onChange={() => {
+                      setPosterFile(null);
+                      setEditableProjectInfo((prev) => ({
+                        ...prev,
+                        posterInputType: 'url',
+                        projectPosterS3Url: prev.projectPosterS3Url || '',
+                      }));
+                    }}
+                  /> S3 URL
+                </label>
+              </div>
 
-      {/* Show preview if available */}
-      {editableProjectInfo.projectPosterS3Url && (
-        <div className="mb-2">
-          <img
-            src={editableProjectInfo.projectPosterS3Url}
-            alt="Poster Preview"
-            style={{ maxWidth: '150px', maxHeight: '200px' }}
-          />
-        </div>
-      )}
+              {/* Show preview if available */}
+              {editableProjectInfo.projectPosterS3Url && (
+                <div className="mb-2">
+                  <img
+                    src={editableProjectInfo.projectPosterS3Url}
+                    alt="Poster Preview"
+                    style={{ maxWidth: '150px', maxHeight: '200px' }}
+                  />
+                </div>
+              )}
 
-      {editableProjectInfo.posterInputType === 'upload' && (
-        <>
-          {!posterFile ? (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
+              {editableProjectInfo.posterInputType === 'upload' && (
+                <>
+                  {!posterFile ? (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
 
-                const allowedTypes = ['image/jpeg', 'image/png'];
-                if (!allowedTypes.includes(file.type)) {
-                  alert('Only JPEG and PNG files are allowed.');
-                  return;
-                }
+                        const allowedTypes = ['image/jpeg', 'image/png'];
+                        if (!allowedTypes.includes(file.type)) {
+                          alert('Only JPEG and PNG files are allowed.');
+                          return;
+                        }
 
-                setPosterFile(file);
-                const previewUrl = URL.createObjectURL(file);
-                setEditableProjectInfo((prev) => ({
-                  ...prev,
-                  projectPosterS3Url: previewUrl,
-                }));
-              }}
-            />
-          ) : (
-            <div className="d-flex gap-2">
+                        setPosterFile(file);
+                        const previewUrl = URL.createObjectURL(file);
+                        setEditableProjectInfo((prev) => ({
+                          ...prev,
+                          projectPosterS3Url: previewUrl,
+                        }));
+                      }}
+                    />
+                  ) : (
+                    <div className="d-flex gap-2">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => {
+                          setEditableProjectInfo((prev) => ({
+                            ...prev,
+                            projectPosterS3Url: '',
+                          }));
+                          setPosterFile(null);
+                        }}
+                      >
+                        Change Poster
+                      </button>
+                    </div>
+                  )}
+
+                  <p className="text-muted small mt-1">
+                    This is a preview. Final S3 URL will be available after saving.
+                  </p>
+                </>
+              )}
+
               <button
                 type="button"
-                className="btn btn-sm btn-secondary"
-                onClick={() => {
-                  setEditableProjectInfo((prev) => ({
-                    ...prev,
-                    projectPosterS3Url: '',
-                  }));
-                  setPosterFile(null);
+                onClick={async () => {
+                  const confirmDelete = window.confirm('Are you sure you want to delete this poster?');
+                  if (!confirmDelete) return;
+
+                  setDeletingPoster(true);
+                  try {
+                    await deleteFileFromS3(
+                      editableProjectInfo.projectPosterS3Url,
+                      token,
+                      editableProjectInfo._id,
+                      'projectPosterS3Url'
+                    );
+
+                    setPosterFile(null);
+                    setEditableProjectInfo(prev => ({
+                      ...prev,
+                      projectPosterS3Url: '',
+                      posterFileName: '',
+                    }));
+
+                    alert('Poster deleted successfully.');
+                  } catch (err) {
+                    console.error('Error:', err);
+                    alert('Failed to delete poster.');
+                  } finally {
+                    setDeletingPoster(false);
+                  }
                 }}
+                className="btn btn-sm btn-danger"
+                disabled={deletingPoster}
               >
-                Change Poster
+                {deletingPoster ? 'Removing...' : 'Remove Poster'}
               </button>
+
+
+              {editableProjectInfo.posterInputType === 'url' && (
+                <input
+                  type="text"
+                  value={editableProjectInfo.projectPosterS3Url || ''}
+                  onChange={(e) =>
+                    setEditableProjectInfo((prev) => ({
+                      ...prev,
+                      projectPosterS3Url: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter S3 URL"
+                />
+              )}
             </div>
-          )}
-
-          <p className="text-muted small mt-1">
-            This is a preview. Final S3 URL will be available after saving.
-          </p>
-        </>
-      )}
-
-      <button
-        type="button"
-        onClick={async () => {
-          const confirmDelete = window.confirm('Are you sure you want to delete this poster from S3?');
-          if (!confirmDelete) return;
-
-          setDeletingPoster(true);
-          try {
-            const key = editableProjectInfo.projectPosterS3Url.replace(
-              'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/',
-              ''
-            );
-            await deleteFileFromS3(key, token);
-
-            setPosterFile(null);
-            setEditableProjectInfo((prev) => ({
-              ...prev,
-              projectPosterS3Url: '',
-            }));
-
-            alert('Poster deleted from S3 successfully.');
-          } catch (err) {
-            console.error('Error deleting poster:', err);
-            alert('Failed to delete poster from S3.');
-          } finally {
-            setDeletingPoster(false);
-          }
-        }}
-        className="btn btn-sm btn-danger"
-        disabled={deletingPoster}
-      >
-        {deletingPoster ? 'Removing...' : 'Remove Poster'}
-      </button>
-
-      {editableProjectInfo.posterInputType === 'url' && (
-        <input
-          type="text"
-          value={editableProjectInfo.projectPosterS3Url || ''}
-          onChange={(e) =>
-            setEditableProjectInfo((prev) => ({
-              ...prev,
-              projectPosterS3Url: e.target.value,
-            }))
-          }
-          placeholder="Enter S3 URL"
-        />
-      )}
-    </div>
-  ) : editableProjectInfo?.projectPosterS3Url && !posterLoadFailed ? (
-    <>
-      <img
-        src={editableProjectInfo.projectPosterS3Url}
-        alt="Poster"
-        style={{ width: '150px' }}
-        onError={() => setPosterLoadFailed(true)}
-      />
-      {/* <p className="small text-white mt-1">{editableProjectInfo.projectPosterS3Url}</p> */}
-    </>
-  ) : (
-    <p className="text-white fst-italic">No poster available. Click Edit to upload.</p>
-  )}
-</div>
-
-
-
-     {/* Banner Section */}
-<div className="info-row">
-  <strong>Banner:</strong>
-
-  {isEditingProject ? (
-    <div className="form-field text-black">
-      <div className="d-flex mb-2">
-        <label className="me-3">
-          <input
-            type="radio"
-            name="bannerInputType"
-            value="upload"
-            checked={editableProjectInfo.bannerInputType === 'upload'}
-            onChange={() => {
-              setBannerFile(null);
-              setEditableProjectInfo((prev) => ({
-                ...prev,
-                bannerInputType: 'upload',
-                projectBannerS3Url: prev.projectBannerS3Url || '',
-              }));
-            }}
-          /> Upload File
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="bannerInputType"
-            value="url"
-            checked={editableProjectInfo.bannerInputType === 'url'}
-            onChange={() => {
-              setBannerFile(null);
-              setEditableProjectInfo((prev) => ({
-                ...prev,
-                bannerInputType: 'url',
-                projectBannerS3Url: prev.projectBannerS3Url || '',
-              }));
-            }}
-          /> S3 URL
-        </label>
-      </div>
-
-      {/* ✅ Show preview if URL exists */}
-      {editableProjectInfo.projectBannerS3Url && !deletingBanner && (
-        <div className="mb-2">
-          <img
-            src={encodeURI(editableProjectInfo.projectBannerS3Url)}
-            alt="Banner Preview"
-            style={{ maxWidth: '100%', maxHeight: '200px' }}
-          />
-          {/* <p className="small text-white mt-1">{editableProjectInfo.projectBannerS3Url}</p> */}
-        </div>
-      )}
-
-      {/* ✅ Remove from S3 */}
-      <button
-        type="button"
-        onClick={async () => {
-          const confirmDelete = window.confirm('Are you sure you want to delete this banner from S3?');
-          if (!confirmDelete) return;
-
-          setDeletingBanner(true);
-          try {
-            const key = editableProjectInfo.projectBannerS3Url.replace(
-              'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/',
-              ''
-            );
-            await deleteFileFromS3(key, token);
-
-            setBannerFile(null);
-            setEditableProjectInfo((prev) => ({
-              ...prev,
-              projectBannerS3Url: '',
-            }));
-
-            alert('Banner deleted from S3 successfully.');
-          } catch (err) {
-            console.error('Error deleting banner:', err);
-            alert('Failed to delete banner from S3.');
-          } finally {
-            setDeletingBanner(false);
-          }
-        }}
-        className="btn btn-sm btn-danger mt-1"
-        disabled={deletingBanner}
-      >
-        {deletingBanner ? 'Removing...' : 'Remove Banner'}
-      </button>
-
-      {/* ✅ Upload File */}
-      {editableProjectInfo.bannerInputType === 'upload' && (
-        <>
-          {!bannerFile ? (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-
-                const allowedTypes = ['image/jpeg', 'image/png'];
-                if (!allowedTypes.includes(file.type)) {
-                  alert('Only JPEG and PNG are allowed.');
-                  return;
-                }
-
-                const previewUrl = URL.createObjectURL(file);
-                setBannerFile(file);
-                setEditableProjectInfo((prev) => ({
-                  ...prev,
-                  projectBannerS3Url: previewUrl, // show preview before saving
-                }));
-              }}
-            />
+          ) : editableProjectInfo?.projectPosterS3Url && !posterLoadFailed ? (
+            <>
+              <img
+                src={editableProjectInfo.projectPosterS3Url}
+                alt="Poster"
+                style={{ width: '150px' }}
+                onError={() => setPosterLoadFailed(true)}
+              />
+              {/* <p className="small text-white mt-1">{editableProjectInfo.projectPosterS3Url}</p> */}
+            </>
           ) : (
-            <div className="d-flex gap-2">
-              <button
-                type="button"
-                className="btn btn-sm btn-secondary"
-                onClick={() => {
-                  setBannerFile(null);
-                  setEditableProjectInfo((prev) => ({
-                    ...prev,
-                    projectBannerS3Url: '',
-                  }));
-                }}
-              >
-                Change Banner
-              </button>
-            </div>
+            <p className="text-white fst-italic">No poster available. Click Edit to upload.</p>
           )}
-          <p className="text-muted small mt-1">Preview only. Final S3 URL saved after clicking Save.</p>
-        </>
-      )}
-
-      {/* ✅ S3 URL Entry */}
-      {editableProjectInfo.bannerInputType === 'url' && (
-        <input
-          type="text"
-          value={editableProjectInfo.projectBannerS3Url || ''}
-          onChange={(e) =>
-            setEditableProjectInfo((prev) => ({
-              ...prev,
-              projectBannerS3Url: e.target.value,
-            }))
-          }
-          placeholder="Enter S3 URL"
-        />
-      )}
-    </div>
-  ) : editableProjectInfo?.projectBannerS3Url && !bannerLoadFailed ? (
-    <>
-      <img
-        src={encodeURI(editableProjectInfo.projectBannerS3Url)}
-        alt="Banner"
-        style={{ width: '100%', maxWidth: '500px' }}
-        onError={() => setBannerLoadFailed(true)}
-      />
-      {/* <p className="small text-white mt-1">{editableProjectInfo.projectBannerS3Url}</p> */}
-    </>
-  ) : (
-    <p className="text-white fst-italic">No banner available. Click Edit to upload.</p>
-  )}
-</div>
-
-
-
-{/* Trailer Section */}
-<div className="info-row">
-  <strong>Trailer:</strong>
-
-  {isEditingProject ? (
-    <div className="form-field text-black">
-      {/* Input type toggle */}
-      <div className="d-flex mb-2">
-        <label className="me-3">
-          <input
-            type="radio"
-            name="trailerInputType"
-            value="upload"
-            checked={editableProjectInfo.trailerInputType === 'upload'}
-            onChange={() =>
-              setEditableProjectInfo((prev) => ({
-                ...prev,
-                trailerInputType: 'upload',
-                projectTrailerS3Url: prev.projectTrailerS3Url || '',
-              }))
-            }
-          /> Upload File
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="trailerInputType"
-            value="url"
-            checked={editableProjectInfo.trailerInputType === 'url'}
-            onChange={() =>
-              setEditableProjectInfo((prev) => ({
-                ...prev,
-                trailerInputType: 'url',
-                projectTrailerS3Url: prev.projectTrailerS3Url || '',
-              }))
-            }
-          /> S3 URL
-        </label>
-      </div>
-
-      {/* Preview */}
-      {editableProjectInfo.projectTrailerS3Url && (
-        <div className="mb-2">
-          <video width="480" controls src={editableProjectInfo.projectTrailerS3Url}>
-            Your browser does not support the video tag.
-          </video>
-          {/* <p className="mt-1 small text-white">{editableProjectInfo.projectTrailerS3Url}</p> */}
-
-          <div className="d-flex gap-2 mt-1">
-            <button
-              type="button"
-              className="btn btn-sm btn-secondary"
-              onClick={() => {
-                setEditableProjectInfo((prev) => ({
-                  ...prev,
-                  projectTrailerS3Url: '',
-                  trailerFileName: '',
-                }));
-                setTrailerFile(null);
-              }}
-            >
-              Change Trailer
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-sm btn-danger"
-              disabled={deletingTrailer}
-              onClick={async () => {
-                const confirmDelete = window.confirm('Are you sure you want to delete this trailer from S3?');
-                if (!confirmDelete) return;
-
-                setDeletingTrailer(true);
-                try {
-                  const key = editableProjectInfo.projectTrailerS3Url.replace(
-                    'https://mediashippers-filestash.s3.amazonaws.com/',
-                    ''
-                  );
-                  await deleteFileFromS3(key, token);
-
-                  setEditableProjectInfo((prev) => ({
-                    ...prev,
-                    projectTrailerS3Url: '',
-                    trailerFileName: '',
-                  }));
-                  setTrailerFile(null);
-                  alert('Trailer deleted from S3 successfully.');
-                } catch (err) {
-                  console.error('Error deleting trailer:', err);
-                  alert('Failed to delete trailer from S3.');
-                } finally {
-                  setDeletingTrailer(false);
-                }
-              }}
-            >
-              {deletingTrailer ? 'Removing...' : 'Remove Trailer'}
-            </button>
-          </div>
         </div>
-      )}
 
-      {/* Upload Input */}
-      {editableProjectInfo.trailerInputType === 'upload' && (
-        <input
-          type="file"
-          accept="video/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
 
-            const allowedTypes = ['video/mp4', 'video/mov', 'video/quicktime'];
-            if (!allowedTypes.includes(file.type)) {
-              alert('Only MP4 and MOV are allowed.');
-              return;
-            }
 
-            setTrailerFile(file);
-            const previewUrl = URL.createObjectURL(file);
-            setEditableProjectInfo((prev) => ({
-              ...prev,
-              projectTrailerS3Url: previewUrl,
-              trailerFileName: file.name,
-            }));
-          }}
-        />
-      )}
+        {/* Banner Section */}
+        <div className="info-row">
+          <strong>Banner:</strong>
 
-      {/* S3 URL Input */}
-      {editableProjectInfo.trailerInputType === 'url' && (
-        <input
-          type="text"
-          value={editableProjectInfo.projectTrailerS3Url || ''}
-          onChange={(e) =>
-            setEditableProjectInfo((prev) => ({
-              ...prev,
-              projectTrailerS3Url: e.target.value,
-            }))
-          }
-          placeholder="Enter S3 URL"
-        />
-      )}
-    </div>
-  ) : projectInfo?.projectTrailerS3Url && !videoLoadFailed ? (
-    <>
-      <video
-        width="480"
-        controls
-        src={projectInfo.projectTrailerS3Url}
-        onError={() => setVideoLoadFailed(true)}
-      >
-        Your browser does not support the video tag.
-      </video>
-      {/* <p className="small text-white mt-1">{projectInfo.projectTrailerS3Url}</p> */}
-    </>
-  ) : (
-    <p className="text-white fst-italic">No trailer available. Click Edit to upload.</p>
-  )}
-</div>
+          {isEditingProject ? (
+            <div className="form-field text-black">
+              <div className="d-flex mb-2">
+                <label className="me-3">
+                  <input
+                    type="radio"
+                    name="bannerInputType"
+                    value="upload"
+                    checked={editableProjectInfo.bannerInputType === 'upload'}
+                    onChange={() => {
+                      setBannerFile(null);
+                      setEditableProjectInfo(prev => ({
+                        ...prev,
+                        bannerInputType: 'upload',
+                        projectBannerS3Url: prev.projectBannerS3Url || '',
+                      }));
+                    }}
+                  /> Upload File
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="bannerInputType"
+                    value="url"
+                    checked={editableProjectInfo.bannerInputType === 'url'}
+                    onChange={() => {
+                      setBannerFile(null);
+                      setEditableProjectInfo(prev => ({
+                        ...prev,
+                        bannerInputType: 'url',
+                        projectBannerS3Url: prev.projectBannerS3Url || '',
+                      }));
+                    }}
+                  /> S3 URL
+                </label>
+              </div>
+
+              {/* Banner Preview */}
+              {editableProjectInfo.projectBannerS3Url && !deletingBanner && (
+                <div className="mb-2">
+                  <img
+                    src={encodeURI(editableProjectInfo.projectBannerS3Url)}
+                    alt="Banner Preview"
+                    style={{ maxWidth: '100%', maxHeight: '200px' }}
+                  />
+                </div>
+              )}
+
+              {/* Remove from S3 */}
+              {editableProjectInfo.projectBannerS3Url && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const confirmDelete = window.confirm('Are you sure you want to delete this banner?');
+                    if (!confirmDelete) return;
+
+                    setDeletingBanner(true);
+                    try {
+                      const bannerUrl = editableProjectInfo.projectBannerS3Url;
+                      const id = editableProjectInfo._id; // ✅ correct ID
+                      await deleteFileFromS3(bannerUrl, token, id, 'projectBannerS3Url');
+
+                      setEditableProjectInfo(prev => ({
+                        ...prev,
+                        projectBannerS3Url: '',
+                        bannerFileName: '',
+                      }));
+
+                      alert('Banner deleted successfully');
+                    } catch (err) {
+                      console.error('Error deleting banner:', err);
+                      alert(err.message);
+                    } finally {
+                      setDeletingBanner(false);
+                    }
+                  }}
+                  className="btn btn-sm btn-danger"
+                  disabled={deletingBanner}
+                >
+                  {deletingBanner ? 'Removing...' : 'Remove Banner'}
+                </button>
+
+              )}
+
+              {/* Upload Option */}
+              {editableProjectInfo.bannerInputType === 'upload' && (
+                <>
+                  {!bannerFile ? (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        const allowedTypes = ['image/jpeg', 'image/png'];
+                        if (!allowedTypes.includes(file.type)) {
+                          alert('Only JPEG and PNG are allowed.');
+                          return;
+                        }
+
+                        const previewUrl = URL.createObjectURL(file);
+                        setBannerFile(file);
+                        setEditableProjectInfo(prev => ({
+                          ...prev,
+                          projectBannerS3Url: previewUrl, // preview only
+                        }));
+                      }}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary mt-1"
+                      onClick={() => {
+                        setBannerFile(null);
+                        setEditableProjectInfo(prev => ({
+                          ...prev,
+                          projectBannerS3Url: '',
+                        }));
+                      }}
+                    >
+                      Change Banner
+                    </button>
+                  )}
+                  <p className="text-muted small mt-1">Preview only. Final S3 URL saved after clicking Save.</p>
+                </>
+              )}
+
+              {/* S3 URL Option */}
+              {editableProjectInfo.bannerInputType === 'url' && (
+                <input
+                  type="text"
+                  value={editableProjectInfo.projectBannerS3Url || ''}
+                  onChange={(e) =>
+                    setEditableProjectInfo(prev => ({
+                      ...prev,
+                      projectBannerS3Url: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter S3 URL"
+                />
+              )}
+            </div>
+          ) : editableProjectInfo?.projectBannerS3Url && !bannerLoadFailed ? (
+            <>
+              <img
+                src={encodeURI(editableProjectInfo.projectBannerS3Url)}
+                alt="Banner"
+                style={{ width: '100%', maxWidth: '500px' }}
+                onError={() => setBannerLoadFailed(true)}
+              />
+            </>
+          ) : (
+            <p className="text-white fst-italic">No banner available. Click Edit to upload.</p>
+          )}
+        </div>
+
+
+
+
+        {/* Trailer Section */}
+        <div className="info-row">
+          <strong>Trailer:</strong>
+
+          {isEditingProject ? (
+            <div className="form-field text-black">
+              {/* Input type toggle */}
+              <div className="d-flex mb-2">
+                <label className="me-3">
+                  <input
+                    type="radio"
+                    name="trailerInputType"
+                    value="upload"
+                    checked={editableProjectInfo.trailerInputType === 'upload'}
+                    onChange={() =>
+                      setEditableProjectInfo((prev) => ({
+                        ...prev,
+                        trailerInputType: 'upload',
+                        projectTrailerS3Url: prev.projectTrailerS3Url || '',
+                      }))
+                    }
+                  /> Upload File
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="trailerInputType"
+                    value="url"
+                    checked={editableProjectInfo.trailerInputType === 'url'}
+                    onChange={() =>
+                      setEditableProjectInfo((prev) => ({
+                        ...prev,
+                        trailerInputType: 'url',
+                        projectTrailerS3Url: prev.projectTrailerS3Url || '',
+                      }))
+                    }
+                  /> S3 URL
+                </label>
+              </div>
+
+              {/* Preview */}
+              {editableProjectInfo.projectTrailerS3Url && (
+                <div className="mb-2">
+                  <video width="480" controls src={editableProjectInfo.projectTrailerS3Url}>
+                    Your browser does not support the video tag.
+                  </video>
+                  {/* <p className="mt-1 small text-white">{editableProjectInfo.projectTrailerS3Url}</p> */}
+
+                  <div className="d-flex gap-2 mt-1">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => {
+                        setEditableProjectInfo((prev) => ({
+                          ...prev,
+                          projectTrailerS3Url: '',
+                          trailerFileName: '',
+                        }));
+                        setTrailerFile(null);
+                      }}
+                    >
+                      Change Trailer
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      disabled={deletingTrailer}
+                      onClick={async () => {
+                        const confirmDelete = window.confirm('Are you sure you want to delete this trailer from S3?');
+                        if (!confirmDelete) return;
+
+                        setDeletingTrailer(true);
+                        try {
+                          const trailerUrl = editableProjectInfo.projectTrailerS3Url;
+                          const id = editableProjectInfo._id; // ✅ ensure this is available
+                          const field = 'projectTrailerS3Url';
+
+                          await deleteFileFromS3(trailerUrl, token, id, field); // ✅ calls both S3 + MongoDB
+
+                          setEditableProjectInfo((prev) => ({
+                            ...prev,
+                            projectTrailerS3Url: '',
+                            trailerFileName: '',
+                          }));
+
+                          setTrailerFile(null);
+                          alert('Trailer deleted successfully.');
+                        } catch (err) {
+                          console.error('Error deleting trailer:', err);
+                          alert(err.message || 'Failed to delete trailer from S3 or MongoDB');
+                        } finally {
+                          setDeletingTrailer(false);
+                        }
+                      }}
+                    >
+                      {deletingTrailer ? 'Removing...' : 'Remove Trailer'}
+                    </button>
+
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Input */}
+              {editableProjectInfo.trailerInputType === 'upload' && (
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const allowedTypes = ['video/mp4', 'video/mov', 'video/quicktime'];
+                    if (!allowedTypes.includes(file.type)) {
+                      alert('Only MP4 and MOV are allowed.');
+                      return;
+                    }
+
+                    setTrailerFile(file);
+                    const previewUrl = URL.createObjectURL(file);
+                    setEditableProjectInfo((prev) => ({
+                      ...prev,
+                      projectTrailerS3Url: previewUrl,
+                      trailerFileName: file.name,
+                    }));
+                  }}
+                />
+              )}
+
+              {/* S3 URL Input */}
+              {editableProjectInfo.trailerInputType === 'url' && (
+                <input
+                  type="text"
+                  value={editableProjectInfo.projectTrailerS3Url || ''}
+                  onChange={(e) =>
+                    setEditableProjectInfo((prev) => ({
+                      ...prev,
+                      projectTrailerS3Url: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter S3 URL"
+                />
+              )}
+            </div>
+          ) : projectInfo?.projectTrailerS3Url && !videoLoadFailed ? (
+            <>
+              <video
+                width="480"
+                controls
+                src={projectInfo.projectTrailerS3Url}
+                onError={() => setVideoLoadFailed(true)}
+              >
+                Your browser does not support the video tag.
+              </video>
+              {/* <p className="small text-white mt-1">{projectInfo.projectTrailerS3Url}</p> */}
+            </>
+          ) : (
+            <p className="text-white fst-italic">No trailer available. Click Edit to upload.</p>
+          )}
+        </div>
 
 
 
@@ -998,27 +1229,110 @@ const handleSaveProjectInfo = async () => {
           )}
         </div>
 
-        {/* SRT Files */}
+        {/* --- SRT Files Upload & Preview --- */}
+        {/* --- SRT Files Upload & Preview --- */}
         <div className="info-row">
           <strong>SRT Files:</strong>
+
           {isEditingProject ? (
-            <textarea
-              rows={3}
-              className="w-full text-black"
-              value={editableSrtInfo.srtFiles?.map(f => f.fileName).join('\n') || ''}
-              onChange={(e) => {
-                const fileNames = e.target.value.split('\n').filter(Boolean);
-                // Keep existing URLs if possible, else empty string
-                const updatedSrtFiles = fileNames.map((name, i) => ({
-                  fileName: name,
-                  fileUrl: editableSrtInfo.srtFiles?.[i]?.fileUrl || '',
-                }));
-                setEditableSrtInfo({ ...editableSrtInfo, srtFiles: updatedSrtFiles });
-              }}
-            />
-          ) : srtInfo?.srtFiles?.length ? (
+            <div className="flex flex-col gap-2">
+              {editableSrtInfo?.srtFiles?.map((file, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  {file.fileUrl && (
+                    <a
+                      href={file.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      {file.fileName || file.fileUrl?.split('/').pop()}
+                    </a>
+                  )}
+
+                  <input
+                    type="file"
+                    accept=".srt"
+                    onChange={(e) => {
+                      const newFile = e.target.files?.[0];
+                      if (!newFile) return;
+                      const updated = [...editableSrtInfo.srtFiles];
+                      updated[index] = {
+                        fileName: newFile.name,
+                        fileUrl: URL.createObjectURL(newFile),
+                        fileObject: newFile,
+                      };
+                      setEditableSrtInfo({ ...editableSrtInfo, srtFiles: updated });
+                    }}
+                  />
+
+                  {file.fileUrl?.startsWith('https://') ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      onClick={async () => {
+                        const confirmDelete = window.confirm(`Delete ${file.fileName || file.fileUrl?.split('/').pop()} from S3 and DB?`);
+                        if (!confirmDelete) return;
+
+                        try {
+                          await deleteFileFromS3(
+                            file.fileUrl,
+                            token,
+                            projectData?.projectInfo,
+                            'srtFiles',
+                            'srt',
+                            file._id,
+                            null,
+                            projectData?.srtInfo?._id
+                          );
+
+                          const updated = [...editableSrtInfo.srtFiles];
+                          updated.splice(index, 1);
+                          setEditableSrtInfo({ ...editableSrtInfo, srtFiles: updated });
+
+                          alert('✅ SRT file deleted successfully');
+                        } catch (err) {
+                          console.error(err);
+                          alert('❌ Failed to delete SRT file');
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => {
+                        const updated = [...editableSrtInfo.srtFiles];
+                        updated.splice(index, 1);
+                        setEditableSrtInfo({ ...editableSrtInfo, srtFiles: updated });
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() =>
+                  setEditableSrtInfo({
+                    ...editableSrtInfo,
+                    srtFiles: [
+                      ...(editableSrtInfo.srtFiles || []),
+                      { fileName: '', fileUrl: '', fileObject: null },
+                    ],
+                  })
+                }
+              >
+                + Add SRT File
+              </button>
+            </div>
+          ) : (
             <ul>
-              {srtInfo.srtFiles.map((file) => (
+              {srtInfo?.srtFiles?.map((file) => (
                 <li key={file._id || file.fileName}>
                   <a
                     href={file.fileUrl}
@@ -1026,33 +1340,115 @@ const handleSaveProjectInfo = async () => {
                     rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
-                    {file.fileName}
+                    {file.fileName || file.fileUrl?.split('/').pop()}
                   </a>
                 </li>
               ))}
             </ul>
-          ) : (
-            <p>N/A</p>
           )}
         </div>
 
-        {/* Info Docs */}
+        {/* --- Info Docs Upload & Preview --- */}
         <div className="info-row">
           <strong>Info Docs:</strong>
+
           {isEditingProject ? (
-            <textarea
-              rows={3}
-              className="w-full text-black"
-              value={editableSrtInfo.infoDocuments?.map(f => f.fileName).join('\n') || ''}
-              onChange={(e) => {
-                const fileNames = e.target.value.split('\n').filter(Boolean);
-                const updatedInfoDocs = fileNames.map((name, i) => ({
-                  fileName: name,
-                  fileUrl: editableSrtInfo.infoDocuments?.[i]?.fileUrl || '',
-                }));
-                setEditableSrtInfo({ ...editableSrtInfo, infoDocuments: updatedInfoDocs });
-              }}
-            />
+            <div className="flex flex-col gap-2">
+              {editableSrtInfo.infoDocuments?.map((file, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  {file.fileUrl && (
+                    <a
+                      href={file.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      {file.fileName || file.fileUrl?.split('/').pop()}
+                    </a>
+                  )}
+
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => {
+                      const newFile = e.target.files?.[0];
+                      if (!newFile) return;
+
+                      const updated = [...editableSrtInfo.infoDocuments];
+                      updated[index] = {
+                        fileName: newFile.name,
+                        fileUrl: URL.createObjectURL(newFile),
+                        fileObject: newFile,
+                      };
+                      setEditableSrtInfo({ ...editableSrtInfo, infoDocuments: updated });
+                    }}
+                  />
+
+                  {file.fileUrl?.startsWith('https://') ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      onClick={async () => {
+                        const confirmDelete = window.confirm(`Delete ${file.fileName || file.fileUrl?.split('/').pop()} from S3 and DB?`);
+                        if (!confirmDelete) return;
+
+                        try {
+                          await deleteFileFromS3(
+                            file.fileUrl,
+                            token,
+                            projectData?.projectInfo,
+                            'infoDocuments',
+                            'infoDoc',
+                            file._id,
+                            null,
+                            projectData?.srtInfo?._id
+                          );
+
+                          const updated = [...editableSrtInfo.infoDocuments];
+                          updated.splice(index, 1);
+                          setEditableSrtInfo({ ...editableSrtInfo, infoDocuments: updated });
+
+                          alert('✅ Info Doc deleted successfully');
+                        } catch (err) {
+                          console.error(err);
+                          alert('❌ Failed to delete Info Doc');
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => {
+                        const updated = [...editableSrtInfo.infoDocuments];
+                        updated.splice(index, 1);
+                        setEditableSrtInfo({ ...editableSrtInfo, infoDocuments: updated });
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() =>
+                  setEditableSrtInfo({
+                    ...editableSrtInfo,
+                    infoDocuments: [
+                      ...editableSrtInfo.infoDocuments,
+                      { fileName: '', fileUrl: '', fileObject: null },
+                    ],
+                  })
+                }
+              >
+                + Add Info Doc
+              </button>
+            </div>
           ) : srtInfo?.infoDocuments?.length ? (
             <ul>
               {srtInfo.infoDocuments.map((file) => (
@@ -1063,7 +1459,7 @@ const handleSaveProjectInfo = async () => {
                     rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
-                    {file.fileName}
+                    {file.fileName || file.fileUrl?.split('/').pop()}
                   </a>
                 </li>
               ))}
@@ -1072,6 +1468,9 @@ const handleSaveProjectInfo = async () => {
             <p>N/A</p>
           )}
         </div>
+
+
+
 
 
 
@@ -1092,20 +1491,29 @@ const handleSaveProjectInfo = async () => {
                     <div className="info-row">
                       <strong>Language:</strong>
                       {isEditingProject ? (
-                        <input
+                        <select
                           className="text-black"
-                          type="text"
                           value={editableProjectInfo.dubbedFileData?.[i]?.language || ''}
                           onChange={(e) => {
                             const newDubbed = [...(editableProjectInfo.dubbedFileData || [])];
                             newDubbed[i] = { ...newDubbed[i], language: e.target.value };
                             setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: newDubbed });
                           }}
-                        />
+                        >
+                          <option value="">Select Language</option>
+                          {languageList.map((lang) => (
+                            <option key={lang} value={lang}>
+                              {lang}
+                            </option>
+                          ))}
+                        </select>
                       ) : (
                         <p>{file.language}</p>
                       )}
                     </div>
+
+
+                    {/* Dubbed Trailer */}
 
                     {/* Dubbed Trailer */}
                     {/* Dubbed Trailer */}
@@ -1115,119 +1523,173 @@ const handleSaveProjectInfo = async () => {
                       {isEditingProject ? (
                         <>
                           {/* Upload / URL Switch */}
-                          <div>
-                            <label>
+                          <div className="d-flex mb-2">
+                            <label className="me-3">
                               <input
                                 type="radio"
                                 name={`trailerType-${i}`}
                                 value="upload"
-                                checked={file.trailerType === 'upload'}
+                                checked={editableProjectInfo.dubbedFileData?.[i]?.trailerType === 'upload'}
                                 onChange={() => {
                                   const updated = [...editableProjectInfo.dubbedFileData];
-                                  updated[i] = { ...updated[i], trailerType: 'upload', dubbedTrailerUrl: '' };
+                                  updated[i] = {
+                                    ...updated[i],
+                                    trailerType: 'upload',
+                                    dubbedTrailerUrl: '',
+                                    trailerFile: null,
+                                    trailerFileName: '',
+                                  };
                                   setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
                                 }}
-                              /> Upload
+                              /> Upload File
                             </label>
 
-                            <label className="ms-3">
+                            <label>
                               <input
                                 type="radio"
                                 name={`trailerType-${i}`}
                                 value="url"
-                                checked={file.trailerType === 'url'}
+                                checked={editableProjectInfo.dubbedFileData?.[i]?.trailerType === 'url'}
                                 onChange={() => {
                                   const updated = [...editableProjectInfo.dubbedFileData];
-                                  updated[i] = { ...updated[i], trailerType: 'url', dubbedTrailerUrl: '' };
+                                  updated[i] = {
+                                    ...updated[i],
+                                    trailerType: 'url',
+                                    trailerFile: null,
+                                    trailerFileName: '',
+                                  };
                                   setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
                                 }}
                               /> S3 URL
                             </label>
                           </div>
 
-                          {/* Upload */}
-                          {file.trailerType === 'upload' && (
+                          {/* Upload Input */}
+                          {editableProjectInfo.dubbedFileData?.[i]?.trailerType === 'upload' && (
                             <input
                               type="file"
+                              name={`dubbedTrailer_${i}`}
                               accept="video/*"
-                              onChange={async (e) => {
+                              onChange={(e) => {
                                 const f = e.target.files?.[0];
                                 if (!f) return;
-                                const uploaded = await uploadDubbedTrailerFile(f); // Upload logic
+
+                                const allowedTypes = ['video/mp4', 'video/mov', 'video/quicktime'];
+                                if (!allowedTypes.includes(f.type)) {
+                                  alert('Only MP4 and MOV files are allowed.');
+                                  return;
+                                }
+
                                 const updated = [...editableProjectInfo.dubbedFileData];
-                                updated[i].dubbedTrailerUrl = uploaded.fileUrl;
+                                updated[i].trailerFile = f;
+                                updated[i].trailerFileName = f.name;
+                                updated[i].dubbedTrailerUrl = URL.createObjectURL(f);
+
                                 setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
                               }}
                             />
                           )}
 
-                          {/* S3 URL */}
-                          {file.trailerType === 'url' && (
+                          {/* S3 URL Input */}
+                          {editableProjectInfo.dubbedFileData?.[i]?.trailerType === 'url' && (
                             <input
-                              className="text-black"
                               type="text"
+                              className="text-black"
                               placeholder="Enter S3 URL"
-                              value={file.dubbedTrailerUrl || ''}
+                              value={editableProjectInfo.dubbedFileData[i]?.dubbedTrailerUrl || ''}
                               onChange={(e) => {
                                 const updated = [...editableProjectInfo.dubbedFileData];
                                 updated[i].dubbedTrailerUrl = e.target.value;
+                                updated[i].trailerFile = null;
+                                updated[i].trailerFileName = '';
                                 setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
                               }}
                             />
                           )}
 
-                          {/* Preview + Remove */}
-                          {file.dubbedTrailerUrl?.trim() !== '' && (
+                          {/* Preview + Change + Remove */}
+                          {editableProjectInfo.dubbedFileData?.[i]?.dubbedTrailerUrl?.trim() !== '' && (
                             <div className="mt-2">
                               <video
-                                key={file.dubbedTrailerUrl} // force re-render when URL changes
+                                key={editableProjectInfo.dubbedFileData[i].dubbedTrailerUrl}
                                 width="360"
                                 controls
-                                src={`${file.dubbedTrailerUrl}?t=${Date.now()}`} // cache buster
-                              />
-                              <p className="small text-white mt-1">{file.dubbedTrailerUrl}</p>
+                                src={editableProjectInfo.dubbedFileData[i].dubbedTrailerUrl}
+                              >
+                                Your browser does not support the video tag.
+                              </video>
 
-                              <button
-                                className="btn btn-sm btn-danger mt-1"
-                                disabled={deletingDubbedTrailerIndex === i}
-                                onClick={async () => {
-                                  const confirmDelete = window.confirm('Are you sure you want to delete this dubbed trailer from S3?');
-                                  if (!confirmDelete) return;
-
-                                  setDeletingDubbedTrailerIndex(i);
-                                  try {
-                                    const key = file.dubbedTrailerUrl.replace(
-                                      'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/',
-                                      ''
-                                    );
-
-                                    await deleteFileFromS3(key, token);
-
+                              <div className="d-flex gap-2 mt-1">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-secondary"
+                                  onClick={() => {
                                     const updated = [...editableProjectInfo.dubbedFileData];
                                     updated[i].dubbedTrailerUrl = '';
-                                    updated[i].trailerType = 'upload'; // reset
+                                    updated[i].trailerFileName = '';
+                                    updated[i].trailerFile = null;
                                     setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
+                                  }}
+                                >
+                                  Change Trailer
+                                </button>
 
-                                    alert('Dubbed trailer deleted successfully.');
-                                  } catch (err) {
-                                    console.error(err);
-                                    alert('Failed to delete trailer from S3.');
-                                  } finally {
-                                    setDeletingDubbedTrailerIndex(null);
-                                  }
-                                }}
-                              >
-                                {deletingDubbedTrailerIndex === i ? 'Removing...' : 'Remove Trailer'}
-                              </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-danger"
+                                  disabled={deletingDubbedTrailerIndex === i}
+                                  onClick={async () => {
+                                    const confirmDelete = window.confirm('Are you sure you want to delete this dubbed trailer from S3?');
+                                    if (!confirmDelete) return;
+
+                                    const url = editableProjectInfo.dubbedFileData[i].dubbedTrailerUrl;
+                                    if (!url || typeof url !== 'string' || !url.startsWith('https://')) {
+                                      alert('Invalid S3 URL. Cannot delete file.');
+                                      return;
+                                    }
+
+                                    setDeletingDubbedTrailerIndex(i);
+
+                                    try {
+                                      const field = `dubbedFileData.${i}.dubbedTrailerUrl`;
+
+                                      await deleteFileFromS3(
+                                        url,
+                                        token,
+                                        projectData?.projectInfo, // ✅ full object
+                                        field,
+                                        'dubbed'                  // ✅ type (anything other than 'srt' or 'infoDoc')
+                                      );
+
+                                      const updated = [...editableProjectInfo.dubbedFileData];
+                                      updated[i].dubbedTrailerUrl = '';
+                                      updated[i].trailerFileName = '';
+                                      updated[i].trailerFile = null;
+                                      updated[i].trailerType = 'upload';
+
+                                      setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
+
+                                      alert('Dubbed trailer deleted successfully.');
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert(err.message || 'Failed to delete dubbed trailer from S3 or MongoDB.');
+                                    } finally {
+                                      setDeletingDubbedTrailerIndex(null);
+                                    }
+                                  }}
+                                >
+                                  {deletingDubbedTrailerIndex === i ? 'Removing...' : 'Remove Dubbed Trailer'}
+                                </button>
+                              </div>
                             </div>
                           )}
                         </>
-                      ) : file.dubbedTrailerUrl ? (
+                      ) : file?.dubbedTrailerUrl?.trim() ? (
                         <video
                           width="360"
                           controls
                           key={file.dubbedTrailerUrl}
-                          src={`${file.dubbedTrailerUrl.replace('s3://', 'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/')}`}
+                          src={file.dubbedTrailerUrl.replace('s3://', 'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/')}
                         />
                       ) : (
                         <p className="fst-italic">No dubbed trailer available.</p>
@@ -1236,67 +1698,137 @@ const handleSaveProjectInfo = async () => {
 
 
 
-                    {/* Subtitle */}
+
+
+                    {/* --- Dubbed SRT (Subtitle) Upload & Preview --- */}
+                    {/* --- Dubbed SRT (Subtitle) Upload & Preview --- */}
                     <div className="info-row">
-                      <strong>Subtitle URL:</strong>
+                      <strong>Dubbed SRT Files:</strong>
+
                       {isEditingProject ? (
-                        <>
+                        <div className="flex flex-col gap-2">
+                          {editableProjectInfo.dubbedFileData?.map((entry, index) => (
+                            <div key={index} className="flex items-center gap-4">
+                              {/* Show file name and link if already uploaded */}
+                              {entry.dubbedSubtitleUrl?.startsWith('https://') && (
+                                <a
+                                  href={entry.dubbedSubtitleUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 underline"
+                                >
+                                  {entry.dubbedSubtitleFileName || 'Subtitle File'}
+                                </a>
+                              )}
 
+                              {/* Upload input for SRT file */}
+                              <input
+                                type="file"
+                                accept=".srt"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
 
-                          {editableProjectInfo.dubbedFileData?.[i]?.dubbedSubtitleUrl && (
-                            <div className="mt-2">
-                              <a
-                                href={editableProjectInfo.dubbedFileData[i].dubbedSubtitleUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {editableProjectInfo.dubbedFileData[i].dubbedSubtitleFileName || 'View Subtitle'}
-                              </a>
-                              <p></p>
-
-                              <button
-                                className="btn btn-sm btn-danger ms-2"
-                                disabled={deletingDubbedSubtitleIndex === i}
-                                onClick={async () => {
-                                  const confirmed = window.confirm('Delete this subtitle file from S3?');
-                                  if (!confirmed) return;
-
-                                  setDeletingDubbedSubtitleIndex(i);
-                                  try {
-                                    await deleteFileFromS3(editableProjectInfo.dubbedFileData[i].dubbedSubtitleUrl, token);
-                                    const newDubbed = [...editableProjectInfo.dubbedFileData];
-                                    newDubbed[i].dubbedSubtitleUrl = '';
-                                    newDubbed[i].dubbedSubtitleFileName = '';
-                                    setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: newDubbed });
-                                    alert('Subtitle file deleted.');
-                                  } catch (err) {
-                                    console.error(err);
-                                    alert('Failed to delete subtitle.');
-                                  } finally {
-                                    setDeletingDubbedSubtitleIndex(null);
-                                  }
+                                  const updated = [...editableProjectInfo.dubbedFileData];
+                                  updated[index].dubbedSubtitleFileName = file.name;
+                                  updated[index].dubbedSubtitleUrl = URL.createObjectURL(file); // Temporary blob URL
+                                  updated[index].dubbedSubtitleFileObject = file;
+                                  setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
                                 }}
-                              >
-                                {deletingDubbedSubtitleIndex === i ? 'Removing...' : 'Remove Subtitle'}
-                              </button>
+                              />
+
+                              {/* Conditional button: Delete for uploaded, Remove for newly added */}
+                              {entry.dubbedSubtitleUrl?.startsWith('https://') ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-danger"
+                                  onClick={async () => {
+                                    const confirm = window.confirm(`Delete ${entry.dubbedSubtitleFileName || 'subtitle'}?`);
+                                    if (!confirm) return;
+
+                                    try {
+                                      await deleteFileFromS3(
+                                        entry.dubbedSubtitleUrl,
+                                        token,
+                                        editableProjectInfo._id,
+                                        'dubbedFileData',
+                                        'project',
+                                        index // remove the entire object at this index
+                                      );
+
+                                      const updated = [...editableProjectInfo.dubbedFileData];
+                                      updated.splice(index, 1); // remove from state
+                                      setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
+
+                                      alert('✅ Subtitle deleted successfully');
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert('❌ Failed to delete subtitle');
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </button>
+
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-secondary"
+                                  onClick={() => {
+                                    const updated = [...editableProjectInfo.dubbedFileData];
+                                    updated.splice(index, 1); // Remove the new row
+                                    setEditableProjectInfo({ ...editableProjectInfo, dubbedFileData: updated });
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              )}
                             </div>
-                          )}
-                        </>
-                      ) : file.dubbedSubtitleUrl ? (
-                        <a
-                          href={file.dubbedSubtitleUrl.replace(
-                            's3://',
-                            'https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/'
-                          )}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {file.dubbedSubtitleFileName}
-                        </a>
+                          ))}
+
+                          {/* Add new row for a new subtitle */}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-primary"
+                            onClick={() =>
+                              setEditableProjectInfo({
+                                ...editableProjectInfo,
+                                dubbedFileData: [
+                                  ...editableProjectInfo.dubbedFileData,
+                                  {
+                                    language: '',
+                                    dubbedSubtitleFileName: '',
+                                    dubbedSubtitleUrl: '',
+                                    dubbedSubtitleFileObject: null,
+                                  },
+                                ],
+                              })
+                            }
+                          >
+                            + Add Dubbed Subtitle
+                          </button>
+                        </div>
                       ) : (
-                        <p>N/A</p>
+                        <ul>
+                          {editableProjectInfo.dubbedFileData?.map((entry, index) =>
+                            entry.dubbedSubtitleUrl ? (
+                              <li key={index}>
+                                <a
+                                  href={entry.dubbedSubtitleUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 underline"
+                                >
+                                  {entry.dubbedSubtitleFileName || 'Subtitle File'}
+                                </a>
+                              </li>
+                            ) : null
+                          )}
+                        </ul>
                       )}
                     </div>
+
+
                   </div>
                 ))}
               </div>
@@ -1459,6 +1991,8 @@ const handleSaveProjectInfo = async () => {
         </div>
       </section>
 
+
+
       {/* 3. Specifications */}
       <section className="section">
         <div className="section-header flex justify-between items-center">
@@ -1468,7 +2002,22 @@ const handleSaveProjectInfo = async () => {
           <button
             onClick={() => {
               if (isEditingSpecifications) {
+                // Reset on cancel
                 setEditableSpecificationsInfo(specificationsInfo);
+              } else {
+                // Normalize genres to string array on edit
+                const normalizedGenres = Array.isArray(specificationsInfo?.genres)
+                  ? specificationsInfo.genres.map((g) =>
+                    typeof g === 'object' && g.name ? g.name : g
+                  )
+                  : typeof specificationsInfo?.genres === 'string'
+                    ? [specificationsInfo.genres]
+                    : [];
+
+                setEditableSpecificationsInfo({
+                  ...specificationsInfo,
+                  genres: normalizedGenres,
+                });
               }
               setIsEditingSpecifications(!isEditingSpecifications);
             }}
@@ -1476,69 +2025,213 @@ const handleSaveProjectInfo = async () => {
           >
             {isEditingSpecifications ? '❌ Cancel' : '✏️ Edit'}
           </button>
-
         </div>
 
+
+
+
+        {/* Project Type */}
         <div className="info-row">
-          <strong>Project Type:</strong>
+          <strong className="text-white">Project Type:</strong>
           {isEditingSpecifications ? (
-            <input className="text-black"
-              type="text"
+            <select
+              className="text-black w-full"
               value={editableSpecificationsInfo.projectType || ''}
               onChange={(e) =>
                 setEditableSpecificationsInfo({ ...editableSpecificationsInfo, projectType: e.target.value })
               }
-            />
+            >
+              <option value="">Select Project Type</option>
+              {projectTypes.map((type, idx) => (
+                <option key={idx} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
           ) : (
-            <p>{specificationsInfo?.projectType || 'N/A'}</p>
+            <p className="text-white">{specificationsInfo?.projectType || 'N/A'}</p>
           )}
         </div>
+
+
+        {/* Genre(s) */}
+        {/* Genre(s) */}
         <div className="info-row">
-          <strong>Genre(s):</strong>
+          <strong>Genre:</strong>
           {isEditingSpecifications ? (
-            <input className="text-black"
-              type="text"
-              value={editableSpecificationsInfo.genres || ''}
-              onChange={(e) =>
-                setEditableSpecificationsInfo({ ...editableSpecificationsInfo, genres: e.target.value })
+            <select
+              className="text-black"
+              value={
+                typeof editableSpecificationsInfo.genres === 'string'
+                  ? editableSpecificationsInfo.genres
+                  : Array.isArray(editableSpecificationsInfo.genres)
+                    ? editableSpecificationsInfo.genres[0] // fallback if it's an array
+                    : ''
               }
-            />
+              onChange={(e) => {
+                const selected = e.target.value;
+                setEditableSpecificationsInfo({
+                  ...editableSpecificationsInfo,
+                  genres: selected,
+                });
+              }}
+            >
+              <option value="">Select a genre</option>
+              {genresOptions.map((genre) => {
+                const genreName = typeof genre === 'string' ? genre : genre.name;
+                return (
+                  <option key={genreName} value={genreName}>
+                    {genreName}
+                  </option>
+                );
+              })}
+            </select>
           ) : (
-            <p>{specificationsInfo?.genres || 'N/A'}</p>
+            <p>
+              {typeof specificationsInfo?.genres === 'string'
+                ? specificationsInfo.genres
+                : Array.isArray(specificationsInfo?.genres)
+                  ? specificationsInfo.genres
+                    .map((g) =>
+                      typeof g === 'object' && g.name
+                        ? g.name
+                        : typeof g === 'string'
+                          ? g
+                          : ''
+                    )
+                    .filter(Boolean)
+                    .join(', ')
+                  : 'N/A'}
+            </p>
           )}
         </div>
+
+
+
+
+
+        {/* Language */}
         <div className="info-row">
           <strong>Language:</strong>
           {isEditingSpecifications ? (
-            <input className="text-black"
-              type="text"
+            <select
+              className="text-black"
               value={editableSpecificationsInfo.language || ''}
               onChange={(e) =>
-                setEditableSpecificationsInfo({ ...editableSpecificationsInfo, language: e.target.value })
+                setEditableSpecificationsInfo({
+                  ...editableSpecificationsInfo,
+                  language: e.target.value,
+                })
               }
-            />
+            >
+              <option value="">-- Select Language --</option>
+              {languageList.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
           ) : (
             <p>{specificationsInfo?.language || 'N/A'}</p>
           )}
         </div>
+
+        {/* Rating */}
+        {/* Rating */}
         <div className="info-row">
           <strong>Rating:</strong>
           {isEditingSpecifications ? (
-            <input className="text-black"
-              type="text"
+            <select
+              className="text-black"
               value={editableSpecificationsInfo.rating || ''}
               onChange={(e) =>
-                setEditableSpecificationsInfo({ ...editableSpecificationsInfo, rating: e.target.value })
+                setEditableSpecificationsInfo({
+                  ...editableSpecificationsInfo,
+                  rating: e.target.value,
+                })
               }
-            />
+              style={{ width: '340px', padding: '10px', borderRadius: '10px' }}
+            >
+              <option value="">Select rating</option>
+
+              <optgroup label="🇺🇸 United States (MPA)">
+                <option value="United States - G">G – General audiences – All ages admitted (United States)</option>
+                <option value="United States - PG">PG – Parental guidance suggested (United States)</option>
+                <option value="United States - PG-13">PG-13 – Some material may be inappropriate under 13 (United States)</option>
+                <option value="United States - R">R – Under 17 requires adult (United States)</option>
+                <option value="United States - NC-17">NC-17 – Adults only (United States)</option>
+              </optgroup>
+
+              <optgroup label="🇬🇧 United Kingdom (BBFC)">
+                <option value="United Kingdom - U">U – Suitable for all (United Kingdom)</option>
+                <option value="United Kingdom - PG">PG – Parental guidance (United Kingdom)</option>
+                <option value="United Kingdom - 12A">12A – Under 12 must be accompanied (United Kingdom)</option>
+                <option value="United Kingdom - 15">15 – 15 and over (United Kingdom)</option>
+                <option value="United Kingdom - 18">18 – Adults only (United Kingdom)</option>
+                <option value="United Kingdom - R18">R18 – Explicit content (United Kingdom)</option>
+              </optgroup>
+
+              <optgroup label="🇮🇳 India (CBFC)">
+                <option value="India - U">U – Universal, all ages (India)</option>
+                <option value="India - UA">UA – Parental guidance under 12 (India)</option>
+                <option value="India - A">A – Adults only (India)</option>
+                <option value="India - S">S – Specialized audience only (India)</option>
+              </optgroup>
+
+              <optgroup label="🇨🇦 Canada (CHVRS)">
+                <option value="Canada - G">G – General (Canada)</option>
+                <option value="Canada - PG">PG – Parental guidance (Canada)</option>
+                <option value="Canada - 14A">14A – 14 and over, under 14 with adult (Canada)</option>
+                <option value="Canada - 18A">18A – 18 and over, under 18 with adult (Canada)</option>
+                <option value="Canada - R">R – 18+ only (Canada)</option>
+                <option value="Canada - A">A – No minors admitted (Canada)</option>
+              </optgroup>
+
+              <optgroup label="🇦🇺 Australia (Classification Board)">
+                <option value="Australia - G">G – General (Australia)</option>
+                <option value="Australia - PG">PG – Parental guidance (Australia)</option>
+                <option value="Australia - M">M – Mature (recommended 15+) (Australia)</option>
+                <option value="Australia - MA15+">MA15+ – Under 15 must be accompanied (Australia)</option>
+                <option value="Australia - R18+">R18+ – Restricted to 18+ (Australia)</option>
+                <option value="Australia - X18+">X18+ – Explicit content (Australia)</option>
+              </optgroup>
+
+              <optgroup label="🇪🇺 European Union (PEGI)">
+                <option value="PEGI - 3">PEGI 3 – Suitable for all (EU)</option>
+                <option value="PEGI - 7">PEGI 7 – Mild content (EU)</option>
+                <option value="PEGI - 12">PEGI 12 – Moderate content (EU)</option>
+                <option value="PEGI - 16">PEGI 16 – Strong content (EU)</option>
+                <option value="PEGI - 18">PEGI 18 – Explicit content (EU)</option>
+              </optgroup>
+
+              <optgroup label="🇩🇪 Germany (FSK)">
+                <option value="Germany - 0">0 – All ages (Germany)</option>
+                <option value="Germany - 6">6 – Ages 6 and over (Germany)</option>
+                <option value="Germany - 12">12 – Ages 12 and over (Germany)</option>
+                <option value="Germany - 16">16 – Ages 16 and over (Germany)</option>
+                <option value="Germany - 18">18 – Adults only (Germany)</option>
+              </optgroup>
+
+              <optgroup label="🇫🇷 France (CNC)">
+                <option value="France - U">U – Suitable for all (France)</option>
+                <option value="France - 10">10 – Ages 10 and over (France)</option>
+                <option value="France - 12">12 – Ages 12 and over (France)</option>
+                <option value="France - 16">16 – Ages 16 and over (France)</option>
+                <option value="France - 18">18 – Adults only (France)</option>
+              </optgroup>
+            </select>
           ) : (
             <p>{specificationsInfo?.rating || 'N/A'}</p>
           )}
         </div>
+
+
+        {/* Completion Date */}
         <div className="info-row">
           <strong>Completion Date:</strong>
           {isEditingSpecifications ? (
-            <input className="text-black"
+            <input
+              className="text-black"
               type="date"
               value={
                 editableSpecificationsInfo.completionDate
@@ -1550,12 +2243,17 @@ const handleSaveProjectInfo = async () => {
               }
             />
           ) : (
-            <p>{specificationsInfo?.completionDate ? new Date(specificationsInfo.completionDate).toLocaleDateString() : 'N/A'}</p>
+            <p>
+              {specificationsInfo?.completionDate
+                ? new Date(specificationsInfo.completionDate).toLocaleDateString()
+                : 'N/A'}
+            </p>
           )}
         </div>
       </section>
 
-     {/* 5. Rights Info */}
+
+{/* 5. Rights Info */}
 <section className="section">
   <div className="section-header flex justify-between items-center">
     <h1 className="header-numbered">
@@ -1578,17 +2276,25 @@ const handleSaveProjectInfo = async () => {
   <div className="info-row">
     <strong>Rights:</strong>
     {isEditingRights ? (
-      <input
-        className="text-black"
-        type="text"
-        value={editableRightsInfo.rights?.map(r => r.name).join(', ') || ''}
-        onChange={(e) =>
+      <select
+        className="text-white bg-gray-800 px-2 py-1 rounded"
+        style={{ color: 'white', backgroundColor: '#1f2937' }}
+        value={editableRightsInfo.rights?.name || ''}
+        onChange={(e) => {
+          const selected = rightsOptions.find((option) => option.name === e.target.value);
           setEditableRightsInfo({
             ...editableRightsInfo,
-            rights: e.target.value.split(',').map(name => ({ name: name.trim() })).filter(r => r.name),
-          })
-        }
-      />
+            rights: selected ? { name: selected.name } : null,
+          });
+        }}
+      >
+        <option value="">Select Rights</option>
+        {rightsOptions.map((option) => (
+          <option key={option.id || option.name} value={option.name}>
+            {option.name}
+          </option>
+        ))}
+      </select>
     ) : rightsInfo?.rights?.length ? (
       <p>{rightsInfo.rights.map((r) => r.name).join(', ')}</p>
     ) : (
@@ -1598,63 +2304,108 @@ const handleSaveProjectInfo = async () => {
 
   {/* Territories */}
   <div className="info-row">
-    <strong>Territories:</strong>
+    <strong className="text-white">Territories:</strong>
     {isEditingRights ? (
-      <div className="text-black space-y-2">
-        <div>
-          <label className="font-semibold">Included Regions:</label>
-          <input
-            type="text"
-            className="w-full mt-1"
-            value={editableRightsInfo.territories?.includedRegions?.map(r => r.name).join(', ') || ''}
-            onChange={(e) =>
+      <div className="text-white space-y-4 flex flex-wrap gap-4">
+        {/* Included Regions */}
+        <div className="flex-1 min-w-[300px]">
+          <label className="font-semibold text-white">Included Regions:</label>
+          <Multiselect
+            className="text-white bg-gray-800"
+            style={{ color: 'white', backgroundColor: '#1f2937' }}
+            options={[
+              { name: 'Worldwide', id: 'worldwide' },
+              ...territoryGroupedOptions.map((group) => ({
+                name: group.groupName,
+                id: group.groupId,
+              })),
+            ]}
+            selectedValues={editableRightsInfo.territories?.includedRegions || []}
+            onSelect={(selectedList, selectedItem) => {
+              if (selectedItem.id === 'worldwide') {
+                setEditableRightsInfo((prev) => ({
+                  ...prev,
+                  territories: {
+                    includedRegions: [{ name: 'Worldwide', id: 'worldwide' }],
+                    excludeCountries: [],
+                  },
+                }));
+              } else {
+                const filtered = selectedList.filter((r) => r.id !== 'worldwide');
+                setEditableRightsInfo((prev) => ({
+                  ...prev,
+                  territories: {
+                    includedRegions: filtered,
+                    excludeCountries: [],
+                  },
+                }));
+              }
+            }}
+            onRemove={(selectedList) => {
               setEditableRightsInfo((prev) => ({
                 ...prev,
                 territories: {
-                  ...prev.territories,
-                  includedRegions: e.target.value
-                    .split(',')
-                    .map(name => ({ name: name.trim(), id: name.toLowerCase().replace(/\s+/g, '-') }))
-                    .filter(r => r.name),
+                  includedRegions: selectedList,
+                  excludeCountries: [],
                 },
-              }))
-            }
+              }));
+            }}
+            displayValue="name"
+            showCheckbox
+            closeIcon="cancel"
           />
+          {editableRightsInfo.territories?.includedRegions?.some((r) => r.id === 'worldwide') && (
+            <p className="text-sm text-gray-400 mt-1">
+              Other regions are hidden when "Worldwide" is selected.
+            </p>
+          )}
         </div>
 
-        <div>
-          <label className="font-semibold">Excluded Countries:</label>
-          <input
-            type="text"
-            className="w-full mt-1"
-            value={editableRightsInfo.territories?.excludeCountries?.map(c => c.name).join(', ') || ''}
-            onChange={(e) =>
+        {/* Excluded Countries */}
+        <div className="flex-1 min-w-[300px]">
+          <label className="font-semibold text-white">Excluded Countries:</label>
+          <Multiselect
+            className="text-white bg-gray-800"
+            style={{ color: 'white', backgroundColor: '#1f2937' }}
+            options={getCountryOptionsByRegionIds(editableRightsInfo.territories?.includedRegions || [])}
+            selectedValues={editableRightsInfo.territories?.excludeCountries || []}
+            onSelect={(selectedList) => {
               setEditableRightsInfo((prev) => ({
                 ...prev,
                 territories: {
                   ...prev.territories,
-                  excludeCountries: e.target.value
-                    .split(',')
-                    .map(name => ({ name: name.trim(), region: '', selected: false }))
-                    .filter(c => c.name),
+                  excludeCountries: selectedList,
                 },
-              }))
-            }
+              }));
+            }}
+            onRemove={(selectedList) => {
+              setEditableRightsInfo((prev) => ({
+                ...prev,
+                territories: {
+                  ...prev.territories,
+                  excludeCountries: selectedList,
+                },
+              }));
+            }}
+            displayValue="name"
+            showCheckbox
+            closeIcon="cancel"
+            disable={!editableRightsInfo.territories?.includedRegions?.length}
           />
         </div>
       </div>
     ) : (
-      <div>
+      <div className="text-white">
         {rightsInfo?.territories?.includedRegions?.length > 0 && (
           <p>
             <strong>Included:</strong>{' '}
-            {rightsInfo.territories.includedRegions.map(r => r.name).join(', ')}
+            {rightsInfo.territories.includedRegions.map((r) => r.name).join(', ')}
           </p>
         )}
         {rightsInfo?.territories?.excludeCountries?.length > 0 && (
           <p>
             <strong>Excluded:</strong>{' '}
-            {rightsInfo.territories.excludeCountries.map(c => `${c.name} (${c.region})`).join(', ')}
+            {rightsInfo.territories.excludeCountries.map((c) => `${c.name} (${c.region})`).join(', ')}
           </p>
         )}
         {(!rightsInfo?.territories?.includedRegions?.length &&
@@ -1665,67 +2416,100 @@ const handleSaveProjectInfo = async () => {
 
   {/* License Term */}
   <div className="info-row">
-    <strong>License Term:</strong>
+    <strong className="text-white">License Term:</strong>
     {isEditingRights ? (
-      <input
-        className="text-black"
-        type="text"
-        value={editableRightsInfo.licenseTerm?.map(l => l.name).join(', ') || ''}
-        onChange={(e) =>
-          setEditableRightsInfo({
-            ...editableRightsInfo,
-            licenseTerm: e.target.value.split(',').map(name => ({ name: name.trim() })).filter(l => l.name),
-          })
-        }
+      <Multiselect
+        className="text-white bg-gray-800"
+        style={{ color: 'white', backgroundColor: '#1f2937' }}
+        options={licenseTermOptions}
+        selectedValues={editableRightsInfo.licenseTerm || []}
+        onSelect={(selectedList) => {
+          setEditableRightsInfo((prev) => ({
+            ...prev,
+            licenseTerm: selectedList,
+          }));
+        }}
+        onRemove={(selectedList) => {
+          setEditableRightsInfo((prev) => ({
+            ...prev,
+            licenseTerm: selectedList,
+          }));
+        }}
+        displayValue="name"
+        showCheckbox
+        closeIcon="cancel"
+        selectionLimit={1}
       />
     ) : rightsInfo?.licenseTerm?.length ? (
-      <p>{rightsInfo.licenseTerm.map((l) => l.name).join(', ')}</p>
+      <p className="text-white">{rightsInfo.licenseTerm.map((l) => l.name).join(', ')}</p>
     ) : (
-      <p>N/A</p>
+      <p className="text-white">N/A</p>
     )}
   </div>
 
   {/* Usage Rights */}
   <div className="info-row">
-    <strong>Usage Rights:</strong>
+    <strong className="text-white">Usage Rights:</strong>
     {isEditingRights ? (
-      <input
-        className="text-black"
-        type="text"
-        value={editableRightsInfo.usageRights?.map(u => u.name).join(', ') || ''}
-        onChange={(e) =>
-          setEditableRightsInfo({
-            ...editableRightsInfo,
-            usageRights: e.target.value.split(',').map(name => ({ name: name.trim() })).filter(u => u.name),
-          })
-        }
+      <Multiselect
+        className="text-white bg-gray-800"
+        style={{ color: 'white', backgroundColor: '#1f2937' }}
+        options={usageRightsOptions}
+        selectedValues={editableRightsInfo.usageRights || []}
+        onSelect={(selectedList) => {
+          setEditableRightsInfo((prev) => ({
+            ...prev,
+            usageRights: selectedList,
+          }));
+        }}
+        onRemove={(selectedList) => {
+          setEditableRightsInfo((prev) => ({
+            ...prev,
+            usageRights: selectedList,
+          }));
+        }}
+        displayValue="name"
+        showCheckbox
+        closeIcon="cancel"
+        selectionLimit={1}
       />
     ) : rightsInfo?.usageRights?.length ? (
-      <p>{rightsInfo.usageRights.map((u) => u.name).join(', ')}</p>
+      <p className="text-white">{rightsInfo.usageRights.map((u) => u.name).join(', ')}</p>
     ) : (
-      <p>N/A</p>
+      <p className="text-white">N/A</p>
     )}
   </div>
 
   {/* Payment Terms */}
   <div className="info-row">
-    <strong>Payment Terms:</strong>
+    <strong className="text-white">Payment Terms:</strong>
     {isEditingRights ? (
-      <input
-        className="text-black"
-        type="text"
-        value={editableRightsInfo.paymentTerms?.map(p => p.name).join(', ') || ''}
-        onChange={(e) =>
-          setEditableRightsInfo({
-            ...editableRightsInfo,
-            paymentTerms: e.target.value.split(',').map(name => ({ name: name.trim() })).filter(p => p.name),
-          })
-        }
+      <Multiselect
+        className="text-white bg-gray-800"
+        style={{ color: 'white', backgroundColor: '#1f2937' }}
+        options={paymentTermsOptions}
+        selectedValues={editableRightsInfo.paymentTerms || []}
+        onSelect={(selectedList) => {
+          setEditableRightsInfo((prev) => ({
+            ...prev,
+            paymentTerms: selectedList,
+          }));
+        }}
+        onRemove={(selectedList) => {
+          setEditableRightsInfo((prev) => ({
+            ...prev,
+            paymentTerms: selectedList,
+          }));
+        }}
+        displayValue="name"
+        showCheckbox
+        closeIcon="cancel"
+        selectionLimit={1}
       />
     ) : rightsInfo?.paymentTerms?.length ? (
-      <p>{rightsInfo.paymentTerms.map((p) => p.name).join(', ')}</p>
+      <p className="text-white">{rightsInfo.paymentTerms.map((p) => p.name).join(', ')}</p>
     ) : (
-      <p>N/A</p>
+      <p className="text-white">N/A</p>
     )}
   </div>
 
@@ -1734,7 +2518,8 @@ const handleSaveProjectInfo = async () => {
     <strong>List Price:</strong>
     {isEditingRights ? (
       <input
-        className="text-black"
+        className="text-white bg-gray-800 px-2 py-1 rounded"
+        style={{ color: 'white', backgroundColor: '#1f2937' }}
         type="number"
         value={editableRightsInfo.listPrice || ''}
         onChange={(e) =>
@@ -1746,6 +2531,8 @@ const handleSaveProjectInfo = async () => {
     )}
   </div>
 </section>
+
+
 
 
       <div className="flex justify-end mt-6">
