@@ -22,7 +22,7 @@ import DealDashboard from '../deals/dealDashboard';
 import CartPage from '../cart/CartPage';
 import DealDetails from '../deals/components/DealDetails';
 import UsersList from '../userOrgRegister/usersList';
-import Requirement from '../requirement/Requirement';
+import Requirement from '../requirement/requirement';
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
