@@ -44,7 +44,8 @@ const CartPage = () => {
   // Movie data with added selected property
   const [movies, setMovies] = useState([])
   console.log("movies", movies);
-
+  const [deals, setDeals] = useState([]);
+  console.log("deals", deals);
   // State for terms and conditions
   const [loading, setLoading] = useState(false)
   const [ageConfirmed, setAgeConfirmed] = useState(false)
@@ -136,11 +137,11 @@ const CartPage = () => {
   const fetchCartMovies = async () => {
     try {
       setLoading(true); // Show loader
-      const response = await axios.get(`https://www.mediashippers.com/api/cart/get-cart/${user?._id}`);
+      const response = await axios.get(`http://localhost:3000/api/cart/get-cart/${user?._id}`);
       console.log("response", response);
-      const movies = response.data;
-      console.log("Fetched movies:", movies);
-      setMovies(movies.map((movie) => ({ ...movie, selected: true }))); // Set all movies as selected by default
+      const { deals } = response.data; // API response contains deals
+      console.log("Fetched deals:", deals);
+      setDeals(deals.map((deal) => ({ ...deal, selected: false })));
     } catch (error) {
       console.error("Error fetching movies:", error);
     } finally {
@@ -158,10 +159,21 @@ const CartPage = () => {
   const total = (Number.parseFloat(subtotal) + Number.parseFloat(tax)).toFixed(2) || 0
 
   // Toggle selection for a single movie
-  const toggleMovieSelection = (id) => {
-    console.log("Toggling movie selection for ID:", id)
-    setMovies(movies.map((movie) => (movie._id === id ? { ...movie, selected: !movie.selected } : movie)))
-  }
+  const toggleMovieSelection = (movieId, dealIndex) => {
+    console.log("Toggling movie selection for ID:", movieId);
+    setMovies((prevMovies) =>
+      prevMovies.map((deal, index) =>
+        index === dealIndex
+          ? {
+            ...deal,
+            movies: deal.movies.map((movie) =>
+              movie._id === movieId ? { ...movie, selected: !movie.selected } : movie
+            ),
+          }
+          : deal
+      )
+    );
+  };
 
   // Toggle selection for all movies
   const toggleSelectAll = (event) => {
@@ -175,43 +187,37 @@ const CartPage = () => {
   // Count selected movies
   const selectedCount = movies.filter((movie) => movie.selected).length
 
+  const isAnyDealSelected = () => {
+    return deals.some((deal) => deal.selected); // Check if any deal is selected
+  };
   // Handle proceed to checkout
   const handleProceedToCheckout = () => {
-    if (selectedCount === 0) {
-      alert("Please select at least one movie")
-      return
+    if (!isAnyDealSelected()) {
+      alert("Please select a deal to proceed.");
+      return;
     }
 
-    // Open drawer instead of dialog
-    setDrawerOpen(true)
-  }
+    // Open the checkout drawer
+    setDrawerOpen(true);
+  };
 
   const handleSubmitForm = async () => {
     try {
+      const selectedDeal = deals.find((deal) => deal.selected);
+
+      if (!selectedDeal) {
+        alert("Please select a deal to proceed.");
+        return;
+      }
       // Prepare the payload
       const payload = {
-        senderId: user?._id,
-        receiverId:
-          user?.role === "Admin"
-            ? selectedBuyer._id
-            : user?.createdBy,
-        movies: movies
-          .filter((movie) => movie.selected)
-          .map((movie) => ({
-            movieId: movie._id,
-            title: movie.projectName,
-            userId: movie.userId,
-          })),
-        rights: selectedRights,
-        territory: selectedTerritory,
         licenseTerm: selectedLicenseTerm,
-        usageRights: selectedUsageRights,
         paymentTerms: selectedPaymentTerms,
         remarks,
-        status: user?.role === "Admin" ? "sent_to_buyer" : "sent_to_shipper",
+        status: "curated_list_sent_to_buyer",
         message: {
           senderId: user?._id,
-          reciverId: user?.role === 'Admin' ? selectedBuyer._id : user?.createdBy,
+          reciverId: selectedDeal.senderId,
           content: message,
         },
       };
@@ -219,13 +225,13 @@ const CartPage = () => {
       console.log("Payload to be sent:", payload);
 
       // Call the API
-      const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload);
+      const response = await axios.put(`http://localhost:3000/api/deal/update/${selectedDeal._id}/cart/${user._id}`, payload);
 
-      if (response.status === 201) {
-        const remainingMovies = response.data.remainingMovies || [];
+      if (response.status === 200) {
+        const {remainingDeals} = response.data || [];
 
         // Update the cart in Redux
-        dispatch(setCartMovies(remainingMovies));
+        dispatch(setCartMovies(remainingDeals));
 
         // Close the drawer
         setDrawerOpen(false);
@@ -267,6 +273,14 @@ const CartPage = () => {
     } finally {
       setLoading(false); // Hide loader
     }
+  };
+
+  const toggleDealSelection = (dealId) => {
+    setDeals((prevDeals) =>
+      prevDeals.map((deal) =>
+        deal._id === dealId ? { ...deal, selected: !deal.selected } : deal
+      )
+    );
   };
 
   // Custom rendering for the rights chips
@@ -382,9 +396,9 @@ const CartPage = () => {
           >
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
               <Typography variant="h6" color="#fff">
-                Movies ({movies.length})
+                Deals ({deals.length})
               </Typography>
-              <Box sx={{ display: "flex", gap: 2 }}>
+              {/* <Box sx={{ display: "flex", gap: 2 }}>
                 <Button
                   variant="text"
                   sx={{
@@ -395,11 +409,11 @@ const CartPage = () => {
                 >
                   Clear All
                 </Button>
-              </Box>
+              </Box> */}
             </Box>
 
             {/* Select All Checkbox */}
-            <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
+            {/* <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -416,86 +430,92 @@ const CartPage = () => {
                 label="Select All Movies"
                 sx={{ color: "#e1780c" }}
               />
-            </Box>
+            </Box> */}
 
             {/* Movie Items */}
-            {movies.map((movie, index) => (
-              <React.Fragment key={movie.id}>
+            {deals.map((deal) => (
+              <Box
+                key={deal._id}
+                sx={{
+                  borderBottom: "3px solid #ffffff",
+                  pb: 2,
+                }}
+              >
+                {/* Deal Checkbox and Title */}
                 <Box
                   sx={{
                     display: "flex",
-                    gap: 2,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 2,
                   }}
                 >
-                  <Box sx={{ alignItems: "center" }}>
-                    <Checkbox
-                      checked={movie.selected}
-                      onChange={() => toggleMovieSelection(movie._id)}
-                      sx={{
-                        color: "gray",
-                        "&.Mui-checked": {
-                          color: "#fff",
-                        },
-                      }}
-                    />
-                  </Box>
-                  <Box
-                    component="img"
-                    src={movie.projectPosterS3Url}
-                    alt={`${movie.projectName} poster`}
-                    sx={{
-                      width: 100,
-                      height: 150,
-                      borderRadius: 2,
-                      objectFit: "cover",
-                      flexShrink: 0,
-                      opacity: movie.selected ? 1 : 0.5,
-                      transition: "opacity 0.2s",
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      opacity: movie.selected ? 1 : 0.7,
-                    }}
-                  >
-                    {/* Movie Info */}
-                    <Box sx={{ marginTop: "30px", textAlign: "left" }}>
-                      <Typography sx={{ fontWeight: 500, color: "#fff" }}>{movie.projectName}</Typography>
-                      <Typography variant="body2" sx={{ color: "gray" }}>
-                        {movie.briefSynopsis}
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={deal.selected || false} // Track deal selection
+                        onChange={() => toggleDealSelection(deal._id)} // Handle deal selection
+                        sx={{
+                          color: "gray",
+                          "&.Mui-checked": {
+                            color: "#fff",
+                          },
+                        }}
+                      />
+                    }
+                    label={
+                      <Typography sx={{ fontWeight: 500, color: "#fff" }}>
+                        {deal.requirementTitle || "Untitled Deal"}
                       </Typography>
-                      {/* <Typography variant="body2" sx={{ color: "gray" }}>
-                        Director: {movie.director}
-                      </Typography> */}
-                    </Box>
-
-                    {/* Deal Box */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        alignItems: "center",
-                        gap: 2,
-                        mt: 2,
-                      }}
-                    >
-                      {/* <Typography sx={{ fontWeight: 500, color: "#fff" }}>${movie.price || 0}</Typography> */}
-                      <IconButton
-                        sx={{ color: "#fff" }}
-                        onClick={() => handleDeleteCartItem(movie._id)} // Pass the movie ID to delete
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Box>
-                  </Box>
+                    }
+                    sx={{ color: "#e1780c" }}
+                  />
                 </Box>
-                {index < movies.length - 1 && <Divider sx={{ my: 3, backgroundColor: "#27272a" }} />}
-              </React.Fragment>
+
+                {/* Movies Inside the Selected Deal */}
+                {deal.selected && (
+                  <Box>
+                    {deal.movies.map((movie) => (
+                      <Box
+                        key={movie._id}
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "flex-start",
+                          gap: 2,
+                          mb: 2,
+                        }}
+                      >
+                        {/* Movie Poster */}
+                        <Box
+                          component="img"
+                          src={movie?.movieId?.projectPosterS3Url}
+                          alt={`${movie?.movieId?.projectTitle} poster`}
+                          sx={{
+                            width: 100,
+                            height: 150,
+                            borderRadius: 2,
+                            objectFit: "cover",
+                            flexShrink: 0,
+                          }}
+                        />
+
+                        {/* Movie Info */}
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontWeight: 500, color: "#fff" }}>
+                            {movie?.movieId?.projectTitle}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: "gray" }}>
+                            {movie?.movieId?.briefSynopsis}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
             ))}
+
           </Card>
 
           {/* Summary */}
@@ -518,7 +538,7 @@ const CartPage = () => {
               <Typography sx={{ color: "gray" }}>Tax</Typography>
               <Typography sx={{ color: "#fff" }}>${isNaN(tax) ? 0 : tax}</Typography>
             </Box> */}
-            <Divider sx={{ my: 2, backgroundColor: "#27272a" }} />
+            <Divider sx={{ my: 2, backgroundColor: "#ffffff" }} />
             {/* <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: 500 }}>
               <Typography sx={{ color: "gray" }}>Total</Typography>
               <Typography sx={{ color: "#fff" }}>${isNaN(total) ? 0 : total}</Typography>
@@ -553,10 +573,10 @@ const CartPage = () => {
               sx={{
                 mt: 3,
                 color: "#fff",
-                backgroundColor: selectedCount > 0 ? "#e1780c" : "gray",
-                "&:hover": { backgroundColor: selectedCount > 0 ? "#c26509" : "gray" },
+                backgroundColor: isAnyDealSelected() ? "#e1780c" : "gray", // Enable only if a deal is selected
+                "&:hover": { backgroundColor: isAnyDealSelected() ? "#c26509" : "gray" },
               }}
-              disabled={selectedCount === 0}
+              disabled={!isAnyDealSelected()} // Disable if no deal is selected
               onClick={handleProceedToCheckout}
             >
               Proceed to Checkout
@@ -608,74 +628,9 @@ const CartPage = () => {
           </Typography>
 
           <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {/* Rights Selection */}
-            <Autocomplete
-              size="small"
-              multiple
-              value={selectedRights}
-              onChange={(event, newValue) => setSelectedRights(newValue)} // Update the selected rights
-              options={rightsOptions.map((option) => option.name)} // Extract names from rightsOptions
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    key={option}
-                    label={option}
-                    {...getTagProps({ index })}
-                    sx={{
-                      bgcolor: "#27272a",
-                      color: "#fff",
-                      "& .MuiChip-deleteIcon": {
-                        color: "gray",
-                        "&:hover": {
-                          color: "#fff",
-                        },
-                      },
-                    }}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  type="multiple"
-                  {...params}
-                  label="Rights"
-                  placeholder="Select Rights"
-                  InputLabelProps={{
-                    sx: { color: "gray" },
-                  }}
-                  InputProps={{
-                    ...params.InputProps,
-                    sx: {
-                      color: "#fff",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#27272a",
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#e1780c",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#e1780c",
-                      },
-                      "& .MuiSvgIcon-root": {
-                        color: "gray",
-                      },
-                    },
-                  }}
-                />
-              )}
-              sx={{
-                "& .MuiAutocomplete-popupIndicator": {
-                  color: "gray",
-                },
-                "& .MuiAutocomplete-clearIndicator": {
-                  color: "gray",
-                },
-              }}
-            />
 
-            {user?.role === 'Admin' && (
+            {/* {user?.role === 'Admin' && (
               <>
-                {/* Buyer Autocomplete */}
                 <Autocomplete
                   value={selectedBuyer}
                   onChange={(e, newValue) => {
@@ -714,11 +669,7 @@ const CartPage = () => {
                     />
                   )}
                 />
-
-
-
-                {/* Seller Autocomplete */}
-                {/* <Autocomplete
+                <Autocomplete
                   multiple
                   value={selectedSeller}
                   onChange={(e, newValue) => setSelectedSeller(newValue)}
@@ -768,64 +719,11 @@ const CartPage = () => {
                       }}
                     />
                   )}
-                /> */}
+                /> 
 
 
               </>
-            )}
-
-            {/* Territory Selection */}
-            <Autocomplete
-              value={selectedTerritory}
-              onChange={(e, newValue) => setSelectedTerritory(newValue)}
-              options={territoryOptions.map((option) => option.name)}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    key={option}
-                    label={option}
-                    {...getTagProps({ index })}
-                    sx={{
-                      bgcolor: "#3a3a3c",
-                      color: "white",
-                      "& .MuiChip-deleteIcon": {
-                        color: "gray",
-                        "&:hover": { color: "#e1780c" },
-                      },
-                    }}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  type="multiple"
-                  size="small"
-                  label="Select Territories"
-                  placeholder="Add Territory"
-                  InputLabelProps={{ sx: { color: "gray" } }}
-                  InputProps={{
-                    ...params.InputProps,
-                    sx: {
-                      color: "#fff",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#27272a",
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#e1780c",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#e1780c",
-                      },
-                      "& .MuiSvgIcon-root": {
-                        color: "gray",
-                      }
-                    },
-                  }}
-                />
-              )}
-              sx={{ width: "100%" }}
-            />
+            )} */}
 
             {/* License Term Selection */}
             <Autocomplete
@@ -856,60 +754,6 @@ const CartPage = () => {
                   size="small"
                   label="Select License Terms"
                   placeholder="Add License Term"
-                  InputLabelProps={{ sx: { color: "gray" } }}
-                  InputProps={{
-                    ...params.InputProps,
-                    sx: {
-                      color: "#fff",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#27272a",
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#e1780c",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#e1780c",
-                      },
-                      "& .MuiSvgIcon-root": {
-                        color: "gray",
-                      }
-                    },
-                  }}
-                />
-              )}
-              sx={{ width: "100%" }}
-            />
-
-            {/* Usage Rights Selection */}
-            <Autocomplete
-              // multiple
-              value={selectedUsageRights}
-              onChange={(e, newValue) => setSelectedUsageRights(newValue)}
-              options={usageRightsOptions.map((option) => option.name)}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    key={option}
-                    label={option}
-                    {...getTagProps({ index })}
-                    sx={{
-                      bgcolor: "#3a3a3c",
-                      color: "white",
-                      "& .MuiChip-deleteIcon": {
-                        color: "gray",
-                        "&:hover": { color: "#e1780c" },
-                      },
-                    }}
-                  />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  type="multiple"
-                  size="small"
-                  label="Select Usage Rights"
-                  placeholder="Add Usage Right"
                   InputLabelProps={{ sx: { color: "gray" } }}
                   InputProps={{
                     ...params.InputProps,

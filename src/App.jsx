@@ -33,7 +33,8 @@ import {
   cartPage,
   dealDetails,
   userManagement,
-  usersList
+  usersList,
+  requirement
 } from './pages/mainPage/Main';
 
 import ProtectedRoute from './components/protectedRoutes/ProtectedRoutes';
@@ -224,6 +225,10 @@ function App() {
             <Route path="/deal-details/:dealId" element={
               <ProtectedRoute>
                 <DashboardLayout>{dealDetails()}</DashboardLayout></ProtectedRoute>} />
+            <Route path="/create-requirement" element={
+              <ProtectedRoute>
+                <DashboardLayout>{requirement()}</DashboardLayout>
+              </ProtectedRoute>} />
           </Routes>
         </Router>
       </AuthProvider>
