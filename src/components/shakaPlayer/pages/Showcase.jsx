@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { PlayerMenu } from "../components/PlayerMenu.jsx";
 import { useToast } from "../components/ui/use-toast.js";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import Search from "./Search.jsx";
@@ -16,12 +16,14 @@ import {
   Box,
   Button,
   Card,
+  Autocomplete,
   CardContent,
   CardMedia,
   Chip,
   IconButton,
   InputBase,
   Toolbar,
+  TextField,
   Typography,
   alpha,
   Slider,
@@ -34,6 +36,8 @@ import {
   FormControlLabel,
   Snackbar,
   Alert,
+  Container,
+  Paper,
 } from "@mui/material"
 import {
   Search as SearchIcon,
@@ -44,6 +48,9 @@ import {
   Star as StarIcon,
   KeyboardArrowDown as ArrowDownIcon,
   CheckBox,
+  HelpOutlined,
+  Send,
+  ContactSupport,
 } from "@mui/icons-material"
 import Loader from '../../loader/Loader.jsx'
 import { setCartMovies } from "../../../redux/cartSlice/cartSlice.js";
@@ -51,11 +58,15 @@ import { setCartMovies } from "../../../redux/cartSlice/cartSlice.js";
 
 
 export default function MovieGrid() {
+  const location = useLocation();
+  const dealDetails = location.state?.dealDetails;
 
+  console.log("Received Deal Details:", dealDetails);
   const { toast } = useToast();
   const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [projectData, setProjectData] = useState([]);
+  console.log("Project Data:", projectData);
   const [specificationsData, setSpecificationsData] = useState([]);
   const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState('');
@@ -72,6 +83,16 @@ export default function MovieGrid() {
   const [selectedRights, setSelectedRights] = useState([]);
   const [originalProjectData, setOriginalProjectData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  // Drawer-specific states
+  const [drawerSelectedRights, setDrawerSelectedRights] = useState("");
+  const [drawerSelectedTerritory, setDrawerSelectedTerritory] = useState([]);
+  const [drawerSelectedUsageRights, setDrawerSelectedUsageRights] = useState([]);
+  const [drawerSelectedContentCategories, setDrawerSelectedContentCategories] = useState([]);
+  console.log("drawerSelectedContentCategories:", drawerSelectedContentCategories); // Ensure it's an array
+  const [drawerSelectedLanguages, setDrawerSelectedLanguages] = useState([]);
+  const [drawerSelectedGenres, setDrawerSelectedGenres] = useState([]);
+  const [drawerSelectedYears, setDrawerSelectedYears] = useState([]);
+  const [selectedExcludingTerritory, setSelectedExcludingTerritory] = useState([]);
 
   const { orgName, _id:
     userId, role } = useSelector((state) => state.auth.user.user)
@@ -208,7 +229,7 @@ export default function MovieGrid() {
         setSpecificationsData(formattedSpecs);
 
         // Save project IDs and user IDs if needed
-       
+
         allUserIds.current = [...new Set(projects.map((p) => p.userId))];
 
         console.log("✅ All project + form data loaded");
@@ -245,7 +266,8 @@ export default function MovieGrid() {
     return () => clearTimeout(delayDebounceFn); // Cleanup the timeout
   }, [searchTerm, originalProjectData]);
 
-
+  const [filtersApplied, setFiltersApplied] = useState(false);
+  console.log("Filters applied state:", filtersApplied);
   // Filter states
   const [selectedGenres, setSelectedGenres] = useState([])
   const [selectedYears, setSelectedYears] = useState([])
@@ -268,6 +290,7 @@ export default function MovieGrid() {
   const [snackbarOpen, setSnackbarOpen] = useState(false); // State to control Snackbar visibility
   const [snackbarMessage, setSnackbarMessage] = useState(""); // State to store the message
   const [snackbarSeverity, setSnackbarSeverity] = useState("error"); // State to store the severity (error, success, etc.)
+  const [filteredExcludingCountries, setFilteredExcludingCountries] = useState([]); // Filtered countries for excluding
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false); // Close the Snackbar
@@ -286,7 +309,17 @@ export default function MovieGrid() {
 
 
 
-
+  const areDrawerFieldsFilled = () => {
+    return (
+      drawerSelectedRights &&
+      drawerSelectedTerritory &&
+      drawerSelectedUsageRights &&
+      drawerSelectedContentCategories.length > 0 &&
+      drawerSelectedLanguages &&
+      drawerSelectedGenres.length > 0 &&
+      drawerSelectedYears.length > 0
+    );
+  };
 
 
   const handleGenreFilter = (genre) => {
@@ -333,10 +366,10 @@ export default function MovieGrid() {
       const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
       console.log("project Years:", projectYear);
       return updatedYears.length > 0
-        ? updatedYears.includes(projectYear) 
+        ? updatedYears.includes(projectYear)
         : true;
     });
-    
+
     console.log("Filtered Data by Year:", filteredData);
     setProjectData(filteredData); // Update the filtered movies state
   };
@@ -352,13 +385,21 @@ export default function MovieGrid() {
   const handleSortChange = (option) => {
     setSortOption(option); // Update the selected sort option
     setSortAnchorEl(null); // Close the sort popover
-  
+
     if (option === "title") {
-      // Sort projectData alphabetically by projectTitle (case-insensitive)
+      // Sort projectData alphabetically by projectTitle (A-Z)
       const sortedData = [...projectData].sort((a, b) => {
         const titleA = a.projectTitle?.toLowerCase() || "";
         const titleB = b.projectTitle?.toLowerCase() || "";
-        return titleA.localeCompare(titleB, undefined, { sensitivity: 'base' });
+        return titleA.localeCompare(titleB, undefined, { sensitivity: "base" });
+      });
+      setProjectData(sortedData); // Update the sorted project data
+    } else if (option === "title-desc") {
+      // Sort projectData reverse alphabetically by projectTitle (Z-A)
+      const sortedData = [...projectData].sort((a, b) => {
+        const titleA = a.projectTitle?.toLowerCase() || "";
+        const titleB = b.projectTitle?.toLowerCase() || "";
+        return titleB.localeCompare(titleA, undefined, { sensitivity: "base" });
       });
       setProjectData(sortedData); // Update the sorted project data
     } else {
@@ -407,52 +448,71 @@ export default function MovieGrid() {
   }
 
 
-  const handleTerritoryFilter = (territory) => {
-    if (selectedTerritories.includes(territory)) {
-      setSelectedTerritories(selectedTerritories.filter((t) => t !== territory));
-    } else {
-      setSelectedTerritories([...selectedTerritories, territory]);
-    }
+  const handleTerritoryFilter = (selectedRegions) => {
+    // Filter countries based on selected regions
+    const filteredCountries = territoryGroupedOptions.filter((option) =>
+      selectedRegions.some((region) => option.region.toLowerCase() === region.toLowerCase())
+    );
+
+    // Update the filtered countries state
+    setFilteredExcludingCountries(filteredCountries.map((option) => option.name));
   };
 
   const handleLanguageFilter = (language) => {
+    let updatedLanguages;
+
     if (selectedLanguages.includes(language)) {
-      setSelectedLanguages(selectedLanguages.filter((l) => l !== language)); // Remove language
+      // Remove the language if already selected
+      updatedLanguages = selectedLanguages.filter((l) => l !== language);
     } else {
-      setSelectedLanguages([...selectedLanguages, language]); // Add language
+      // Add the language to the selected list
+      updatedLanguages = [...selectedLanguages, language];
     }
 
-    // Filter project data based on the selected language
-    const filteredData = originalProjectData.filter(
-      (project) =>
-        project?.formData?.specificationsInfo?.language?.toLowerCase() === language.toLowerCase()
-    );
+    setSelectedLanguages(updatedLanguages);
 
-    console.log("Filtered Data:", filteredData);
-    setProjectData(filteredData); // Update the filtered movies state
+    // Filter project data based on the updated languages
+    const filteredData =
+      updatedLanguages.length > 0
+        ? originalProjectData.filter((project) =>
+          updatedLanguages.some(
+            (selectedLanguage) =>
+              project?.formData?.specificationsInfo?.language?.toLowerCase() ===
+              selectedLanguage.toLowerCase()
+          )
+        )
+        : [...originalProjectData]; // Reset to original data if no languages are selected
+
+    setProjectData(filteredData); // Update the filtered project data
   };
 
   const handleContentCategoryFilter = (category) => {
-    const copyOfFilteredData = [...projectData];
+    let updatedCategories;
+
     if (selectedContentCategories.includes(category)) {
-      setSelectedContentCategories(selectedContentCategories.filter((c) => c !== category)); // Remove category
+      // Remove category if already selected
+      updatedCategories = selectedContentCategories.filter((c) => c !== category);
     } else {
-      setSelectedContentCategories([...selectedContentCategories, category]); // Add category
+      // Add category to the selected list
+      updatedCategories = [...selectedContentCategories, category];
     }
 
-    // Filter project data based on the selected content category
-    const filteredData = copyOfFilteredData.filter((project) =>
-      selectedContentCategories.length > 0
-        ? selectedContentCategories.some((selectedCategory) =>
-          project?.formData?.specificationsInfo?.projectType
-            ?.toLowerCase()
-            .includes(selectedCategory.toLowerCase())
-        )
-        : true
-    );
+    setSelectedContentCategories(updatedCategories);
 
-    console.log("Filtered Data by Content Category:", filteredData);
-    setProjectData(filteredData); // Update the filtered movies state
+    // Filter project data based on the updated categories
+    const filteredData =
+      updatedCategories.length > 0
+        ? originalProjectData.filter((project) =>
+          updatedCategories.some((selectedCategory) => {
+            const projectType = project?.formData?.specificationsInfo?.projectType
+              ?.replace(/_/g, " ") // Replace underscores with spaces
+              ?.toLowerCase(); // Convert to lowercase for case-insensitive comparison
+            return projectType === selectedCategory.toLowerCase();
+          })
+        )
+        : [...originalProjectData]; // Reset to original data if no categories are selected
+
+    setProjectData(filteredData); // Update the filtered project data
   };
 
   const handleRightsFilter = (right) => {
@@ -961,23 +1021,18 @@ export default function MovieGrid() {
       case "title":
         return "Title A-Z"
       default:
-        return "Featured"
+        return "Titles"
     }
   }
 
   const handleAddToCart = async () => {
-    const movies = selectedItems.map((itemId) => {
-      const project = projectData.find((project) => project._id === itemId);
-      return {
-        movieId: project._id,
-        title: project.projectTitle,
-      };
-    });
 
     try {
-      const response = await axios.post('https://media-shippers-backend.vercel.app/api/cart/add-to-cart', {
+      const response = await axios.post("https://media-shippers-backend.vercel.app/api/cart/add-to-cart", {
         userId,
-        movies,
+        movies: selectedItems,
+        dealId: dealDetails?._id,
+        status: 'admin_filtered_content'
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -1005,6 +1060,19 @@ export default function MovieGrid() {
     }
   };
 
+  const handleRegionSelection = (selectedRegions) => {
+    // Update the selected regions state
+    setDrawerSelectedTerritory(selectedRegions);
+
+    // Filter territories based on selected regions
+    const filteredTerritories = territoryGroupedOptions.filter((option) =>
+      selectedRegions.some((region) => option.region.toLowerCase() === region.toLowerCase())
+    );
+
+    // Update the filtered territories state
+    setFilteredExcludingCountries(filteredTerritories.map((option) => option.name));
+  };
+
   const handleSelectAll = (event) => {
     const isChecked = event.target.checked;
     setSelectAll(isChecked);
@@ -1013,9 +1081,15 @@ export default function MovieGrid() {
       // Select all items
       const allIds = projectData.map((project) => project._id);
       setSelectedItems(allIds);
+
+      // Open the drawer only if any drawer field is empty
+      if (!areDrawerFieldsFilled()) {
+        setAdvancedFiltersOpen(true);
+      }
     } else {
       // Deselect all items
       setSelectedItems([]);
+      setAdvancedFiltersOpen(false); // Close the drawer when "Select All" is unchecked
     }
   };
 
@@ -1026,12 +1100,153 @@ export default function MovieGrid() {
     } else {
       // Add the item to the selected list
       setSelectedItems([...selectedItems, id]);
+
+      // Open the drawer only if any drawer field is empty
+      if (!areDrawerFieldsFilled()) {
+        setAdvancedFiltersOpen(true);
+      }
     }
   };
 
+  // New filtering function
+  const filterMovies = () => {
+    let filteredData = [...originalProjectData]; // Start with the original data
+    console.log("Filtering movies with current selections...", filteredData);
+    // Filter by Rights
+    if (drawerSelectedRights) {
+      filteredData = filteredData.filter((project) =>
+        project.formData?.rightsInfo?.some((right) => right.rights[0].name === drawerSelectedRights)
+      );
+      console.log("Filtered by Rights:", filteredData);
+    }
+
+    // Filter by Territory
+    if (drawerSelectedTerritory.length > 0) {
+      filteredData = filteredData.filter((project) =>
+        project.formData?.rightsInfo?.some((territory) =>
+          drawerSelectedTerritory.some((selectedTerritory) =>
+            territory?.territories[0]?.region?.toLowerCase() === selectedTerritory.toLowerCase()
+          )
+        )
+      );
+      console.log("Filtered by Territory:", filteredData);
+    }
+
+    if (selectedExcludingTerritory.length > 0) {
+      filteredData = filteredData.filter((project) =>
+        project.formData?.rightsInfo?.some((territory) =>
+          selectedExcludingTerritory.some((selectedTerritory) =>
+            territory?.territories[0]?.country?.toLowerCase() === selectedTerritory.toLowerCase()
+          )
+        )
+      );
+      console.log("Filtered by Territory:", filteredData);
+    }
+
+    // Filter by Excluding Territory
+    // if (selectedExcludingTerritory.length > 0) {
+    //   filteredData = filteredData.filter((project) =>
+    //     project.formData?.rightsInfo?.some((territory) => territory?.territories[0]?.country === selectedExcludingTerritory
+    //     )
+    //   );
+    // }
+
+    // Filter by Usage Rights
+    if (drawerSelectedUsageRights.length > 0) {
+      filteredData = filteredData.filter((project) =>
+        project.formData?.rightsInfo?.some((usage) =>
+          drawerSelectedUsageRights.some((selectedUsageRight) =>
+            usage?.usageRights?.some((right) =>
+              right.name.toLowerCase() === selectedUsageRight.toLowerCase()
+            )
+          )
+        )
+      );
+
+      console.log("Filtered by Usage Rights:", filteredData);
+    }
+
+    console.log("drawerSelectedContentCategories:", drawerSelectedContentCategories);
+    // Filter by Content Category
+    // Ensure drawerSelectedContentCategories is an array
+    if (drawerSelectedContentCategories && !Array.isArray(drawerSelectedContentCategories)) {
+      drawerSelectedContentCategories = [drawerSelectedContentCategories]; // Convert to array if it's a single string
+    }
+
+    // Filter by Content Category
+    if (drawerSelectedContentCategories.length > 0) {
+      filteredData = filteredData.filter((project) => {
+        const projectType = project.formData?.specificationsInfo?.projectType
+          ?.toLowerCase(); // Convert to lowercase for case-insensitive comparison
+
+        return drawerSelectedContentCategories.some(
+          (selectedCategory) => selectedCategory.toLowerCase() === projectType
+        );
+      });
+
+      console.log("Filtered by Content Category:", filteredData);
+    }
+
+    // Filter by Language
+    if (drawerSelectedLanguages.length > 0) {
+      filteredData = filteredData.filter((project) =>
+        drawerSelectedLanguages?.some((selectedLanguage) =>
+          project.formData?.specificationsInfo?.language?.toLowerCase() === selectedLanguage.toLowerCase()
+        )
+      );
+      console.log("Filtered by Language:", filteredData);
+    }
+
+    // Filter by Genre
+    if (drawerSelectedGenres.length > 0) {
+      filteredData = filteredData.filter((project) => {
+        const projectGenres = project.formData?.specificationsInfo?.genres
+          ?.split(",") // Split the comma-separated genres into an array
+          .map((genre) => genre.trim().toLowerCase()); // Trim whitespace and convert to lowercase
+
+        return drawerSelectedGenres.some((selectedGenre) =>
+          projectGenres?.includes(selectedGenre.toLowerCase()) // Check if any selected genre matches
+        );
+      });
+
+      console.log("Filtered by Genres:", filteredData);
+    }
+
+    // Filter by Year of Release
+    if (drawerSelectedYears.length > 0) {
+      filteredData = filteredData.filter((project) => {
+        const completionDate = project.formData?.specificationsInfo?.completionDate;
+        const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
+
+        return drawerSelectedYears.some((selectedYear) => projectYear === parseInt(selectedYear));
+      });
+
+      console.log("Filtered by Year of Release:", filteredData);
+    }
+
+    // Update the filtered data
+    setProjectData(filteredData);
+  };
+
+  useEffect(() => {
+    if (dealDetails) {
+      // Automatically populate filter values based on deal details
+      setDrawerSelectedRights(dealDetails.rights || "");
+      setDrawerSelectedTerritory(dealDetails.includingRegions || []);
+      setDrawerSelectedUsageRights(dealDetails.usageRights ? [dealDetails.usageRights] : []);
+      setDrawerSelectedContentCategories(dealDetails.contentCategory || []);
+      setDrawerSelectedLanguages(dealDetails.languages || []);
+      setDrawerSelectedGenres(dealDetails.genre || []);
+      setDrawerSelectedYears(dealDetails.yearOfRelease || []);
+      setSelectedExcludingTerritory(dealDetails.excludingCountries || []);
+      // Open the drawer automatically
+      setAdvancedFiltersOpen(true);
+    }
+  }, [dealDetails]);
+
   return (
     <>
-    <Snackbar
+      <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000} // Automatically hide after 6 seconds
         onClose={handleSnackbarClose}
@@ -1091,6 +1306,12 @@ export default function MovieGrid() {
                     onClick={() => handleSortChange("title")} // Sort A-Z
                   >
                     Title A-Z
+                  </Box>
+                  <Box
+                    sx={sortOption === "title-desc" ? styles.sortItemActive : styles.sortItem}
+                    onClick={() => handleSortChange("title-desc")} // Sort Z-A
+                  >
+                    Title Z-A
                   </Box>
                 </Box>
               </Box>
@@ -1459,7 +1680,7 @@ export default function MovieGrid() {
               onClick={() => setAdvancedFiltersOpen(true)}
               startIcon={<TuneIcon fontSize="small" />}
             >
-              More Filters
+              Set Requirement
               {activeFiltersCount > 0 && (
                 <Badge
                   badgeContent={activeFiltersCount}
@@ -1475,6 +1696,28 @@ export default function MovieGrid() {
                 />
               )}
             </Button>
+            {filtersApplied && (
+              <Button
+                variant="outlined"
+                sx={styles.filterButtonActive}
+                onClick={() => {
+                  // Reset all filter states
+                  setDrawerSelectedRights("");
+                  setDrawerSelectedTerritory([]);
+                  setDrawerSelectedUsageRights([]);
+                  setDrawerSelectedContentCategories([]);
+                  setDrawerSelectedLanguages([]);
+                  setDrawerSelectedGenres([]);
+                  setDrawerSelectedYears([]);
+                  setSelectedExcludingTerritory([]);
+                  setFiltersApplied(false); // Reset filters applied state
+                  setProjectData([...originalProjectData]);
+                  navigate(location.pathname, { state: null });
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
 
             {/* Selected Filters */}
             {allSelectedFilters.length > 0 && (
@@ -1501,113 +1744,375 @@ export default function MovieGrid() {
             )}
           </Box>
 
-          {/* Advanced Filters Drawer */}
-          <Drawer anchor="right" open={advancedFiltersOpen} onClose={() => setAdvancedFiltersOpen(false)}>
+          <Drawer anchor="right"
+            open={advancedFiltersOpen}
+            onClose={(event, reason) => {
+              if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+              setAdvancedFiltersOpen(false);
+              setSelectedItems([]);
+            }}
+            ModalProps={{
+              keepMounted: true, // Keep the drawer mounted for performance
+              disableBackdropClick: true, // Prevent closing when clicking outside
+            }}
+          >
             <Box sx={styles.drawerContent}>
               <Box sx={styles.drawerHeader}>
-                <Typography sx={styles.drawerTitle}>Advanced Filters</Typography>
-                <IconButton onClick={() => setAdvancedFiltersOpen(false)} sx={{ color: "#fff" }}>
+                <Typography sx={styles.drawerTitle}>Set Your Requirements</Typography>
+                <IconButton onClick={() => {
+                  setAdvancedFiltersOpen(false);
+                  setSelectedItems([]);
+                  setSelectAll(false);
+                }} sx={{ color: "#fff" }}>
                   <CloseIcon />
                 </IconButton>
               </Box>
-
-              {/* Selected Filters */}
-              {allSelectedFilters.length > 0 && (
-                <Box sx={styles.selectedFiltersContainer}>
-                  {allSelectedFilters.map((filter, index) => (
-                    <Chip
-                      key={`${filter.type}-${filter.value}`}
-                      label={filter.value}
-                      onDelete={() => removeFilter(filter)}
-                      deleteIcon={<CloseIcon fontSize="small" />}
-                      sx={styles.selectedFilterChip}
+              <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {/* Rights (Mandatory) */}
+                <Autocomplete
+                  size="small"
+                  value={drawerSelectedRights}
+                  onChange={(event, newValue) => {
+                    // Store only a single right
+                    setDrawerSelectedRights(newValue);
+                  }}
+                  options={rightsOptions.map((option) => option.name)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={
+                        <Typography>
+                          Rights <span style={{ color: "red" }}>*</span>
+                        </Typography>
+                      }
+                      placeholder="Select Rights"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
                     />
-                  ))}
-                  {allSelectedFilters.length > 0 && (
-                    <Button sx={styles.clearButton} onClick={clearFilters}>
-                      Clear All
-                    </Button>
                   )}
-                </Box>
-              )}
+                />
 
-              <Divider sx={{ backgroundColor: "rgba(255, 255, 255, 0.1)", margin: "16px 0" }} />
-
-              {/* Genre Filter */}
-              <Box sx={styles.drawerSection}>
-                <Typography sx={styles.drawerSectionTitle}>Genre</Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {genresOptions.map((genre) => (
-                    <Chip
-                      key={genre.id}
-                      onClick={() => handleGenreFilter(genre.name)}
-                      sx={selectedGenres.includes(genre.name) ? styles.popoverChipActive : styles.popoverChip}
+                {/* Territory (Mandatory) */}
+                <Autocomplete
+                  multiple // Enable multiple selection
+                  value={drawerSelectedTerritory} // Bind selected values to state
+                  onChange={(e, newValue) => setDrawerSelectedTerritory(newValue)} // Update state on selection
+                  options={[...new Set(territoryGroupedOptions.map((option) => option.region))]} // Unique regions
+                  renderTags={(value, getTagProps) =>
+                    value?.map((option, index) => (
+                      <Chip
+                        key={option}
+                        size="small"
+                        label={option} // Display selected option
+                        {...getTagProps({ index })} // Add props for chip behavior
+                        sx={{
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                          "& .MuiChip-deleteIcon": {
+                            color: "#fff",
+                            "&:hover": {
+                              color: "#000",
+                            },
+                          },
+                        }}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={
+                        <Typography>
+                          Territories (Including Region) <span style={{ color: "red" }}>*</span>
+                        </Typography>
+                      }
+                      placeholder="Select Region"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
                     />
-                  ))}
-                </Box>
-              </Box>
+                  )}
+                />
 
-              {/* Year Filter */}
-              <Box sx={styles.drawerSection}>
-                <Typography sx={styles.drawerSectionTitle}>Year</Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {allYears.map((year) => (
-                    <Chip
-                      key={year}
-                      onClick={() => handleYearFilter(year)}
-                      sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
+                {/* Excluding Territory (Optional) */}
+                <Autocomplete
+                  multiple // Enable multiple selection
+                  value={selectedExcludingTerritory} // Bind selected values to state
+                  onChange={(e, newValue) => setSelectedExcludingTerritory(newValue)} // Update state on selection
+                  options={filteredExcludingCountries} // Use filtered countries based on selected regions
+                  renderTags={(value, getTagProps) =>
+                    value?.map((option, index) => (
+                      <Chip
+                        size="small"
+                        key={option}
+                        label={option} // Display selected option
+                        {...getTagProps({ index })} // Add props for chip behavior
+                        sx={{
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                          "& .MuiChip-deleteIcon": {
+                            color: "#fff",
+                            "&:hover": {
+                              color: "#000",
+                            },
+                          },
+                        }}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Territories (Excluding Countries)"
+                      placeholder="Select Excluding Countries"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
                     />
-                  ))}
-                </Box>
-              </Box>
+                  )}
+                />
 
-              {/* Price Range Filter */}
-              {/* <Box sx={styles.drawerSection}>
-            <Typography sx={styles.drawerSectionTitle}>Price Range</Typography>
-            <Box sx={{ padding: "0 10px" }}>
-              <Slider
-                value={priceRange}
-                onChange={handlePriceChange}
-                valueLabelDisplay="auto"
-                min={minPrice}
-                max={maxPrice}
-                step={1}
-                sx={styles.slider}
-                valueLabelFormat={(value) => `$${value}`}
-              />
-              <Box sx={styles.priceRangeText}>
-                <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
-              </Box>
-            </Box>
-          </Box> */}
-
-              {/* Rating Filter */}
-              <Box sx={styles.drawerSection}>
-                <Typography sx={styles.drawerSectionTitle}>Minimum Rating</Typography>
-                <Box sx={{ padding: "0 10px" }}>
-                  <Slider
-                    value={ratingFilter}
-                    onChange={handleRatingChange}
-                    valueLabelDisplay="auto"
-                    min={0}
-                    max={5}
-                    step={0.5}
-                    sx={styles.slider}
-                    valueLabelFormat={(value) => `${value} Stars`}
-                  />
-                  <Box sx={styles.ratingContainer}>
-                    <Rating
-                      value={ratingFilter}
-                      precision={0.5}
-                      onChange={handleRatingChange}
-                      emptyIcon={<StarIcon style={{ opacity: 0.3 }} fontSize="inherit" />}
+                {/* Usage Rights (Mandatory) */}
+                <Autocomplete
+                  value={drawerSelectedUsageRights}
+                  onChange={(e, newValue) => setDrawerSelectedUsageRights(newValue)}
+                  options={usageRightsOptions.map((option) => option.name)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={
+                        <Typography>
+                          Usage Rights <span style={{ color: "red" }}>*</span>
+                        </Typography>
+                      }
+                      placeholder="Select Usage Rights"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
                     />
-                    <Typography sx={styles.ratingValue}>
-                      {ratingFilter > 0 ? `${ratingFilter}+ Stars` : "Any Rating"}
-                    </Typography>
-                  </Box>
-                </Box>
+                  )}
+                />
+
+                {/* Content Category (Mandatory) */}
+                <Autocomplete
+                  value={drawerSelectedContentCategories}
+                  onChange={(e, newValue) => {
+                    // Ensure the value is always an array
+                    setDrawerSelectedContentCategories(Array.isArray(newValue) ? newValue : [newValue]);
+                  }}
+                  options={contentCategoryOptions.map((option) => option.name)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={
+                        <Typography>
+                          Content Category <span style={{ color: "red" }}>*</span>
+                        </Typography>
+                      }
+                      placeholder="Select Content Category"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Language (Mandatory) */}
+                <Autocomplete
+                  value={drawerSelectedLanguages}
+                  onChange={(e, newValue) => setDrawerSelectedLanguages(newValue)}
+                  options={languageList}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={
+                        <Typography>
+                          Language <span style={{ color: "red" }}>*</span>
+                        </Typography>
+                      }
+                      placeholder="Select Language"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Genre (Optional) */}
+                <Autocomplete
+                  value={drawerSelectedGenres}
+                  onChange={(e, newValue) => setDrawerSelectedGenres(newValue)}
+                  options={genresOptions.map((option) => option.name)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Genre"
+                      placeholder="Select Genre"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Year of Release (Optional) */}
+                <Autocomplete
+                  value={drawerSelectedYears}
+                  onChange={(e, newValue) => setDrawerSelectedYears(newValue)}
+                  options={allYears}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Year of Release"
+                      placeholder="Select Year"
+                      type="normal"
+                      size="small"
+                      InputLabelProps={{ sx: { color: "gray" } }}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          color: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#27272a",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#e1780c",
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Filter Button */}
+                <Button
+                  variant="contained"
+                  sx={{
+                    bgcolor: "#e1780c",
+                    color: "#fff",
+                    "&:hover": { bgcolor: "#c26509" },
+                    marginTop: "16px",
+                  }}
+                  onClick={() => {
+                    filterMovies(); // Apply filters
+                    setFiltersApplied(true); // Mark filters as applied
+                    setAdvancedFiltersOpen(false); // Close the drawer
+                  }}
+                >
+                  Filter Movies
+                </Button>
+
               </Box>
             </Box>
           </Drawer>
@@ -1638,16 +2143,30 @@ export default function MovieGrid() {
                 },
               }}
             >
-              <Button variant="contained" size="small" onClick={handleAddToCart}>Add To Cart</Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleAddToCart}
+                disabled={selectedItems.length === 0} // Disable button when no items are selected
+                sx={{
+                  backgroundColor: selectedItems.length > 0 ? "#7ab5e7" : "rgba(255, 255, 255, 0.08)",
+                  color: selectedItems.length > 0 ? "#000" : "#aaa",
+                  "&:hover": {
+                    backgroundColor: selectedItems.length > 0 ? "#5a9bd5" : "rgba(255, 255, 255, 0.08)",
+                  },
+                }}
+              >
+                Add To Cart
+              </Button>
             </Badge>
           </div>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+          {Object.values(projectData).length > 0 ? <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
             {Object.values(projectData).map((project) => {
               console.log("🔍 Project data in map:", project); // Add log here
 
               const title = project?.projectTitle || "Untitled Project";
               const poster = project?.posterFileName;
-             const logoImageURL = project.projectPosterS3Url || defaultPoster;
+              const logoImageURL = project.projectPosterS3Url || defaultPoster;
               console.log("poster filen name", poster)
               console.log("logo image url", logoImageURL)
               console.log("orgname", orgName)
@@ -1699,7 +2218,159 @@ export default function MovieGrid() {
                 </Box>
               );
             })}
-          </Box>
+          </Box> : <Container>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "60vh",
+                textAlign: "center",
+                padding: 3,
+              }}
+            >
+              <Paper
+                elevation={3}
+                sx={{
+                  padding: 4,
+                  borderRadius: 3,
+                  backgroundColor: "#f8f9fa",
+                  border: "1px solid #e9ecef",
+                  width: "100%",
+                }}
+              >
+                {/* Icon */}
+                <Box
+                  sx={{
+                    marginBottom: 3,
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <HelpOutlined
+                    sx={{
+                      fontSize: 80,
+                      color: "#6c757d",
+                      opacity: 0.7,
+                    }}
+                  />
+                </Box>
+
+                {/* Main Message */}
+                <Typography
+                  variant="h4"
+                  component="h2"
+                  sx={{
+                    marginBottom: 2,
+                    fontWeight: 600,
+                    color: "#343a40",
+                    fontSize: { xs: "1.5rem", sm: "2rem" },
+                  }}
+                >
+                  Oops! No Content Found
+                </Typography>
+
+                <Typography
+                  variant="body1"
+                  sx={{
+                    marginBottom: 3,
+                    color: "#6c757d",
+                    lineHeight: 1.6,
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  We couldn't find what you're looking for right now. Don't worry though - our admin team is here to help you
+                  get exactly what you need!
+                </Typography>
+
+                {/* Call to Action */}
+                <Box
+                  sx={{
+                    backgroundColor: "#e3f2fd",
+                    padding: 3,
+                    borderRadius: 2,
+                    marginBottom: 3,
+                    border: "1px solid #bbdefb",
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      marginBottom: 2,
+                      color: "#1565c0",
+                      fontWeight: 500,
+                    }}
+                  >
+                    📝 Have specific requirements?
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "#424242",
+                      marginBottom: 2,
+                    }}
+                  >
+                    Click below to send your requirements to our admin team. We'll get back to you as soon as possible!
+                  </Typography>
+                </Box>
+
+                {/* Action Buttons */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={<Send />}
+                    // onClick={handleContactAdmin}
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      "&:hover": {
+                        backgroundColor: "#1565c0",
+                      },
+                      paddingX: 3,
+                      paddingY: 1.5,
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                      boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
+                    }}
+                  >
+                    Send Requirement
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    startIcon={<ContactSupport />}
+                    sx={{
+                      borderColor: "#1976d2",
+                      color: "#1976d2",
+                      "&:hover": {
+                        borderColor: "#1565c0",
+                        backgroundColor: "rgba(25, 118, 210, 0.04)",
+                      },
+                      paddingX: 3,
+                      paddingY: 1.5,
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Get Support
+                  </Button>
+                </Box>
+              </Paper>
+            </Box>
+          </Container>}
 
 
         </Box>
@@ -1733,6 +2404,12 @@ const rightsOptions = [
   { name: 'Censorship Rights', id: 22 },
   { name: 'Outright Sale', id: 23 },
 ];
+
+const usageRightsOptions = [
+  { name: "Exclusive", id: 1 },
+  { name: "Non-Exclusive", id: 2 },
+  { name: "Sub-licensable", id: 3 },
+]
 
 const contentCategoryOptions = [
   { name: 'Feature Film', id: 1 },

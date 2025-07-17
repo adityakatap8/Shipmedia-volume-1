@@ -11,15 +11,16 @@ const CartIcon = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth.user);
   const cartCount = useSelector((state) => state.cart.movies.length);
+  console.log("cartCount", cartCount)
 
 
 
   const fetchCartMovies = async () => {
     try {
       const response = await axios.get(`https://media-shippers-backend.vercel.app/api/cart/get-cart/${user?._id}`)
-      console.log("response", response)
-      const movies = response.data
-      dispatch(setCartMovies(movies))
+      console.log("cart response", response)
+      const {deals} = response.data
+      dispatch(setCartMovies(deals))
     } catch (error) {
       console.error("Error fetching movies:", error)
     }

@@ -51,6 +51,7 @@ export function Navebar1({
   // Define all possible menu items
   const allMenuItems = [
     { name: "Home", icon: <MovieIcon />, href: "/showcase-projects" },
+    { name: "Requirement", href: "/create-requirement", icon: <MovieIcon /> },
     { name: "Titles", icon: <MovieIcon />, href: "/projects" },
     { name: "Title Files", icon: <UploadIcon />, href: "/video-catalogue" },
     { name: "Deals", icon: <MovieIcon />, href: "/deals" },
@@ -67,7 +68,7 @@ export function Navebar1({
         return allMenuItems;
       case 'Buyer':
         return allMenuItems.filter(item =>
-          item.name === 'Home' || item.name === 'Deals'
+          item.name === 'Home' || item.name === 'Requirement' || item.name === 'Deals'
         );
       case 'Seller':
         return allMenuItems.filter(item =>
