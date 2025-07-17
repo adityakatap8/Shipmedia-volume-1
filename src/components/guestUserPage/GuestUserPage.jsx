@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Button } from "@mui/material"
 import { Card, CardContent } from "@mui/material"
