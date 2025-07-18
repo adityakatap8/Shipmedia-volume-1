@@ -1115,7 +1115,11 @@ export default function MovieGrid() {
     // Filter by Rights
     if (drawerSelectedRights) {
       filteredData = filteredData.filter((project) =>
-        project.formData?.rightsInfo?.some((right) => right.rights[0].name === drawerSelectedRights)
+        project.formData.rightsInfo?.some((rightInfo) =>
+          rightInfo.rights?.some((right) =>
+            right.name?.toLowerCase() === drawerSelectedRights.toLowerCase()
+          )
+        )
       );
       console.log("Filtered by Rights:", filteredData);
     }
@@ -1123,75 +1127,83 @@ export default function MovieGrid() {
     // Filter by Territory
     if (drawerSelectedTerritory.length > 0) {
       filteredData = filteredData.filter((project) =>
-        project.formData?.rightsInfo?.some((territory) =>
-          drawerSelectedTerritory.some((selectedTerritory) =>
-            territory?.territories[0]?.region?.toLowerCase() === selectedTerritory.toLowerCase()
-          )
-        )
-      );
-      console.log("Filtered by Territory:", filteredData);
-    }
-
-    if (selectedExcludingTerritory.length > 0) {
-      filteredData = filteredData.filter((project) =>
-        project.formData?.rightsInfo?.some((territory) =>
-          selectedExcludingTerritory.some((selectedTerritory) =>
-            territory?.territories[0]?.country?.toLowerCase() === selectedTerritory.toLowerCase()
-          )
-        )
+        project?.formData.rightsInfo?.some((rightInfo) => {
+          if (Array.isArray(rightInfo.territories)) {
+            // Handle array format
+            return rightInfo.territories.some((territory) =>
+              drawerSelectedTerritory.some((selectedTerritory) =>
+                territory.region?.toLowerCase() === selectedTerritory.toLowerCase()
+              )
+            );
+          } else if (rightInfo.territories?.includedRegions) {
+            // Handle object format
+            return rightInfo.territories.includedRegions.some((region) =>
+              drawerSelectedTerritory.some((selectedTerritory) =>
+                region.name?.toLowerCase() === selectedTerritory.toLowerCase()
+              )
+            );
+          }
+          return false;
+        })
       );
       console.log("Filtered by Territory:", filteredData);
     }
 
     // Filter by Excluding Territory
-    // if (selectedExcludingTerritory.length > 0) {
-    //   filteredData = filteredData.filter((project) =>
-    //     project.formData?.rightsInfo?.some((territory) => territory?.territories[0]?.country === selectedExcludingTerritory
-    //     )
-    //   );
-    // }
+    if (selectedExcludingTerritory.length > 0) {
+      filteredData = filteredData.filter((project) =>
+        project?.formData?.rightsInfo?.some((rightInfo) => {
+          if (Array.isArray(rightInfo.territories)) {
+            // Handle array format
+            return rightInfo.territories.some((territory) =>
+              selectedExcludingTerritory.some((selectedTerritory) =>
+                territory.country?.toLowerCase() === selectedTerritory.toLowerCase()
+              )
+            );
+          } else if (rightInfo.territories?.excludeCountries) {
+            // Handle object format
+            return rightInfo.territories.excludeCountries.some((country) =>
+              selectedExcludingTerritory.some((selectedTerritory) =>
+                country.name?.toLowerCase() === selectedTerritory.toLowerCase()
+              )
+            );
+          }
+          return false;
+        })
+      );
+      console.log("Filtered by Excluding Territory:", filteredData);
+    }
 
     // Filter by Usage Rights
     if (drawerSelectedUsageRights.length > 0) {
       filteredData = filteredData.filter((project) =>
-        project.formData?.rightsInfo?.some((usage) =>
-          drawerSelectedUsageRights.some((selectedUsageRight) =>
-            usage?.usageRights?.some((right) =>
-              right.name.toLowerCase() === selectedUsageRight.toLowerCase()
+        project?.formData?.rightsInfo?.some((rightInfo) =>
+          rightInfo.usageRights?.some((usageRight) =>
+            drawerSelectedUsageRights.some((selectedUsageRight) =>
+              usageRight.name.toLowerCase() === selectedUsageRight.toLowerCase()
             )
           )
         )
       );
-
       console.log("Filtered by Usage Rights:", filteredData);
-    }
-
-    console.log("drawerSelectedContentCategories:", drawerSelectedContentCategories);
-    // Filter by Content Category
-    // Ensure drawerSelectedContentCategories is an array
-    if (drawerSelectedContentCategories && !Array.isArray(drawerSelectedContentCategories)) {
-      drawerSelectedContentCategories = [drawerSelectedContentCategories]; // Convert to array if it's a single string
     }
 
     // Filter by Content Category
     if (drawerSelectedContentCategories.length > 0) {
       filteredData = filteredData.filter((project) => {
-        const projectType = project.formData?.specificationsInfo?.projectType
-          ?.toLowerCase(); // Convert to lowercase for case-insensitive comparison
-
+        const projectType = project?.formData?.specificationsInfo?.projectType?.toLowerCase();
         return drawerSelectedContentCategories.some(
           (selectedCategory) => selectedCategory.toLowerCase() === projectType
         );
       });
-
       console.log("Filtered by Content Category:", filteredData);
     }
 
     // Filter by Language
     if (drawerSelectedLanguages.length > 0) {
       filteredData = filteredData.filter((project) =>
-        drawerSelectedLanguages?.some((selectedLanguage) =>
-          project.formData?.specificationsInfo?.language?.toLowerCase() === selectedLanguage.toLowerCase()
+        drawerSelectedLanguages.some((selectedLanguage) =>
+          project?.formData?.specificationsInfo?.language?.toLowerCase() === selectedLanguage.toLowerCase()
         )
       );
       console.log("Filtered by Language:", filteredData);
@@ -1200,7 +1212,7 @@ export default function MovieGrid() {
     // Filter by Genre
     if (drawerSelectedGenres.length > 0) {
       filteredData = filteredData.filter((project) => {
-        const projectGenres = project.formData?.specificationsInfo?.genres
+        const projectGenres = project?.formData?.specificationsInfo?.genres
           ?.split(",") // Split the comma-separated genres into an array
           .map((genre) => genre.trim().toLowerCase()); // Trim whitespace and convert to lowercase
 
@@ -1208,19 +1220,17 @@ export default function MovieGrid() {
           projectGenres?.includes(selectedGenre.toLowerCase()) // Check if any selected genre matches
         );
       });
-
       console.log("Filtered by Genres:", filteredData);
     }
 
     // Filter by Year of Release
     if (drawerSelectedYears.length > 0) {
       filteredData = filteredData.filter((project) => {
-        const completionDate = project.formData?.specificationsInfo?.completionDate;
+        const completionDate = project?.formData?.specificationsInfo?.completionDate;
         const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
 
         return drawerSelectedYears.some((selectedYear) => projectYear === parseInt(selectedYear));
       });
-
       console.log("Filtered by Year of Release:", filteredData);
     }
 
@@ -1677,10 +1687,16 @@ export default function MovieGrid() {
             {/* Advanced Filters Button */}
             <Button
               sx={styles.advancedFilterButton}
-              onClick={() => setAdvancedFiltersOpen(true)}
+              onClick={() => {
+                if (!areDrawerFieldsFilled()) {
+                  role === "Admin" ? navigate("/deals") : navigate("/create-requirement"); // Redirect to the "Received Deal" tab
+                } else {
+                  setAdvancedFiltersOpen(true); // Open the drawer if fields are filled
+                }
+              }}
               startIcon={<TuneIcon fontSize="small" />}
             >
-              Set Requirement
+              {role === "Admin" ? "Set Requirement" : "Create Requirement"}
               {activeFiltersCount > 0 && (
                 <Badge
                   badgeContent={activeFiltersCount}
@@ -2117,48 +2133,52 @@ export default function MovieGrid() {
             </Box>
           </Drawer>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={selectAll}
-                  onChange={handleSelectAll}
-                  sx={{
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "rgba(123, 181, 231, 0.1)", // Background color on hover
-                    },
-                  }}
-                />
-              }
-              label="Select All"
-            />
-            <Badge
-              badgeContent={selectedItems.length}
-              color="primary"
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "#7ab5e7",
-                  color: "#000",
-                  fontWeight: "bold",
-                },
-              }}
-            >
-              <Button
-                variant="contained"
-                size="small"
-                onClick={handleAddToCart}
-                disabled={selectedItems.length === 0} // Disable button when no items are selected
+            {areDrawerFieldsFilled() && filtersApplied && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    sx={{
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "rgba(123, 181, 231, 0.1)", // Background color on hover
+                      },
+                    }}
+                  />
+                }
+                label="Select All"
+              />
+            )}
+            {areDrawerFieldsFilled() && filtersApplied && (
+              <Badge
+                badgeContent={selectedItems.length}
+                color="primary"
                 sx={{
-                  backgroundColor: selectedItems.length > 0 ? "#7ab5e7" : "rgba(255, 255, 255, 0.08)",
-                  color: selectedItems.length > 0 ? "#000" : "#aaa",
-                  "&:hover": {
-                    backgroundColor: selectedItems.length > 0 ? "#5a9bd5" : "rgba(255, 255, 255, 0.08)",
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "#7ab5e7",
+                    color: "#000",
+                    fontWeight: "bold",
                   },
                 }}
               >
-                Add To Cart
-              </Button>
-            </Badge>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleAddToCart}
+                  disabled={selectedItems.length === 0} // Disable button when no items are selected
+                  sx={{
+                    backgroundColor: selectedItems.length > 0 ? "#7ab5e7" : "rgba(255, 255, 255, 0.08)",
+                    color: selectedItems.length > 0 ? "#000" : "#aaa",
+                    "&:hover": {
+                      backgroundColor: selectedItems.length > 0 ? "#5a9bd5" : "rgba(255, 255, 255, 0.08)",
+                    },
+                  }}
+                >
+                  Add To Cart
+                </Button>
+              </Badge>
+            )}
           </div>
           {Object.values(projectData).length > 0 ? <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
             {Object.values(projectData).map((project) => {
@@ -2180,19 +2200,20 @@ export default function MovieGrid() {
               return (
                 <Box key={project._id} sx={responsiveStyles.movieItem}>
                   <Card sx={{ ...styles.card, position: 'relative' }} elevation={0}>
-                    <Checkbox
-                      sx={{
-                        position: 'absolute',
-                        top: 1,
-                        right: 1,
-                        color: '#fff',
-                        '&.Mui-checked': {
-                          color: '#7ab5e7',
-                        },
-                      }}
-                      checked={isChecked}
-                      onChange={() => handleCheckboxChange(project._id)}
-                    />
+                    {areDrawerFieldsFilled() && filtersApplied && (
+                      <Checkbox
+                        sx={{
+                          position: 'absolute',
+                          top: 1,
+                          right: 1,
+                          color: '#fff',
+                          '&.Mui-checked': {
+                            color: '#7ab5e7',
+                          },
+                        }}
+                        checked={isChecked}
+                        onChange={() => handleCheckboxChange(project._id)}
+                      />)}
                     <CardMedia sx={styles.cardMedia} image={logoImageURL} title={title} />
                     <CardContent sx={styles.cardContent}>
                       <Typography gutterBottom variant="h6" component="div" sx={styles.movieTitle}>
@@ -2208,7 +2229,8 @@ export default function MovieGrid() {
                         <Button
                           variant="contained"
                           sx={styles.checkoutButton}
-                          onClick={() => navigate(`/movie/${project._id}`)}
+                          // onClick={() => navigate(`/movie/${project._id}`)}
+                          onClick={() => window.open(`/movie/${project._id}`, "_blank")}
                         >
                           View Details
                         </Button>
@@ -2271,20 +2293,20 @@ export default function MovieGrid() {
                   Oops! No Content Found
                 </Typography>
 
-                <Typography
-                  variant="body1"
-                  sx={{
-                    marginBottom: 3,
-                    color: "#6c757d",
-                    lineHeight: 1.6,
-                    fontSize: "1.1rem",
-                  }}
-                >
-                  We couldn't find what you're looking for right now. Don't worry though - our admin team is here to help you
-                  get exactly what you need!
-                </Typography>
-
-                {/* Call to Action */}
+                {role === "Buyer" && (
+                  <>
+                    <Typography
+                    variant="body1"
+                    sx={{
+                      marginBottom: 3,
+                      color: "#6c757d",
+                      lineHeight: 1.6,
+                      fontSize: "1.1rem",
+                    }}
+                  >
+                    We couldn't find what you're looking for right now. Don't worry though - our admin team is here to help you
+                    get exactly what you need!
+                  </Typography>
                 <Box
                   sx={{
                     backgroundColor: "#e3f2fd",
@@ -2315,7 +2337,7 @@ export default function MovieGrid() {
                   </Typography>
                 </Box>
 
-                {/* Action Buttons */}
+                
                 <Box
                   sx={{
                     display: "flex",
@@ -2368,6 +2390,8 @@ export default function MovieGrid() {
                     Get Support
                   </Button>
                 </Box>
+                  </>
+                )}
               </Paper>
             </Box>
           </Container>}
