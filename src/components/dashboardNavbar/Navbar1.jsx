@@ -51,7 +51,7 @@ export function Navebar1({
   // Define all possible menu items
   const allMenuItems = [
     { name: "Home", icon: <MovieIcon />, href: "/showcase-projects" },
-    { name: "Requirement", href: "/create-requirement", icon: <MovieIcon /> },
+    // { name: "Requirement", href: "/create-requirement", icon: <MovieIcon /> },
     { name: "Titles", icon: <MovieIcon />, href: "/projects" },
     { name: "Title Files", icon: <UploadIcon />, href: "/video-catalogue" },
     { name: "Deals", icon: <MovieIcon />, href: "/deals" },
