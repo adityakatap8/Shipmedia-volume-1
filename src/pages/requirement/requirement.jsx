@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
+import Breadcrumb from "../../components/breadcrumb/Breadcrumb"
 
 // Simplified rights options
 const rightsOptions = [
@@ -255,73 +256,52 @@ const regionCountryMapping = {
 
 const allUsageRights = ["Exclusive", "Non-Exclusive", "Exclusive & Non-Exclusive"]
 
+
+
 const allContentCategories = [
-    "Feature Film",
-    "Short Film",
-    "Documentary Feature",
-    "Documentary Short",
-    "TV Series",
-    "Limited Series",
-    "Mini Series",
-    "TV Movie",
-    "TV Special",
-    "Reality TV",
-    "Talk Show",
-    "Game Show",
-    "News Program",
-    "Sports Program",
-    "Children's Program",
-    "Educational Content",
-    "Animation Feature",
-    "Animation Series",
-    "Animation Short",
-    "Music Video",
-    "Concert Film",
-    "Stand-up Comedy",
-    "Variety Show",
-    "Award Show",
-    "Commercial",
-    "Corporate Video",
-    "Training Video",
-    "Instructional Video",
-    "Web Series",
-    "Podcast",
-    "Audio Drama",
-    "Radio Show",
-    "Live Stream",
-    "Virtual Event",
-    "Interactive Content",
-    "360° Video",
-    "VR Content",
-    "AR Content",
-    "Gaming Content",
-    "User Generated Content",
-    "Social Media Content",
-    "Branded Content",
-    "Sponsored Content",
-    "Infomercial",
-    "Public Service Announcement",
-    "Government Content",
-    "Religious Content",
-    "Cultural Content",
-    "Historical Content",
-    "Scientific Content",
-    "Medical Content",
-    "Legal Content",
-    "Financial Content",
-    "Real Estate Content",
-    "Travel Content",
-    "Food Content",
-    "Fashion Content",
-    "Beauty Content",
-    "Fitness Content",
-    "Health Content",
-    "Lifestyle Content",
-    "Technology Content",
-    "Automotive Content",
-    "Sports Content",
-    "Esports Content",
-]
+    { id: "feature_film", name: "Feature Film" },
+    { id: "short_film", name: "Short Films" },
+    { id: "documentary_feature", name: "Documentary Feature" },
+    { id: "documentary_short", name: "Documentary Short" },
+    { id: "tv_series", name: "TV Series" },
+    { id: "limited_series", name: "Limited Series" },
+    { id: "mini_series", name: "Mini Series" },
+    { id: "tv_movie", name: "TV Movie" },
+    { id: "tv_special", name: "TV Special" },
+    { id: "reality_tv", name: "Reality TV" },
+    { id: "talk_show", name: "Talk Show" },
+    { id: "game_show", name: "Game Show" },
+    { id: "news_program", name: "News Program" },
+    { id: "sports_program", name: "Sports Program" },
+    { id: "children_program", name: "Children's Program" },
+    { id: "animation_feature", name: "Animation Feature" },
+    { id: "animation_series", name: "Animation Series" },
+    { id: "animation_short", name: "Animation Short" },
+    { id: "music_video", name: "Music Video" },
+    { id: "concert_film", name: "Concert Film" },
+    { id: "stand_up_comedy", name: "Stand-up Comedy" },
+    { id: "variety_show", name: "Variety Show" },
+    { id: "award_show", name: "Award Show" },
+    { id: "commercial", name: "Commercial" },
+    { id: "corporate_video", name: "Corporate Video" },
+    { id: "training_video", name: "Training Video" },
+    { id: "instructional_video", name: "Instructional Video" },
+    { id: "web_series", name: "Web Series" },
+    { id: "podcast", name: "Podcast" },
+    { id: "audio_drama", name: "Audio Drama" },
+    { id: "radio_show", name: "Radio Show" },
+    { id: "live_stream", name: "Live Stream" },
+    { id: "virtual_event", name: "Virtual Event" },
+    { id: "interactive_content", name: "Interactive Content" },
+    { id: "360_video", name: "360° Video" },
+    { id: "vr_content", name: "VR Content" },
+    { id: "ar_content", name: "AR Content" },
+    { id: "gaming_content", name: "Gaming Content" },
+    { id: "ugc", name: "User Generated Content" },
+    { id: "social_media_content", name: "Social Media Content" },
+    { id: "branded_content", name: "Branded Content" },
+    { id: "sponsored_content", name: "Sponsored Content" },
+];
 
 const allLanguages = [
     "English",
@@ -582,6 +562,11 @@ export default function Requirement() {
     const dispatch = useDispatch()
     const Navigate = useNavigate()
 
+    const breadcrumbItems = [
+        { label: "Deals", path: "/deals" },
+        { label: "Create Requirement" },
+      ];
+
     useEffect(() => {
         if (savedRequirements.length > 0 && activeTab === "create" && !editingId) {
             setActiveTab("view")
@@ -761,6 +746,7 @@ export default function Requirement() {
                 padding: "16px",
             }}
         >
+            <Breadcrumb items={breadcrumbItems} />
             {/* Header */}
             <div
                 style={{
@@ -1208,8 +1194,8 @@ export default function Requirement() {
                                 >
                                     <option value="">Select category</option>
                                     {allContentCategories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
+                                        <option key={category} value={category.id}>
+                                            {category.name}
                                         </option>
                                     ))}
                                 </select>

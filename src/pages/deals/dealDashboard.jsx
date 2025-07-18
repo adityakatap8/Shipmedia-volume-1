@@ -54,6 +54,7 @@ import {
     Close,
     PauseCircle,
     FilePresent,
+    Add,
 } from "@mui/icons-material"
 import axios from "axios"
 import { useSelector } from "react-redux"
@@ -167,9 +168,9 @@ export default function DealDashboard() {
 
         // Filter by tab
         if (tabValue === 0) {
-            filtered = filtered.filter((deal) => deal.senderId === user._id)
-        } else if (tabValue === 1) {
             filtered = filtered.filter((deal) => deal.assignedTo === user._id)
+        } else if (tabValue === 1) {
+            filtered = filtered.filter((deal) => deal.senderId === user._id)
         } else if (tabValue === 2) {
             filtered = filtered.filter((deal) => deal.status === "pending")
         } else if (tabValue === 3) {
@@ -844,7 +845,7 @@ export default function DealDashboard() {
                                     </IconButton>
                                 </Tooltip>
                             )}
-                            {user.role === 'Admin' && deal.status === "shortlisted_by_buyer"  && (
+                            {user.role === 'Admin' && deal.status === "shortlisted_by_buyer" && (
                                 <Tooltip title="Send Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                     <IconButton
                                         size="small"
@@ -1199,28 +1200,38 @@ export default function DealDashboard() {
                 </Box>
 
                 {/* Tabs */}
-                <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    sx={{
-                        marginBottom: "20px",
-                        "& .MuiTabs-indicator": {
-                            backgroundColor: "#6a26cd",
-                        },
-                        "& .MuiTab-root": {
-                            color: "#a0a0b0",
-                            "&.Mui-selected": {
-                                color: "white",
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        sx={{
+                            "& .MuiTabs-indicator": {
+                                backgroundColor: "#6a26cd",
                             },
-                        },
-                    }}
-                >
-                    <Tab label={`Shared (${dealcounts.shared || 0})`} />
-                    <Tab label={`Received (${dealcounts.received || 0})`} />
-                    <Tab label={`Pending (${dealcounts.pending || 0})`} />
-                    <Tab label={`Completed (${dealcounts.closed || 0})`} />
-                    <Tab label={`Cancelled (${dealcounts.cancelled || 0})`} />
-                </Tabs>
+                            "& .MuiTab-root": {
+                                color: "#a0a0b0",
+                                "&.Mui-selected": {
+                                    color: "white",
+                                },
+                            },
+                        }}
+                    >
+                        <Tab label={`Received (${dealcounts.received || 0})`} />
+                        <Tab label={`Shared (${dealcounts.shared || 0})`} />
+                        <Tab label={`Pending (${dealcounts.pending || 0})`} />
+                        <Tab label={`Completed (${dealcounts.closed || 0})`} />
+                        <Tab label={`Cancelled (${dealcounts.cancelled || 0})`} />
+                    </Tabs>
+                    <IconButton
+                        onClick={() => navigate("/create-requirement")}
+                        sx={{
+                            color: "#6a26cd",
+                            marginLeft: "auto", // Align to the right
+                        }}
+                    >
+                        <Add fontSize="large" />
+                    </IconButton>
+                </Box>
 
                 {/* Card View */}
                 {viewMode === "cards" && (
