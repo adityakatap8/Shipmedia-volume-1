@@ -421,7 +421,6 @@ export default function DealDashboard() {
         const secs = seconds % 60
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
     }
-
     // Send message with attachments
     // const handleSendMessage = async () => {
     //     if (!messageText.trim() && !audioBlob && !selectedFile && !selectedImage) return
@@ -716,20 +715,25 @@ export default function DealDashboard() {
                 <Box sx={{ display: "flex", gap: "4px" }}>
                     {/* View Details Button */}
                     <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                        <IconButton
+                        <Button
                             onClick={() => navigate(`/deal-details/${deal._id}`)}
                             size="small"
+                            variant="outlined"
                             sx={{
+                                padding: "2px 8px", // Reduce padding
+                                fontSize: "12px", // Smaller font size
+                                height: "28px", // Reduce height
+                                minWidth: "auto", // Remove default width
                                 color: "#a855f7",
                                 "&:hover": {
                                     bgcolor: "rgba(168, 85, 247, 0.1)",
-                                    transform: "scale(1.1)",
+                                    transform: "scale(1.05)", // Slight hover effect
                                 },
                                 transition: "all 0.2s",
                             }}
                         >
-                            <Visibility fontSize="small" />
-                        </IconButton>
+                            Open Deal
+                        </Button>
                     </Tooltip>
 
                     {/* Open Chat Button */}
