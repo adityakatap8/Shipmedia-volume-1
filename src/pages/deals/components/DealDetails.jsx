@@ -699,7 +699,7 @@ export default function DealDashboard() {
                                   <Button
                                     size="small"
                                     endIcon={<ArrowForward />}
-                                    onClick={() => handleOpenModal(movie)}
+                                    onClick={() => window.open(`/movie/${movie._id}`, "_blank")} // Open movie details in a new tab
                                     sx={{
                                       textTransform: "none",
                                       fontWeight: 600,
