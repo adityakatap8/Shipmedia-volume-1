@@ -201,7 +201,7 @@ export default function MovieGrid() {
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/project-form/all-details?userId=${userId}&role=${role}`,
+          `https://www.mediashippers.com/api/project-form/all-details?userId=${userId}&role=${role}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -1028,7 +1028,7 @@ export default function MovieGrid() {
   const handleAddToCart = async () => {
 
     try {
-      const response = await axios.post("http://localhost:3000/api/cart/add-to-cart", {
+      const response = await axios.post("https://www.mediashippers.com/api/cart/add-to-cart", {
         userId,
         movies: selectedItems,
         dealId: dealDetails?._id,

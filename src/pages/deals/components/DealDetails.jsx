@@ -282,7 +282,7 @@ export default function DealDashboard() {
   const handleSendDeal = async () => {
     try {
       setLoading(true) // Show loader
-      const response = await axios.post("http://localhost:3000/api/deal/split-to-sellers", {
+      const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
         dealId,
         userId: user._id,
       })
@@ -311,7 +311,7 @@ export default function DealDashboard() {
       console.log("Payload:", payload);
 
       const response = await axios.patch(
-        `http://localhost:3000/api/deal/${dealId}/action`,
+        `https://www.mediashippers.com/api/deal/${dealId}/action`,
         payload
       );
 
