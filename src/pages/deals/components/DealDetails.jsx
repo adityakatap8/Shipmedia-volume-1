@@ -279,6 +279,23 @@ export default function DealDashboard() {
     });
   }
 
+  const handleSendDeal = async () => {
+    try {
+      setLoading(true) // Show loader
+      const response = await axios.post("http://localhost:3000/api/deal/split-to-sellers", {
+        dealId,
+        userId: user._id,
+      })
+      console.log("Send Deal Response:", response.data)
+      // Optionally, refresh the deals data or show a success message
+      fetchDeals()
+    } catch (error) {
+      console.error("Error sending deal:", error)
+    } finally {
+      setLoading(false) // Hide loader
+    }
+  }
+
   const handleSubmitDeal = async () => {
     try {
       const payload = {
@@ -383,14 +400,14 @@ export default function DealDashboard() {
         </Box>
 
         {/* Deal Progress */}
-        <Paper sx={{ p: 2, mb: 4, borderRadius: 3 }}>
+        <Paper sx={{ p: 1, mb: 4, borderRadius: 3 }}>
           <Typography variant="h6" sx={{ mb: 3 }}>
             Deal Progress
           </Typography>
           <Stepper activeStep={dealStatuses.indexOf(deal.status)} alternativeLabel>
             {dealStatuses.map((status, index) => {
               const isCompleted = index <= dealStatuses.indexOf(deal.status);
-              const stepColor = isCompleted ? "#52a447" :  "gray";
+              const stepColor = isCompleted ? "#52a447" : "gray";
 
               return (
                 <Step key={index}>
@@ -470,7 +487,7 @@ export default function DealDashboard() {
                   Including Regions
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.includingRegions.map((item, index) => (
+                  {deal.includingRegions?.map((item, index) => (
                     <Chip
                       key={index}
                       icon={<Public fontSize="small" />}
@@ -491,7 +508,7 @@ export default function DealDashboard() {
                   Excluding Countries
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.excludingCountries.map((item, index) => (
+                  {deal.excludingCountries?.map((item, index) => (
                     <Chip
                       key={index}
                       icon={<Public fontSize="small" />}
@@ -620,8 +637,30 @@ export default function DealDashboard() {
                               },
                             }}
                           >
-                            {/* Checkbox for Buyer */}
-                            {user?.role === "Buyer" && deal.status === 'curated_list_sent_to_buyer' && (
+                            {user?.role === "Buyer" && deal.status === "shortlisted_by_buyer" ? (
+                              <>
+                                {movieStatus === "accepted" && (
+                                  <CheckCircle sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    color: "green",
+                                    fontSize: 28,
+                                    zIndex: 2,
+                                  }} titleAccess="Shortlisted" />
+                                )}
+                                {movieStatus === "rejected" && (
+                                  <X sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    color: "red",
+                                    fontSize: 28,
+                                    zIndex: 2,
+                                  }} titleAccess="Rejected" />
+                                )}
+                              </>
+                            ) : user?.role === "Buyer" && deal.status === 'curated_list_sent_to_buyer' && (
                               <Checkbox
                                 sx={{
                                   position: "absolute",
@@ -631,15 +670,15 @@ export default function DealDashboard() {
                                     color: theme.palette.primary.main,
                                   },
                                 }}
-                                checked={selectedMovies.some((selected) => selected.movieId === movie._id && selected.status === "accepted")} // Keep checked for "accepted"
-                                disabled={movieStatus === "rejected"} // Disable editing for "rejected"
+                                checked={selectedMovies.some((selected) => selected.movieId === movie._id && selected.status === "accepted")}
+                                disabled={movieStatus === "rejected"}
                                 onChange={(e) => {
                                   if (movieStatus === "pending") {
-                                    // Allow editing only for "pending" status
                                     handleCheckboxChange(movie._id, e.target.checked ? "accepted" : "rejected");
                                   }
                                 }}
-                              />)}
+                              />
+                            )}
 
                             {(user?.role !== 'Buyer' && <Typography
                               variant="body2"
@@ -718,17 +757,34 @@ export default function DealDashboard() {
                       );
                     })}
                   </Grid>
-                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      sx={{ textTransform: "capitalize" }}
-                      onClick={handleSubmitDeal}
-                      disabled={deal.status === "sent_to_shipper" || selectedMovies.length === 0}
-                    >
-                      Submit Deal
-                    </Button>
-                  </Box>
+                  {deal.status === "shortlisted_by_buyer" && user?.role === "Buyer" ? (
+                    <Box sx={{ my: 2, textAlign: "center", color: "#008000" }}>
+                      Your shortlist has been updated. The admin will review the changes shortly.
+                    </Box>
+                  ) : (deal.status === "shortlisted_by_buyer" && user?.role === "Admin") ? (
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ textTransform: "capitalize" }}
+                        onClick={handleSendDeal}
+                      >
+                        Send to Seller
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ textTransform: "capitalize" }}
+                        onClick={handleSubmitDeal}
+                        disabled={selectedMovies.length === 0}
+                      >
+                        Shortlist
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
               )}
 

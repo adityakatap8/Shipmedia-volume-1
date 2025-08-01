@@ -170,7 +170,7 @@ export default function DealDashboard() {
         if (tabValue === 0) {
             filtered = filtered.filter((deal) => deal.assignedTo === user._id)
         } else if (tabValue === 1) {
-            filtered = filtered.filter((deal) => deal.senderId === user._id)
+            filtered = filtered.filter((deal) => deal.senderId === user._id && deal.status !== "pending")
         } else if (tabValue === 2) {
             filtered = filtered.filter((deal) => deal.status === "pending")
         } else if (tabValue === 3) {
@@ -216,7 +216,7 @@ export default function DealDashboard() {
     const fetchDeals = async () => {
         try {
             setLoading(true) // Show loader
-            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`)
+            const response = await axios.get(`http://localhost:3000/api/deal/deals-with-counts/${user._id}`)
             const data = await response.data
             console.log("Fetched Deals:", data.deals)
             setDealsData(data.deals)
@@ -476,7 +476,7 @@ export default function DealDashboard() {
     const handleSendDeal = async (dealId) => {
         try {
             setLoading(true) // Show loader
-            const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
+            const response = await axios.post("http://localhost:3000/api/deal/split-to-sellers", {
                 dealId,
                 userId: user._id,
             })
@@ -813,7 +813,7 @@ export default function DealDashboard() {
                             </Menu>
                         </>
                     ) : (
-                        <>{user.role === 'Admin' && deal.status === "submitted_by_buyer" && (
+                        <>{user.role === 'Admin' && (deal.status === "submitted_by_buyer" || deal.status === "pending") && (
                             <Tooltip title="Filter Matching Content" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                 <IconButton
                                     size="small"
