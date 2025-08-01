@@ -85,7 +85,7 @@ const rightsOptions = [
 ]
 
 const regionCountryMapping = {
-    Global: [],
+    Worldwide: [],
     "North America": [
         "United States",
         "Canada",
@@ -256,8 +256,6 @@ const regionCountryMapping = {
 
 const allUsageRights = ["Exclusive", "Non-Exclusive", "Exclusive & Non-Exclusive"]
 
-
-
 const allContentCategories = [
     { id: "feature_film", name: "Feature Film" },
     { id: "short_film", name: "Short Films" },
@@ -304,107 +302,19 @@ const allContentCategories = [
 ];
 
 const allLanguages = [
-    "English",
-    "Mandarin Chinese",
-    "Hindi",
-    "Spanish",
-    "French",
-    "Standard Arabic",
-    "Bengali",
-    "Russian",
-    "Portuguese",
-    "Indonesian",
-    "Urdu",
-    "German",
-    "Japanese",
-    "Swahili",
-    "Marathi",
-    "Telugu",
-    "Turkish",
-    "Tamil",
-    "Yue Chinese",
-    "Vietnamese",
-    "Tagalog",
-    "Wu Chinese",
-    "Korean",
-    "Iranian Persian",
-    "Hausa",
-    "Egyptian Arabic",
-    "Thai",
-    "Gujarati",
-    "Jin Chinese",
-    "Min Nan Chinese",
-    "Kannada",
-    "Italian",
-    "Eastern Punjabi",
-    "Bhojpuri",
-    "Min Chinese",
-    "Hakka Chinese",
-    "Javanese",
-    "Malayalam",
-    "Moroccan Arabic",
-    "Odia",
-    "Maithili",
-    "Burmese",
-    "Eastern Yiddish",
-    "Magahi",
-    "Uzbek",
-    "Sindhi",
-    "Amharic",
-    "Fula",
-    "Romanian",
-    "Oromo",
-    "Igbo",
-    "Azerbaijani",
-    "Awadhi",
-    "Gan Chinese",
-    "Cebuano",
-    "Dutch",
-    "Kurdish",
-    "Serbo-Croatian",
-    "Malagasy",
-    "Saraiki",
-    "Nepali",
-    "Sinhala",
-    "Chittagonian",
-    "Zhuang",
-    "Khmer",
-    "Turkmen",
-    "Assamese",
-    "Madurese",
-    "Somali",
-    "Marwari",
-    "Magindanao",
-    "Haryanvi",
-    "Hungarian",
-    "Chhattisgarhi",
-    "Greek",
-    "Chewa",
-    "Deccan",
-    "Akan",
-    "Kazakh",
-    "Northern Min",
-    "Sylheti",
-    "Zulu",
-    "Czech",
-    "Kinyarwanda",
-    "Dhundhari",
-    "Haitian Creole",
-    "Eastern Min",
-    "Ilocano",
-    "Quechua",
-    "Kirundi",
-    "Swedish",
-    "Hmong",
-    "Shona",
-    "Uyghur",
-    "Hiligaynon",
-    "Mossi",
-    "Xhosa",
-    "Belarusian",
-    "Balochi",
-    "Konkani",
+    "Akan", "Amharic", "Assamese", "Azerbaijani", "Awadhi", "Balochi", "Belarusian", "Bengali", "Bhojpuri",
+    "Burmese", "Cebuano", "Chewa", "Chhattisgarhi", "Chittagonian", "Czech", "Deccan", "Dhundhari", "Dutch",
+    "Eastern Min", "Eastern Punjabi", "Eastern Yiddish", "Egyptian Arabic", "English", "French", "Fula", "Gan Chinese",
+    "German", "Greek", "Gujarati", "Hakka Chinese", "Haryanvi", "Hausa", "Haitian Creole", "Hindi", "Hiligaynon",
+    "Hmong", "Hungarian", "Igbo", "Ilocano", "Indonesian", "Iranian Persian", "Italian", "Japanese", "Javanese",
+    "Jin Chinese", "Kannada", "Kazakh", "Khmer", "Kinyarwanda", "Konkani", "Korean", "Kurdish", "Magahi", "Magindanao",
+    "Maithili", "Malayalam", "Malagasy", "Mandarin Chinese", "Marathi", "Marwari", "Min Chinese", "Min Nan Chinese",
+    "Moroccan Arabic", "Mossi", "Nepali", "Northern Min", "Odia", "Oromo", "Portuguese", "Quechua", "Romanian",
+    "Russian", "Saraiki", "Serbo-Croatian", "Shona", "Sindhi", "Sinhala", "Somali", "Spanish", "Standard Arabic",
+    "Swahili", "Swedish", "Sylheti", "Tagalog", "Tamil", "Telugu", "Thai", "Turkish", "Turkmen", "Uyghur", "Urdu",
+    "Uzbek", "Vietnamese", "Wu Chinese", "Xhosa", "Yue Chinese", "Zhuang", "Zulu"
 ]
+
 
 const allGenres = [
     "Action",
@@ -527,8 +437,7 @@ const allGenres = [
 ]
 
 export default function Requirement() {
-    const { user } = useSelector((state) => state.auth);
-    console.log("User from Redux:", user)
+    const { user } = useSelector((state) => state.auth.user);
     const [activeTab, setActiveTab] = useState("create")
     const [viewMode, setViewMode] = useState("cards")
     const [savedRequirements, setSavedRequirements] = useState([])
@@ -559,13 +468,15 @@ export default function Requirement() {
     const [newLanguage, setNewLanguage] = useState("")
     const [newGenre, setNewGenre] = useState("")
 
+
+
     const dispatch = useDispatch()
     const Navigate = useNavigate()
 
     const breadcrumbItems = [
         { label: "Deals", path: "/deals" },
         { label: "Create Requirement" },
-      ];
+    ];
 
     useEffect(() => {
         if (savedRequirements.length > 0 && activeTab === "create" && !editingId) {
@@ -574,10 +485,10 @@ export default function Requirement() {
     }, [savedRequirements.length])
 
     const handleGlobalRegionSelection = () => {
-        const allRegions = Object.keys(regionCountryMapping).filter((region) => region !== "Global")
+        const allRegions = Object.keys(regionCountryMapping).filter((region) => region !== "Worldwide")
         setFormData((prev) => ({
             ...prev,
-            includingRegions: ["Global", ...allRegions],
+            includingRegions: ["Worldwide", ...allRegions],
         }))
     }
 
@@ -623,11 +534,11 @@ export default function Requirement() {
 
         // Prepare the payload for the API
         const payload = {
-            senderId: user?.user?._id,
+            senderId: user?._id,
             receiverId:
                 user?.role === "Admin"
-                    ? selectedBuyer._id
-                    : user?.user?.createdBy,
+                    ? ""
+                    : user?.createdBy,
             rights: formData.rights,
             usageRights: formData.usageRights,
             includingRegions: formData.includingRegions,
@@ -636,7 +547,7 @@ export default function Requirement() {
             languages: formData.languages,
             genre: formData.genres,
             yearOfRelease: formData.yearOfRelease,// Add remarks if applicable
-            status: "submitted_by_buyer",
+            status: user.role === "Admin" ? "pending" : "submitted_by_buyer",
         }
 
         console.log("Payload to be sent:", payload)
@@ -719,7 +630,7 @@ export default function Requirement() {
 
     // Update available countries based on selected regions
     useEffect(() => {
-        if (formData.includingRegions.includes("Global") || formData.includingRegions.length === 0) {
+        if (formData.includingRegions.includes("Worldwide") || formData.includingRegions.length === 0) {
             const allCountries = new Set()
             Object.values(regionCountryMapping).forEach((countries) => {
                 countries.forEach((country) => allCountries.add(country))
@@ -821,49 +732,149 @@ export default function Requirement() {
                     )}
 
                     {/* Rights Section */}
-                    <div
-                        style={{
-                            background: "rgba(30, 41, 59, 0.8)",
-                            backdropFilter: "blur(10px)",
-                            border: "1px solid rgba(71, 85, 105, 0.3)",
-                            borderRadius: "12px",
-                            padding: "24px",
-                        }}
-                    >
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                            <svg
-                                style={{ width: "20px", height: "20px", color: "#60a5fa" }}
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.1 16,12.7V16.2C16,16.8 15.4,17.3 14.8,17.3H9.2C8.6,17.3 8,16.8 8,16.2V12.7C8,12.1 8.6,11.5 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,10V11.5H13.5V10C13.5,8.7 12.8,8.2 12,8.2Z" />
-                            </svg>
-                            <h2 style={{ color: "white", fontSize: "1.5rem", fontWeight: "600", margin: 0, textAlign: "left" }}>Rights Management</h2>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "24px" }}>
+                        <div
+                            style={{
+                                background: "rgba(30, 41, 59, 0.8)",
+                                backdropFilter: "blur(10px)",
+                                border: "1px solid rgba(71, 85, 105, 0.3)",
+                                borderRadius: "12px",
+                                padding: "24px",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                                <svg
+                                    style={{ width: "20px", height: "20px", color: "#60a5fa" }}
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.1 16,12.7V16.2C16,16.8 15.4,17.3 14.8,17.3H9.2C8.6,17.3 8,16.8 8,16.2V12.7C8,12.1 8.6,11.5 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,10V11.5H13.5V10C13.5,8.7 12.8,8.2 12,8.2Z" />
+                                </svg>
+                                <h2 style={{ color: "white", fontSize: "1.5rem", fontWeight: "600", margin: 0, textAlign: "left" }}>Rights Management</h2>
+                            </div>
+                            <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Define the type of rights being managed</p>
+                            <div>
+                                <label style={{ color: "#d1d5db", display: "block", marginBottom: "8px", textAlign: "left" }}>Rights</label>
+                                <select
+                                    value={formData.rights}
+                                    onChange={(e) => setFormData((prev) => ({ ...prev, rights: e.target.value }))}
+                                    style={{
+                                        width: "100%",
+                                        background: "#374151",
+                                        border: "1px solid #4b5563",
+                                        color: "white",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        fontSize: "1rem",
+                                    }}
+                                >
+                                    <option value="">Select rights</option>
+                                    {rightsOptions.map((option) => (
+                                        <option key={option} value={option}>
+                                            {option}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                        <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Define the type of rights being managed</p>
-                        <div>
-                            <label style={{ color: "#d1d5db", display: "block", marginBottom: "8px", textAlign: "left" }}>Rights</label>
-                            <select
-                                value={formData.rights}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, rights: e.target.value }))}
+                        {/* {user?.role === "Admin" && (
+                            <div
                                 style={{
-                                    width: "100%",
-                                    background: "#374151",
-                                    border: "1px solid #4b5563",
-                                    color: "white",
-                                    padding: "12px",
-                                    borderRadius: "6px",
-                                    fontSize: "1rem",
+                                    background: "rgba(30, 41, 59, 0.8)",
+                                    backdropFilter: "blur(10px)",
+                                    border: "1px solid rgba(71, 85, 105, 0.3)",
+                                    borderRadius: "12px",
+                                    padding: "24px",
+                                    marginBottom: "24px"
                                 }}
                             >
-                                <option value="">Select rights</option>
-                                {rightsOptions.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                                <svg
+                                    style={{ width: "20px", height: "20px", color: "#f59e42" }}
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05C15.64 13.36 17 14.28 17 15.5V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                                </svg>
+                                <label style={{ color: "#d1d5db", display: "block", marginBottom: "0", textAlign: "left", fontWeight: 600, fontSize: "1.25rem" }}>
+                                    Buyers Management
+                                </label>
+                                </div>
+                                <label style={{ color: "#d1d5db", display: "block", marginBottom: "8px", textAlign: "left" }}>
+                                    Select Buyers
+                                </label>
+                                <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                                    <select
+                                        value=""
+                                        onChange={e => {
+                                            const selectedId = e.target.value;
+                                            if (selectedId && !selectedBuyers.includes(selectedId)) {
+                                                setSelectedBuyers([...selectedBuyers, selectedId]);
+                                            }
+                                        }}
+                                        style={{
+                                            flex: 1,
+                                            background: "#374151",
+                                            border: "1px solid #4b5563",
+                                            color: "white",
+                                            padding: "12px",
+                                            borderRadius: "6px",
+                                        }}
+                                    >
+                                        <option value="">Select buyer</option>
+                                        {buyers
+                                            .filter(buyer => !selectedBuyers.includes(buyer._id))
+                                            .map(buyer => (
+                                                <option key={buyer._id} value={buyer._id}>
+                                                    {buyer.orgName ? `${buyer.orgName} (${buyer.email})` : buyer.email}
+                                                </option>
+                                            ))}
+                                    </select>
+                                </div>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                    {selectedBuyers.map(buyerId => {
+                                        const buyer = buyers.find(b => b._id === buyerId);
+                                        if (!buyer) return null;
+                                        return (
+                                            <span
+                                                key={buyer._id}
+                                                style={{
+                                                    background: "rgba(59, 130, 246, 0.2)",
+                                                    color: "#60a5fa",
+                                                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                                                    padding: "4px 8px",
+                                                    borderRadius: "6px",
+                                                    fontSize: "0.875rem",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "4px",
+                                                }}
+                                            >
+                                                {buyer.orgName ? `${buyer.orgName} (${buyer.email})` : buyer.email}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedBuyers(selectedBuyers.filter(id => id !== buyer._id))
+                                                    }
+                                                    style={{
+                                                        background: "none",
+                                                        border: "none",
+                                                        color: "inherit",
+                                                        cursor: "pointer",
+                                                        padding: "0",
+                                                        marginLeft: "4px",
+                                                    }}
+                                                >
+                                                    <svg style={{ width: "12px", height: "12px" }} fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )} */}
                     </div>
 
                     {/* Territories Section */}
@@ -893,8 +904,17 @@ export default function Requirement() {
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Regions where rights are applicable</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
                                 <select
-                                    value={newRegion}
-                                    onChange={(e) => setNewRegion(e.target.value)}
+                                    value=""
+                                    onChange={(e) => {
+                                        const selectedRegion = e.target.value;
+                                        if (selectedRegion === "Worldwide") {
+                                            handleGlobalRegionSelection();
+                                        } else {
+                                            addToArray(formData.includingRegions, selectedRegion, (arr) =>
+                                                setFormData((prev) => ({ ...prev, includingRegions: arr }))
+                                            );
+                                        }
+                                    }}
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -911,31 +931,6 @@ export default function Requirement() {
                                         </option>
                                     ))}
                                 </select>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (newRegion === "Global") {
-                                            handleGlobalRegionSelection()
-                                        } else {
-                                            addToArray(formData.includingRegions, newRegion, (arr) =>
-                                                setFormData((prev) => ({ ...prev, includingRegions: arr })),
-                                            )
-                                        }
-                                        setNewRegion("")
-                                    }}
-                                    style={{
-                                        background: "#10b981",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <svg style={{ width: "16px", height: "16px" }} fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                    </svg>
-                                </button>
                             </div>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                                 {formData.includingRegions.map((region) => (
@@ -943,22 +938,22 @@ export default function Requirement() {
                                         key={region}
                                         style={{
                                             background:
-                                                region === "Global"
+                                                region === "Worldwide"
                                                     ? "linear-gradient(to right, rgba(16, 185, 129, 0.3), rgba(59, 130, 246, 0.3))"
                                                     : "rgba(16, 185, 129, 0.2)",
-                                            color: region === "Global" ? "white" : "#10b981",
-                                            border: `1px solid ${region === "Global" ? "rgba(16, 185, 129, 0.5)" : "rgba(16, 185, 129, 0.3)"}`,
+                                            color: region === "Worldwide" ? "white" : "#10b981",
+                                            border: `1px solid ${region === "Worldwide" ? "rgba(16, 185, 129, 0.5)" : "rgba(16, 185, 129, 0.3)"}`,
                                             padding: "4px 8px",
                                             borderRadius: "6px",
                                             fontSize: "0.875rem",
                                             display: "flex",
                                             alignItems: "center",
                                             gap: "4px",
-                                            fontWeight: region === "Global" ? "600" : "normal",
+                                            fontWeight: region === "Worldwide" ? "600" : "normal",
                                         }}
                                     >
                                         {region}
-                                        {region === "Global" && " 🌍"}
+                                        {region === "Worldwide" && " 🌍"}
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -1009,8 +1004,13 @@ export default function Requirement() {
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Countries where rights are not applicable</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
                                 <select
-                                    value={newCountry}
-                                    onChange={(e) => setNewCountry(e.target.value)}
+                                    value=""
+                                    onChange={(e) => {
+                                        const selectedCountry = e.target.value;
+                                        addToArray(formData.excludingCountries, selectedCountry, (arr) =>
+                                            setFormData((prev) => ({ ...prev, excludingCountries: arr }))
+                                        );
+                                    }}
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -1029,27 +1029,6 @@ export default function Requirement() {
                                         </option>
                                     ))}
                                 </select>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        addToArray(formData.excludingCountries, newCountry, (arr) =>
-                                            setFormData((prev) => ({ ...prev, excludingCountries: arr })),
-                                        )
-                                        setNewCountry("")
-                                    }}
-                                    style={{
-                                        background: "#ef4444",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <svg style={{ width: "16px", height: "16px" }} fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                    </svg>
-                                </button>
                             </div>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                                 {formData.excludingCountries.map((country) => (
@@ -1181,8 +1160,13 @@ export default function Requirement() {
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Select multiple content categories</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
                                 <select
-                                    value={newContentCategory}
-                                    onChange={(e) => setNewContentCategory(e.target.value)}
+                                    value=""
+                                    onChange={(e) => {
+                                        const selectedCategory = e.target.value;
+                                        addToArray(formData.contentCategory, selectedCategory, (arr) =>
+                                            setFormData((prev) => ({ ...prev, contentCategory: arr }))
+                                        );
+                                    }}
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -1194,32 +1178,11 @@ export default function Requirement() {
                                 >
                                     <option value="">Select category</option>
                                     {allContentCategories.map((category) => (
-                                        <option key={category} value={category.id}>
+                                        <option key={category.id} value={category.id}>
                                             {category.name}
                                         </option>
                                     ))}
                                 </select>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        addToArray(formData.contentCategory, newContentCategory, (arr) =>
-                                            setFormData((prev) => ({ ...prev, contentCategory: arr })),
-                                        )
-                                        setNewContentCategory("")
-                                    }}
-                                    style={{
-                                        background: "#3b82f6",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <svg style={{ width: "16px", height: "16px" }} fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                    </svg>
-                                </button>
                             </div>
                             <div
                                 style={{
@@ -1289,17 +1252,23 @@ export default function Requirement() {
                                 >
                                     <path d="M19,3H18V1H16V3H8V1H6V3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19M5,6V5H19V6H5Z" />
                                 </svg>
-                                <h3 style={{ color: "white", fontSize: "1.25rem", fontWeight: "600", margin: 0, textAlign: "left" }}>Year of Release</h3>
+                                <h3 style={{ color: "white", fontSize: "1.25rem", fontWeight: "600", margin: 0, textAlign: "left" }}>
+                                    Year of Release
+                                </h3>
                             </div>
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Select multiple years of release</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                <input
-                                    type="number"
-                                    min="1900"
-                                    max="2030"
-                                    value={newYear}
-                                    onChange={(e) => setNewYear(e.target.value)}
-                                    placeholder="Enter year"
+                                <select
+                                    onChange={(e) => {
+                                        const selectedYear = e.target.value;
+                                        if (selectedYear && !formData.yearOfRelease.includes(selectedYear)) {
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                yearOfRelease: [...prev.yearOfRelease, selectedYear],
+                                            }));
+                                        }
+                                    }}
+                                    defaultValue=""
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -1308,31 +1277,17 @@ export default function Requirement() {
                                         padding: "12px",
                                         borderRadius: "6px",
                                     }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (newYear && !formData.yearOfRelease.includes(newYear)) {
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                yearOfRelease: [...prev.yearOfRelease, newYear],
-                                            }))
-                                            setNewYear("")
-                                        }
-                                    }}
-                                    style={{
-                                        background: "#fbbf24",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                    }}
                                 >
-                                    <svg style={{ width: "16px", height: "16px" }} fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                    </svg>
-                                </button>
+                                    <option value="" disabled>Select year</option>
+                                    {Array.from({ length: 50 }, (_, i) => {
+                                        const year = new Date().getFullYear() - i;
+                                        return (
+                                            <option key={year} value={year}>
+                                                {year}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
                             </div>
                             <div
                                 style={{
@@ -1363,7 +1318,7 @@ export default function Requirement() {
                                             type="button"
                                             onClick={() =>
                                                 removeFromArray(formData.yearOfRelease, year, (arr) =>
-                                                    setFormData((prev) => ({ ...prev, yearOfRelease: arr })),
+                                                    setFormData((prev) => ({ ...prev, yearOfRelease: arr }))
                                                 )
                                             }
                                             style={{
@@ -1402,8 +1357,13 @@ export default function Requirement() {
                             </h3>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
                                 <select
-                                    value={newLanguage}
-                                    onChange={(e) => setNewLanguage(e.target.value)}
+                                    value=""
+                                    onChange={(e) => {
+                                        const selectedLanguage = e.target.value;
+                                        addToArray(formData.languages, selectedLanguage, (arr) =>
+                                            setFormData((prev) => ({ ...prev, languages: arr }))
+                                        );
+                                    }}
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -1420,27 +1380,6 @@ export default function Requirement() {
                                         </option>
                                     ))}
                                 </select>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        addToArray(formData.languages, newLanguage, (arr) =>
-                                            setFormData((prev) => ({ ...prev, languages: arr })),
-                                        )
-                                        setNewLanguage("")
-                                    }}
-                                    style={{
-                                        background: "#8b5cf6",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <svg style={{ width: "16px", height: "16px" }} fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                    </svg>
-                                </button>
                             </div>
                             <div
                                 style={{
@@ -1505,8 +1444,13 @@ export default function Requirement() {
                             <h3 style={{ color: "white", fontSize: "1.25rem", fontWeight: "600", margin: "0 0 16px 0", textAlign: "left" }}>Genres</h3>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
                                 <select
-                                    value={newGenre}
-                                    onChange={(e) => setNewGenre(e.target.value)}
+                                    value=""
+                                    onChange={(e) => {
+                                        const selectedGenre = e.target.value;
+                                        addToArray(formData.genres, selectedGenre, (arr) =>
+                                            setFormData((prev) => ({ ...prev, genres: arr }))
+                                        );
+                                    }}
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -1523,25 +1467,6 @@ export default function Requirement() {
                                         </option>
                                     ))}
                                 </select>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        addToArray(formData.genres, newGenre, (arr) => setFormData((prev) => ({ ...prev, genres: arr })))
-                                        setNewGenre("")
-                                    }}
-                                    style={{
-                                        background: "#f97316",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <svg style={{ width: "16px", height: "16px" }} fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                    </svg>
-                                </button>
                             </div>
                             <div
                                 style={{
@@ -1688,9 +1613,7 @@ export default function Requirement() {
                                         )}
                                     </h2>
                                 </div>
-                                <p style={{ color: "#9ca3af", margin: 0 }}>
-                                    Created: {new Date(selectedRequirement.createdAt).toLocaleDateString()}
-                                </p>
+
                             </div>
                             <button
                                 onClick={() => setSelectedRequirement(null)}
