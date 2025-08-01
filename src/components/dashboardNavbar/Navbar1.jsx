@@ -72,7 +72,7 @@ export function Navebar1({
         );
       case 'Seller':
         return allMenuItems.filter(item =>
-          item.name !== 'Account'
+          item.name === 'Home' || item.name === 'Deals'
         );
       default:
         return [];
@@ -274,7 +274,7 @@ export function Navebar1({
               <NotificationsIcon fontSize="small" />
             </Badge>
           </IconButton>
-            <CartIcon />
+            {user?.role !== "Seller" && <CartIcon />}
           <IconButton
             onClick={handleMenuOpen}
             size="small"

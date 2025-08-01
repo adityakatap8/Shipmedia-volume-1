@@ -311,8 +311,8 @@ export default function MovieGrid() {
 
   const areDrawerFieldsFilled = () => {
     return (
-      drawerSelectedRights &&
-      drawerSelectedTerritory &&
+      drawerSelectedRights ||
+      drawerSelectedTerritory ||
       drawerSelectedUsageRights &&
       drawerSelectedContentCategories.length > 0 &&
       drawerSelectedLanguages &&
@@ -1114,40 +1114,79 @@ export default function MovieGrid() {
     console.log("Filtering movies with current selections...", filteredData);
     // Filter by Rights
     if (drawerSelectedRights) {
-      filteredData = filteredData.filter((project) =>
-        project.formData.rightsInfo?.some((rightInfo) =>
-          rightInfo.rights?.some((right) =>
-            right.name?.toLowerCase() === drawerSelectedRights.toLowerCase()
+      if (drawerSelectedRights.toLowerCase() === "all rights") {
+        // Show only content that has "All Rights"
+        filteredData = filteredData.filter((project) =>
+          project.formData.rightsInfo?.some((rightInfo) =>
+            rightInfo.rights?.some((right) =>
+              right.name?.toLowerCase() === "all rights"
+            )
           )
-        )
-      );
+        );
+      } else {
+        // Show content that has the selected right OR has "All Rights"
+        filteredData = filteredData.filter((project) =>
+          project.formData.rightsInfo?.some((rightInfo) =>
+            rightInfo.rights?.some((right) =>
+              right.name?.toLowerCase() === drawerSelectedRights.toLowerCase() ||
+              right.name?.toLowerCase() === "all rights"
+            )
+          )
+        );
+      }
+
       console.log("Filtered by Rights:", filteredData);
     }
 
+
     // Filter by Territory
     if (drawerSelectedTerritory.length > 0) {
-      filteredData = filteredData.filter((project) =>
-        project?.formData.rightsInfo?.some((rightInfo) => {
-          if (Array.isArray(rightInfo.territories)) {
-            // Handle array format
-            return rightInfo.territories.some((territory) =>
-              drawerSelectedTerritory.some((selectedTerritory) =>
-                territory.region?.toLowerCase() === selectedTerritory.toLowerCase()
-              )
-            );
-          } else if (rightInfo.territories?.includedRegions) {
-            // Handle object format
-            return rightInfo.territories.includedRegions.some((region) =>
-              drawerSelectedTerritory.some((selectedTerritory) =>
-                region.name?.toLowerCase() === selectedTerritory.toLowerCase()
-              )
-            );
-          }
-          return false;
-        })
-      );
+      // Check if "Worldwide" is selected exclusively
+      const isWorldwideSelected = drawerSelectedTerritory.length === 1 && drawerSelectedTerritory[0].toLowerCase() === 'worldwide';
+
+      if (isWorldwideSelected) {
+        // Show only Worldwide content
+        filteredData = filteredData.filter((project) =>
+          project?.formData.rightsInfo?.some((rightInfo) => {
+            if (Array.isArray(rightInfo.territories)) {
+              return rightInfo.territories.some((territory) =>
+                territory.region?.toLowerCase() === 'worldwide'
+              );
+            } else if (rightInfo.territories?.includedRegions) {
+              return rightInfo.territories.includedRegions.some((region) =>
+                region.name?.toLowerCase() === 'worldwide'
+              );
+            }
+            return false;
+          })
+        );
+      } else {
+        // For other regions, include matching region + Worldwide content
+        filteredData = filteredData.filter((project) =>
+          project?.formData.rightsInfo?.some((rightInfo) => {
+            if (Array.isArray(rightInfo.territories)) {
+              return rightInfo.territories.some((territory) =>
+                drawerSelectedTerritory.some((selectedTerritory) =>
+                  territory.region?.toLowerCase() === selectedTerritory.toLowerCase() ||
+                  territory.region?.toLowerCase() === 'worldwide'
+                )
+              );
+            } else if (rightInfo.territories?.includedRegions) {
+              return rightInfo.territories.includedRegions.some((region) =>
+                drawerSelectedTerritory.some((selectedTerritory) =>
+                  region.name?.toLowerCase() === selectedTerritory.toLowerCase() ||
+                  region.name?.toLowerCase() === 'worldwide'
+                )
+              );
+            }
+            return false;
+          })
+        );
+      }
       console.log("Filtered by Territory:", filteredData);
     }
+
+
 
     // Filter by Excluding Territory
     if (selectedExcludingTerritory.length > 0) {
@@ -1287,7 +1326,7 @@ export default function MovieGrid() {
           </Box>
 
           {/* Compact Filter Bar */}
-          <Box sx={styles.compactFilterSection} gap={1}>
+         {user?.user?.role !== "Seller" && <Box sx={styles.compactFilterSection} gap={1}>
             {/* Sort Button */}
             <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
               Sort: {getSortDisplayText()}
@@ -1688,11 +1727,7 @@ export default function MovieGrid() {
             <Button
               sx={styles.advancedFilterButton}
               onClick={() => {
-                if (!areDrawerFieldsFilled()) {
-                  role === "Admin" ? navigate("/deals") : navigate("/create-requirement"); // Redirect to the "Received Deal" tab
-                } else {
-                  setAdvancedFiltersOpen(true); // Open the drawer if fields are filled
-                }
+                role === "Admin" ? navigate("/deals") : navigate("/create-requirement"); // Redirect to the "Received Deal" tab
               }}
               startIcon={<TuneIcon fontSize="small" />}
             >
@@ -1758,7 +1793,7 @@ export default function MovieGrid() {
                 )}
               </Box>
             )}
-          </Box>
+          </Box>}
 
           <Drawer anchor="right"
             open={advancedFiltersOpen}
@@ -2225,7 +2260,8 @@ export default function MovieGrid() {
                           {year}
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 2, mt: 1, ml: 1 }}>
+                      {user?.user?.role !== "Seller" && (
+                        <Box sx={{ display: 'flex', gap: 2, mt: 1, ml: 1 }}>
                         <Button
                           variant="contained"
                           sx={styles.checkoutButton}
@@ -2235,6 +2271,7 @@ export default function MovieGrid() {
                           View Details
                         </Button>
                       </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </Box>
@@ -2296,100 +2333,100 @@ export default function MovieGrid() {
                 {role === "Buyer" && (
                   <>
                     <Typography
-                    variant="body1"
-                    sx={{
-                      marginBottom: 3,
-                      color: "#6c757d",
-                      lineHeight: 1.6,
-                      fontSize: "1.1rem",
-                    }}
-                  >
-                    We couldn't find what you're looking for right now. Don't worry though - our admin team is here to help you
-                    get exactly what you need!
-                  </Typography>
-                <Box
-                  sx={{
-                    backgroundColor: "#e3f2fd",
-                    padding: 3,
-                    borderRadius: 2,
-                    marginBottom: 3,
-                    border: "1px solid #bbdefb",
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      marginBottom: 2,
-                      color: "#1565c0",
-                      fontWeight: 500,
-                    }}
-                  >
-                    📝 Have specific requirements?
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#424242",
-                      marginBottom: 2,
-                    }}
-                  >
-                    Click below to send your requirements to our admin team. We'll get back to you as soon as possible!
-                  </Typography>
-                </Box>
+                      variant="body1"
+                      sx={{
+                        marginBottom: 3,
+                        color: "#6c757d",
+                        lineHeight: 1.6,
+                        fontSize: "1.1rem",
+                      }}
+                    >
+                      We couldn't find what you're looking for right now. Don't worry though - our admin team is here to help you
+                      get exactly what you need!
+                    </Typography>
+                    <Box
+                      sx={{
+                        backgroundColor: "#e3f2fd",
+                        padding: 3,
+                        borderRadius: 2,
+                        marginBottom: 3,
+                        border: "1px solid #bbdefb",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          marginBottom: 2,
+                          color: "#1565c0",
+                          fontWeight: 500,
+                        }}
+                      >
+                        📝 Have specific requirements?
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#424242",
+                          marginBottom: 2,
+                        }}
+                      >
+                        Click below to send your requirements to our admin team. We'll get back to you as soon as possible!
+                      </Typography>
+                    </Box>
 
-                
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: 2,
-                    justifyContent: "center",
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<Send />}
-                    // onClick={handleContactAdmin}
-                    sx={{
-                      backgroundColor: "#1976d2",
-                      "&:hover": {
-                        backgroundColor: "#1565c0",
-                      },
-                      paddingX: 3,
-                      paddingY: 1.5,
-                      borderRadius: 2,
-                      textTransform: "none",
-                      fontSize: "1rem",
-                      fontWeight: 600,
-                      boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
-                    }}
-                  >
-                    Send Requirement
-                  </Button>
 
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    startIcon={<ContactSupport />}
-                    sx={{
-                      borderColor: "#1976d2",
-                      color: "#1976d2",
-                      "&:hover": {
-                        borderColor: "#1565c0",
-                        backgroundColor: "rgba(25, 118, 210, 0.04)",
-                      },
-                      paddingX: 3,
-                      paddingY: 1.5,
-                      borderRadius: 2,
-                      textTransform: "none",
-                      fontSize: "1rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Get Support
-                  </Button>
-                </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        gap: 2,
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        size="large"
+                        startIcon={<Send />}
+                        // onClick={handleContactAdmin}
+                        sx={{
+                          backgroundColor: "#1976d2",
+                          "&:hover": {
+                            backgroundColor: "#1565c0",
+                          },
+                          paddingX: 3,
+                          paddingY: 1.5,
+                          borderRadius: 2,
+                          textTransform: "none",
+                          fontSize: "1rem",
+                          fontWeight: 600,
+                          boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
+                        }}
+                      >
+                        Send Requirement
+                      </Button>
+
+                      <Button
+                        variant="outlined"
+                        size="large"
+                        startIcon={<ContactSupport />}
+                        sx={{
+                          borderColor: "#1976d2",
+                          color: "#1976d2",
+                          "&:hover": {
+                            borderColor: "#1565c0",
+                            backgroundColor: "rgba(25, 118, 210, 0.04)",
+                          },
+                          paddingX: 3,
+                          paddingY: 1.5,
+                          borderRadius: 2,
+                          textTransform: "none",
+                          fontSize: "1rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Get Support
+                      </Button>
+                    </Box>
                   </>
                 )}
               </Paper>
