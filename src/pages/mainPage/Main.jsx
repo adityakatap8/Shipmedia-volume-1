@@ -22,6 +22,7 @@ import DealDashboard from '../deals/dealDashboard';
 import CartPage from '../cart/CartPage';
 import DealDetails from '../deals/components/DealDetails';
 import UsersList from '../userOrgRegister/usersList';
+import BulkUpload from '../../components/projectsForm/BulkUpload'
 // Directly export the components
 export const orderManagement = () => <OrderManagement />;
 export const jobQueue = () => <JobQueue />;
@@ -45,3 +46,4 @@ export const usersList = () => <UsersList />
 export const dealDashboard = () => <DealDashboard />
 export const cartPage = () => <CartPage />
 export const dealDetails = () => <DealDetails />
+export const bulkUpload = () => <BulkUpload />

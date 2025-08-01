@@ -71,7 +71,7 @@ export default function MovieDetails() {
 
     try {
       const response = await axios.get(
-        `https://www.mediashippers.com/api/project-form/data/${projectId}`,
+        `http://localhost:3000/api/project-form/data/${projectId}`,
         {
           withCredentials: true,
           headers: {
@@ -250,80 +250,112 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              <div className="relative">
-                <Button
-                  size="lg"
-                  className="btn-play-trailer"
-                  onClick={() => {
-                    if (dubbedFiles.length > 0) {
-                      setShowLanguageDropdown(!showLanguageDropdown);
-                    } else {
-                      handlePlayTrailer(); // No dubbed options, play default
-                    }
-                  }}
-                >
-                  <Play className="mr-2 h-5 w-5" />
-                  Watch Trailer
-                </Button>
+   <div className="flex gap-4">
+  {/* Watch Trailer Button */}
+  <div className="relative">
+    <Button
+      size="lg"
+      className="btn-play-trailer"
+      onClick={() => {
+        const hasDubbed = dubbedFiles.some(
+          (item) => item.dubbedTrailerUrl && item.dubbedTrailerUrl !== ""
+        );
+        if (hasDubbed) {
+          setShowLanguageDropdown(!showLanguageDropdown);
+        } else {
+          handlePlayTrailer();
+        }
+      }}
+      disabled={
+        !trailerVideoURL &&
+        !dubbedFiles.some(
+          (item) => item.dubbedTrailerUrl && item.dubbedTrailerUrl !== ""
+        )
+      }
+    >
+      <Play className="mr-2 h-5 w-5" />
+      Watch Trailer
+    </Button>
 
-                {/* Dropdown menu */}
-                {showLanguageDropdown && (
-                  <div className="absolute z-10 mt-2 w-48 bg-white rounded shadow-lg">
-                    {/* Original Language Option */}
-                    <div
-                      className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black font-semibold"
-                      onClick={() => {
-                        setSelectedLanguage(specificationsInfoData.language);
-                        setTrailerUrl(trailerVideoURL); // Set to original trailer
-                        setIsTrailerPlaying(true);
-                        setShowLanguageDropdown(false);
-                      }}
-                    >
-                      {specificationsInfoData.language} (Original)
-                    </div>
+    {/* Dropdown menu */}
+    {showLanguageDropdown && (
+      <div className="absolute z-10 mt-2 w-48 bg-white rounded shadow-lg">
+        {/* Original Language Option */}
+        {trailerVideoURL && (
+          <div
+            className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black font-semibold"
+            onClick={() => {
+              setSelectedLanguage(specificationsInfoData.language);
+              setTrailerUrl(trailerVideoURL);
+              setIsTrailerPlaying(true);
+              setShowLanguageDropdown(false);
+            }}
+          >
+            {specificationsInfoData.language} (Original)
+          </div>
+        )}
 
-                    {/* Dubbed Language Options */}
-                    {dubbedFiles.map((item, index) => {
-                      const finalUrl = item.dubbedTrailerUrl?.startsWith("s3://")
-                        ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${item.dubbedTrailerUrl.replace("s3://", "")}`
-                        : item.dubbedTrailerUrl;
+        {/* Dubbed Language Options */}
+        {dubbedFiles.map((item, index) => {
+          const finalUrl = item.dubbedTrailerUrl?.startsWith("s3://")
+            ? `https://mediashippers-filestash.s3.eu-north-1.amazonaws.com/${item.dubbedTrailerUrl.replace("s3://", "")}`
+            : item.dubbedTrailerUrl;
 
-                      return (
-                        <div
-                          key={index}
-                          className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black"
-                          onClick={() => {
-                            console.log(`Playing ${item.language} Dubbed Trailer URL:`, finalUrl);
-                            setSelectedLanguage(item.language);
-                            setTrailerUrl(finalUrl);
-                            setIsTrailerPlaying(true);
-                            setShowLanguageDropdown(false);
-                          }}
-                        >
-                          {item.language}
-                        </div>
-                      );
-                    })}
+          if (!finalUrl) return null;
 
-
-
-                  </div>
-                )}
-              </div>
-
-
-
-
-              <Button
-                size="lg"
-                className="btn-play-movie"
-                onClick={handlePlayMovie}
-              >
-                <Play className="mr-2 h-5 w-5" />
-                Watch Sample
-              </Button>
+          return (
+            <div
+              key={index}
+              className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-black"
+              onClick={() => {
+                console.log(`Playing ${item.language} Dubbed Trailer URL:`, finalUrl);
+                setSelectedLanguage(item.language);
+                setTrailerUrl(finalUrl);
+                setIsTrailerPlaying(true);
+                setShowLanguageDropdown(false);
+              }}
+            >
+              {item.language}
             </div>
+          );
+        })}
+      </div>
+    )}
+
+    {/* Message if no trailer available */}
+    {!trailerVideoURL &&
+      !dubbedFiles.some(
+        (item) => item.dubbedTrailerUrl && item.dubbedTrailerUrl !== ""
+      ) && (
+        <p className="text-red-600 text-sm mt-2">
+          No trailers available for this project.
+        </p>
+      )}
+  </div>
+
+  {/* Watch Sample Button */}
+  <div className="relative">
+    <Button
+      size="lg"
+      className="btn-play-movie"
+      onClick={handlePlayMovie}
+      disabled={!movieVideoURL}
+    >
+      <Play className="mr-2 h-5 w-5" />
+      Watch Sample
+    </Button>
+
+    {/* Message if no sample movie available */}
+    {!movieVideoURL && (
+      <p className="text-red-600 text-sm mt-2">
+        No sample movie available for this project.
+      </p>
+    )}
+  </div>
+</div>
+
+
+
           </div>
         </div>
       </div>

@@ -74,6 +74,7 @@ const SpecificationsInfo = ({
         { name: 'Cult', id: 28 },
         { name: 'Noir', id: 29 },
         { name: 'Psychological', id: 30 },
+        { name: 'Fiction', id: 31 },
     ];
 
     const languageList = [
@@ -114,7 +115,7 @@ const SpecificationsInfo = ({
             runtime: getFormattedRuntime(),
         });
     }, [
-        projectType, runtime, completionDate, countryOfOrigin,
+        projectType, time, runtime, completionDate, countryOfOrigin,
         countryOfFilming, language, shootingFormat, aspectRatio,
         selectedGenres, budget, currency, selectedCountryOfOrigin, selectedCountryOfFilming, numberOfEpisodes,
         rating, numberOfSeasons
@@ -237,6 +238,7 @@ const SpecificationsInfo = ({
                     </div>
 
                     <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+                        {/* Existing options */}
                         <div className="input optional radio">
                             <input
                                 type="radio"
@@ -299,6 +301,7 @@ const SpecificationsInfo = ({
                     </div>
 
                     <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
+                        {/* Remaining options */}
                         <div className="input optional radio">
                             <input
                                 type="radio"
@@ -358,9 +361,11 @@ const SpecificationsInfo = ({
                             />
                             <label htmlFor="project_type_animation">Animation</label>
                         </div>
-                    </div>
 
+
+                    </div>
                 </div>
+
                 <div className="form-sectionTwo">
 
                     <div className="form-section">
@@ -538,7 +543,7 @@ const SpecificationsInfo = ({
                     {!["feature_film", "short_film", "documentary"].includes(projectType) && (
                         <>
 
-  {/* Number of Seasons */}
+                            {/* Number of Seasons */}
                             <div className="form-section">
                                 <div className="form-label grid-3 span-12-phone">Season Number</div>
                                 <div className="form-field radio-buttons span-6 span-12-phone">
@@ -580,7 +585,7 @@ const SpecificationsInfo = ({
                                 </div>
                             </div>
 
-                          
+
                         </>
                     )}
 

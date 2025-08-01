@@ -45,6 +45,7 @@
         { name: 'Cult', id: 28 },
         { name: 'Noir', id: 29 },
         { name: 'Psychological', id: 30 },
+        { name: 'Fiction', id: 31 },
     ];
 
 

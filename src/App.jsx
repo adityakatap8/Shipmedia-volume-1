@@ -52,6 +52,8 @@ import { PlayerMenu } from "../src/components/shakaPlayer/components/PlayerMenu"
 import ForgotPassword from './pages/forgotPasswordPage/forgotPassword';
 import { Navebar1 } from './components/dashboardNavbar/Navbar1';
 import GuestUserPage from './components/guestUserPage/GuestUserPage';
+import bulkUpload from './components/projectsForm/BulkUpload';
+import BulkUpload from './components/projectsForm/BulkUpload';
 
 
 const queryClient = new QueryClient();
@@ -154,6 +156,11 @@ function App() {
             <Route path="/projects-form" element={
               <ProtectedRoute>
                 <DashboardLayout>{projectsForm()}</DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/bulkupload-form" element={
+              <ProtectedRoute>
+                <DashboardLayout>{<BulkUpload />}</DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/view-form" element={
