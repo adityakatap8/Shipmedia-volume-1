@@ -216,7 +216,7 @@ export default function DealDashboard() {
     const fetchDeals = async () => {
         try {
             setLoading(true) // Show loader
-            const response = await axios.get(`http://localhost:3000/api/deal/deals-with-counts/${user._id}`)
+            const response = await axios.get(`https://www.mediashippers.com/api/deal/deals-with-counts/${user._id}`)
             const data = await response.data
             console.log("Fetched Deals:", data.deals)
             setDealsData(data.deals)
@@ -476,7 +476,7 @@ export default function DealDashboard() {
     const handleSendDeal = async (dealId) => {
         try {
             setLoading(true) // Show loader
-            const response = await axios.post("http://localhost:3000/api/deal/split-to-sellers", {
+            const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
                 dealId,
                 userId: user._id,
             })
