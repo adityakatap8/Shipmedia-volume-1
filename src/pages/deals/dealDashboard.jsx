@@ -54,11 +54,14 @@ import {
     Close,
     PauseCircle,
     FilePresent,
+    Add,
 } from "@mui/icons-material"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import Loader from "../../components/loader/Loader"
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import MovieFilterIcon from '@mui/icons-material/MovieFilter';
 
 // Add this at the top of your component, after the imports
 const globalStyles = `
@@ -165,9 +168,9 @@ export default function DealDashboard() {
 
         // Filter by tab
         if (tabValue === 0) {
-            filtered = filtered.filter((deal) => deal.senderId === user._id)
-        } else if (tabValue === 1) {
             filtered = filtered.filter((deal) => deal.assignedTo === user._id)
+        } else if (tabValue === 1) {
+            filtered = filtered.filter((deal) => deal.senderId === user._id && deal.status !== "pending")
         } else if (tabValue === 2) {
             filtered = filtered.filter((deal) => deal.status === "pending")
         } else if (tabValue === 3) {
@@ -418,7 +421,6 @@ export default function DealDashboard() {
         const secs = seconds % 60
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
     }
-
     // Send message with attachments
     // const handleSendMessage = async () => {
     //     if (!messageText.trim() && !audioBlob && !selectedFile && !selectedImage) return
@@ -713,20 +715,25 @@ export default function DealDashboard() {
                 <Box sx={{ display: "flex", gap: "4px" }}>
                     {/* View Details Button */}
                     <Tooltip title="View Details" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                        <IconButton
+                        <Button
                             onClick={() => navigate(`/deal-details/${deal._id}`)}
                             size="small"
+                            variant="outlined"
                             sx={{
+                                padding: "2px 8px", // Reduce padding
+                                fontSize: "12px", // Smaller font size
+                                height: "28px", // Reduce height
+                                minWidth: "auto", // Remove default width
                                 color: "#a855f7",
                                 "&:hover": {
                                     bgcolor: "rgba(168, 85, 247, 0.1)",
-                                    transform: "scale(1.1)",
+                                    transform: "scale(1.05)", // Slight hover effect
                                 },
                                 transition: "all 0.2s",
                             }}
                         >
-                            <Visibility fontSize="small" />
-                        </IconButton>
+                            Open Deal
+                        </Button>
                     </Tooltip>
 
                     {/* Open Chat Button */}
@@ -765,7 +772,7 @@ export default function DealDashboard() {
                     </Tooltip>
 
                     {/* Conditional Rendering for Seller */}
-                    {user.role === "Seller" || user.role === "Buyer" ? (
+                    {user.role === "Seller" || (user.role === "Buyer" && deal.status === "curated_list_sent_to_buyer") ? (
                         <>
                             <Tooltip title="More Actions" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                 <IconButton
@@ -806,27 +813,66 @@ export default function DealDashboard() {
                             </Menu>
                         </>
                     ) : (
-                        <Tooltip title="Send Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                            <IconButton
-                                size="small"
-                                onClick={() => handleSendDeal(deal._id)}
-                                disabled={deal.status === "sent_to_seller" || deal.status === "sent_to_buyer"} // Correct condition
-                                sx={{
-                                    color: deal.status === "sent_to_seller" || deal.status === "sent_to_buyer" ? "#9e9e9e" : "#4caf50", // Change color when disabled
-                                    "&:hover": {
-                                        bgcolor:
-                                            deal.status === "sent_to_seller" || deal.status === "sent_to_buyer"
-                                                ? "transparent"
-                                                : "rgba(76, 175, 80, 0.1)",
-                                        transform:
-                                            deal.status === "sent_to_seller" || deal.status === "sent_to_buyer" ? "none" : "scale(1.1)",
-                                    },
-                                    transition: "all 0.2s",
-                                }}
-                            >
-                                <Send fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
+                        <>{user.role === 'Admin' && (deal.status === "submitted_by_buyer" || deal.status === "pending") && (
+                            <Tooltip title="Filter Matching Content" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => navigate("/showcase-projects", { state: { dealDetails: deal } })}
+                                    sx={{
+                                        color: "#f5b014",
+                                        "&:hover": {
+                                            bgcolor: "rgba(245, 176, 20, 0.1)",
+                                            transform: "scale(1.1)",
+                                        },
+                                        transition: "all 0.2s",
+                                    }}
+                                >
+                                    <FilterAltIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                            {user.role === "Admin" && deal.status === "admin_filtered_content" && (
+                                <Tooltip title="Filtered Content" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => navigate("/cart")}
+                                        sx={{
+                                            color: "#f5b014",
+                                            "&:hover": {
+                                                bgcolor: "rgba(245, 176, 20, 0.1)",
+                                                transform: "scale(1.1)",
+                                            },
+                                            transition: "all 0.2s",
+                                        }}
+                                    >
+                                        <MovieFilterIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
+                            {user.role === 'Admin' && deal.status === "shortlisted_by_buyer" && (
+                                <Tooltip title="Send Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleSendDeal(deal._id)}
+                                        disabled={deal.status === "sent_to_seller" || deal.status === "sent_to_buyer"} // Correct condition
+                                        sx={{
+                                            color: deal.status === "sent_to_seller" || deal.status === "sent_to_buyer" ? "#9e9e9e" : "#4caf50", // Change color when disabled
+                                            "&:hover": {
+                                                bgcolor:
+                                                    deal.status === "sent_to_seller" || deal.status === "sent_to_buyer"
+                                                        ? "transparent"
+                                                        : "rgba(76, 175, 80, 0.1)",
+                                                transform:
+                                                    deal.status === "sent_to_seller" || deal.status === "sent_to_buyer" ? "none" : "scale(1.1)",
+                                            },
+                                            transition: "all 0.2s",
+                                        }}
+                                    >
+                                        <Send fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
+                        </>
                     )}
                 </Box>
             </TableCell>
@@ -1158,28 +1204,38 @@ export default function DealDashboard() {
                 </Box>
 
                 {/* Tabs */}
-                <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    sx={{
-                        marginBottom: "20px",
-                        "& .MuiTabs-indicator": {
-                            backgroundColor: "#6a26cd",
-                        },
-                        "& .MuiTab-root": {
-                            color: "#a0a0b0",
-                            "&.Mui-selected": {
-                                color: "white",
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        sx={{
+                            "& .MuiTabs-indicator": {
+                                backgroundColor: "#6a26cd",
                             },
-                        },
-                    }}
-                >
-                    <Tab label={`Shared (${dealcounts.shared || 0})`} />
-                    <Tab label={`Received (${dealcounts.received || 0})`} />
-                    <Tab label={`Pending (${dealcounts.pending || 0})`} />
-                    <Tab label={`Completed (${dealcounts.closed || 0})`} />
-                    <Tab label={`Cancelled (${dealcounts.cancelled || 0})`} />
-                </Tabs>
+                            "& .MuiTab-root": {
+                                color: "#a0a0b0",
+                                "&.Mui-selected": {
+                                    color: "white",
+                                },
+                            },
+                        }}
+                    >
+                        <Tab label={`Received (${dealcounts.received || 0})`} />
+                        <Tab label={`Shared (${dealcounts.shared || 0})`} />
+                        <Tab label={`Pending (${dealcounts.pending || 0})`} />
+                        <Tab label={`Completed (${dealcounts.closed || 0})`} />
+                        <Tab label={`Cancelled (${dealcounts.cancelled || 0})`} />
+                    </Tabs>
+                    <IconButton
+                        onClick={() => navigate("/create-requirement")}
+                        sx={{
+                            color: "#6a26cd",
+                            marginLeft: "auto", // Align to the right
+                        }}
+                    >
+                        <Add fontSize="large" />
+                    </IconButton>
+                </Box>
 
                 {/* Card View */}
                 {viewMode === "cards" && (

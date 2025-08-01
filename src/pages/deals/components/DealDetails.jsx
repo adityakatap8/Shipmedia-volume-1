@@ -155,6 +155,26 @@ export default function DealDashboard() {
 
   const navigate = useNavigate(); // Initialize useNavigate
 
+  const dealStatuses = [
+    'submitted_by_buyer',
+    'admin_filtered_content',
+    'curated_list_sent_to_buyer',
+    'shortlisted_by_buyer',
+    'sent_to_seller',
+    'deal_verified',
+    'in_negotiation_seller',
+    'in_negotiation_buyer',
+    'rejected_by_buyer',
+    'rejected_by_seller',
+    'deal_closed',
+  ];
+
+  const formatStatusLabel = (status) => {
+    return status
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   const handleOpenModal = (movie) => {
     setSelectedMovie(movie)
     setOpenModal(true)
@@ -242,22 +262,38 @@ export default function DealDashboard() {
 
   const handleCheckboxChange = (movieId, status) => {
     setSelectedMovies((prev) => {
+      const existingMovie = prev.find((movie) => movie.movieId === movieId);
+
       if (status === "rejected") {
         // Remove the movie from the selected list if unchecked
         return prev.filter((movie) => movie.movieId !== movieId);
+      } else if (existingMovie) {
+        // Update the status if the movie is already selected
+        return prev.map((movie) =>
+          movie.movieId === movieId ? { ...movie, status } : movie
+        );
       } else {
-        const existingMovie = prev.find((movie) => movie.movieId === movieId);
-        if (existingMovie) {
-          // Update the status if the movie is already selected
-          return prev.map((movie) =>
-            movie.movieId === movieId ? { ...movie, status } : movie
-          );
-        } else {
-          // Add the movie to the selected list
-          return [...prev, { movieId, status }];
-        }
+        // Add the movie to the selected list
+        return [...prev, { movieId, status }];
       }
     });
+  }
+
+  const handleSendDeal = async () => {
+    try {
+      setLoading(true) // Show loader
+      const response = await axios.post("https://www.mediashippers.com/api/deal/split-to-sellers", {
+        dealId,
+        userId: user._id,
+      })
+      console.log("Send Deal Response:", response.data)
+      // Optionally, refresh the deals data or show a success message
+      fetchDeals()
+    } catch (error) {
+      console.error("Error sending deal:", error)
+    } finally {
+      setLoading(false) // Hide loader
+    }
   }
 
   const handleSubmitDeal = async () => {
@@ -268,7 +304,7 @@ export default function DealDashboard() {
           status: selectedMovies.some((selected) => selected.movieId === movie._id)
             ? "accepted"
             : "rejected",
-          remarks: "",
+          remarks: ""
         })),
       };
 
@@ -364,26 +400,33 @@ export default function DealDashboard() {
         </Box>
 
         {/* Deal Progress */}
-        <Paper sx={{ p: 2, mb: 4, borderRadius: 3 }}>
+        <Paper sx={{ p: 1, mb: 4, borderRadius: 3 }}>
           <Typography variant="h6" sx={{ mb: 3 }}>
             Deal Progress
           </Typography>
-          <Stepper activeStep={statusDetails.step} alternativeLabel>
-            <Step>
-              <StepLabel>Created</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Sent to Shipper</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Under Review</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Approved</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Completed</StepLabel>
-            </Step>
+          <Stepper activeStep={dealStatuses.indexOf(deal.status)} alternativeLabel>
+            {dealStatuses.map((status, index) => {
+              const isCompleted = index <= dealStatuses.indexOf(deal.status);
+              const stepColor = isCompleted ? "#52a447" : "gray";
+
+              return (
+                <Step key={index}>
+                  <StepLabel
+                    sx={{
+                      "& .MuiStepLabel-label": {
+                        color: stepColor,
+                        fontWeight: isCompleted ? "bold" : "normal",
+                      },
+                      "& .MuiStepIcon-root": {
+                        color: stepColor,
+                      },
+                    }}
+                  >
+                    {formatStatusLabel(status)}
+                  </StepLabel>
+                </Step>
+              );
+            })}
           </Stepper>
         </Paper>
 
@@ -427,35 +470,45 @@ export default function DealDashboard() {
                   Rights
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.rights.map((right, index) => {
-                    let icon
-                    if (right.includes("Video")) icon = <Movie fontSize="small" />
-                    else if (right.includes("Music")) icon = <MusicNote fontSize="small" />
-                    else if (right.includes("Mobile")) icon = <Smartphone fontSize="small" />
-
-                    return (
-                      <Chip
-                        key={index}
-                        icon={icon}
-                        label={right}
-                        size="small"
-                        sx={{
-                          bgcolor: `${theme.palette.primary.main}15`,
-                          color: theme.palette.primary.main,
-                          fontWeight: 500,
-                        }}
-                      />
-                    )
-                  })}
+                  <Chip
+                    label={deal?.rights}
+                    size="small"
+                    sx={{
+                      bgcolor: `${theme.palette.primary.main}15`,
+                      color: theme.palette.primary.main,
+                      fontWeight: 500,
+                    }}
+                  />
                 </Box>
               </Box>
 
               <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Territory
+                  Including Regions
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.territory.map((item, index) => (
+                  {deal.includingRegions?.map((item, index) => (
+                    <Chip
+                      key={index}
+                      icon={<Public fontSize="small" />}
+                      label={item}
+                      size="small"
+                      sx={{
+                        bgcolor: `${theme.palette.secondary.main}15`,
+                        color: theme.palette.secondary.main,
+                        fontWeight: 500,
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 3, display: "flex", flexDirection: "row", justifyContent: 'space-between', gap: 1 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Excluding Countries
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                  {deal.excludingCountries?.map((item, index) => (
                     <Chip
                       key={index}
                       icon={<Public fontSize="small" />}
@@ -476,19 +529,17 @@ export default function DealDashboard() {
                   License Term
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.licenseTerm.map((term, index) => (
-                    <Chip
-                      key={index}
-                      icon={<CalendarMonth fontSize="small" />}
-                      label={term}
-                      size="small"
-                      sx={{
-                        bgcolor: "#4caf5015",
-                        color: "#4caf50",
-                        fontWeight: 500,
-                      }}
-                    />
-                  ))}
+
+                  <Chip
+                    icon={<CalendarMonth fontSize="small" />}
+                    label={deal.licenseTerm}
+                    size="small"
+                    sx={{
+                      bgcolor: "#4caf5015",
+                      color: "#4caf50",
+                      fontWeight: 500,
+                    }}
+                  />
                 </Box>
               </Box>
 
@@ -497,19 +548,17 @@ export default function DealDashboard() {
                   Usage Rights
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.usageRights.map((right, index) => (
-                    <Chip
-                      key={index}
-                      icon={<Copyright fontSize="small" />}
-                      label={right}
-                      size="small"
-                      sx={{
-                        bgcolor: "#9c27b015",
-                        color: "#9c27b0",
-                        fontWeight: 500,
-                      }}
-                    />
-                  ))}
+
+                  <Chip
+                    icon={<Copyright fontSize="small" />}
+                    label={deal.usageRights}
+                    size="small"
+                    sx={{
+                      bgcolor: "#9c27b015",
+                      color: "#9c27b0",
+                      fontWeight: 500,
+                    }}
+                  />
                 </Box>
               </Box>
 
@@ -518,19 +567,18 @@ export default function DealDashboard() {
                   Payment Terms
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                  {deal.paymentTerms.map((term, index) => (
-                    <Chip
-                      key={index}
-                      icon={<AttachMoney fontSize="small" />}
-                      label={term}
-                      size="small"
-                      sx={{
-                        bgcolor: "#ff570015",
-                        color: "#ff5700",
-                        fontWeight: 500,
-                      }}
-                    />
-                  ))}
+
+                  <Chip
+                    icon={<AttachMoney fontSize="small" />}
+                    label={deal.paymentTerms}
+                    size="small"
+                    sx={{
+                      bgcolor: "#ff570015",
+                      color: "#ff5700",
+                      fontWeight: 500,
+                    }}
+                  />
+
                 </Box>
               </Box>
 
@@ -571,99 +619,172 @@ export default function DealDashboard() {
                     Movies in this Deal ({deal.movieDetails.length})
                   </Typography>
                   <Grid container spacing={3}>
-                    {deal.movieDetails.map((movie, index) => (
-                      <Grid item xs={12} sm={6} key={movie._id}>
-                        <Card
-                          sx={{
-                            display: "flex",
-                            height: "100%",
-                            position: "relative", // Add relative positioning for the checkbox
-                            transition: "transform 0.2s",
-                            "&:hover": {
-                              transform: "translateY(-4px)",
-                              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                            },
-                          }}
-                        >
-                          {/* Checkbox in the top-right corner */}
-                          <Checkbox
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              right: 0,
+                    {deal.movieDetails.map((movie, index) => {
+                      // Find the corresponding movie in the movies array
+                      const movieStatus = deal.movies.find((dealMovie) => dealMovie.movieId === movie._id)?.status || "Unknown";
 
-                              "&.Mui-checked": {
-                                color: theme.palette.primary.main,
+                      return (
+                        <Grid item xs={12} sm={6} key={movie._id}>
+                          <Card
+                            sx={{
+                              display: "flex",
+                              height: "100%",
+                              position: "relative",
+                              transition: "transform 0.2s",
+                              "&:hover": {
+                                transform: "translateY(-4px)",
+                                boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
                               },
                             }}
-                            checked={deal.status === 'sent_to_shipper'? deal.movies.some(
-                              (dealMovie) => dealMovie.movieId === movie._id && dealMovie.status === "accepted"
-                            ) : selectedMovies.some(
-                              (selected) => selected.movieId === movie._id && selected.status === "accepted"
-                            )} // Check if the current movie's status is 'accepted'
-                            onChange={(e) =>
-                              handleCheckboxChange(movie._id, e.target.checked ? "accepted" : "rejected")
-                            }
-                            disabled={deal.status === "sent_to_shipper"}
-                          />
-
-                          <CardMedia
-                            component="img"
-                            sx={{ width: 120, objectFit: "cover" }}
-                            image={movie.projectPosterS3Url}
-                            alt={movie.projectTitle}
-                          />
-                          <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                            <CardContent sx={{ flex: "1 0 auto", pb: 1 }}>
-                              <Typography variant="h6" component="div" noWrap>
-                                {movie.projectTitle}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
+                          >
+                            {user?.role === "Buyer" && deal.status === "shortlisted_by_buyer" ? (
+                              <>
+                                {movieStatus === "accepted" && (
+                                  <CheckCircle sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    color: "green",
+                                    fontSize: 28,
+                                    zIndex: 2,
+                                  }} titleAccess="Shortlisted" />
+                                )}
+                                {movieStatus === "rejected" && (
+                                  <X sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    color: "red",
+                                    fontSize: 28,
+                                    zIndex: 2,
+                                  }} titleAccess="Rejected" />
+                                )}
+                              </>
+                            ) : user?.role === "Buyer" && deal.status === 'curated_list_sent_to_buyer' && (
+                              <Checkbox
                                 sx={{
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                  mb: 1,
-                                }}
-                              >
-                                {movie.briefSynopsis}
-                              </Typography>
-                              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-                                <Button
-                                  size="small"
-                                  endIcon={<ArrowForward />}
-                                  onClick={() => handleOpenModal(movie)}
-                                  sx={{
-                                    textTransform: "none",
-                                    fontWeight: 600,
-                                    p: 0,
-                                    minWidth: "auto",
+                                  position: "absolute",
+                                  top: 0,
+                                  right: 0,
+                                  "&.Mui-checked": {
                                     color: theme.palette.primary.main,
+                                  },
+                                }}
+                                checked={selectedMovies.some((selected) => selected.movieId === movie._id && selected.status === "accepted")}
+                                disabled={movieStatus === "rejected"}
+                                onChange={(e) => {
+                                  if (movieStatus === "pending") {
+                                    handleCheckboxChange(movie._id, e.target.checked ? "accepted" : "rejected");
+                                  }
+                                }}
+                              />
+                            )}
+
+                            {(user?.role !== 'Buyer' && <Typography
+                              variant="body2"
+                              sx={{
+                                position: "absolute",
+                                right: 0,
+                                bottom: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                color: movieStatus === "accepted"
+                                  ? "green"
+                                  : movieStatus === "rejected"
+                                    ? "red"
+                                    : "orange", // Default color for "pending"
+                                padding: "4px 8px",
+                                marginBottom: 1,
+                                fontWeight: "bold", // Optional: Make the text bold for better visibility
+                              }}
+                            >
+                              {/* Add icons for each status */}
+                              {movieStatus === "accepted" && <CheckCircle sx={{ fontSize: 16, color: "green" }} />}
+                              {movieStatus === "rejected" && <X sx={{ fontSize: 16, color: "red" }} />}
+                              {movieStatus === "pending" && <AccessTime sx={{ fontSize: 16, color: "orange" }} />}
+                              {movieStatus}
+                            </Typography>
+                            )}
+
+                            {/* Movie Poster */}
+                            <CardMedia
+                              component="img"
+                              sx={{ width: 120, objectFit: "cover" }}
+                              image={movie.projectPosterS3Url}
+                              alt={movie.projectTitle}
+                            />
+
+                            {/* Movie Details */}
+                            <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                              <CardContent sx={{ flex: "1 0 auto", pb: 1 }}>
+                                <Typography variant="h6" component="div" noWrap>
+                                  {movie.projectTitle}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  sx={{
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    mb: 1,
                                   }}
                                 >
-                                  View details
-                                </Button>
-                              </Box>
-                            </CardContent>
-                          </Box>
-                        </Card>
-                      </Grid>
-                    ))}
+                                  {movie.briefSynopsis}
+                                </Typography>
+                                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                                  <Button
+                                    size="small"
+                                    endIcon={<ArrowForward />}
+                                    onClick={() => window.open(`/movie/${movie._id}`, "_blank")} // Open movie details in a new tab
+                                    sx={{
+                                      textTransform: "none",
+                                      fontWeight: 600,
+                                      p: 0,
+                                      minWidth: "auto",
+                                      color: theme.palette.primary.main,
+                                    }}
+                                  >
+                                    View details
+                                  </Button>
+                                </Box>
+                              </CardContent>
+                            </Box>
+                          </Card>
+                        </Grid>
+                      );
+                    })}
                   </Grid>
-                  <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      sx={{ textTransform: "capitalize" }}
-                      onClick={handleSubmitDeal}
-                      disabled={deal.status === "sent_to_shipper" || selectedMovies.length === 0}
-                    >
-                      Submit Deal
-                    </Button>
-                  </Box>
+                  {deal.status === "shortlisted_by_buyer" && user?.role === "Buyer" ? (
+                    <Box sx={{ my: 2, textAlign: "center", color: "#008000" }}>
+                      Your shortlist has been updated. The admin will review the changes shortly.
+                    </Box>
+                  ) : (deal.status === "shortlisted_by_buyer" && user?.role === "Admin") ? (
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ textTransform: "capitalize" }}
+                        onClick={handleSendDeal}
+                      >
+                        Send to Seller
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ textTransform: "capitalize" }}
+                        onClick={handleSubmitDeal}
+                        disabled={selectedMovies.length === 0}
+                      >
+                        Shortlist
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
               )}
 

@@ -34,7 +34,7 @@ const getCrewImageURL = (firstName, lastName, title) => {
 };
 
 export default function MovieDetails() {
-  const { orgName } = useSelector((state) => state.auth.user.user)
+  const { orgName, role } = useSelector((state) => state.auth.user.user)
 
   const { projectId } = useParams(); // Extract the projectId from URL
   const { toast } = useToast();
@@ -134,6 +134,7 @@ export default function MovieDetails() {
   // Destructure the movieData into required parts
   const projectInfoData = movieData?.projectInfo || {};
   const creditsInfoData = movieData?.creditsInfo || {};
+  console.log("Credits Info Data:", creditsInfoData);
   const specificationsInfoData = movieData?.specificationsInfo || {};
 
 
@@ -155,8 +156,8 @@ export default function MovieDetails() {
 
 
   // Default URLs for logo and background images if not provided
- const backgroundImageURL = projectInfoData.projectBannerS3Url || defaultBanner;
-const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
+  const backgroundImageURL = projectInfoData.projectBannerS3Url || defaultBanner;
+  const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
 
 
   // Trailer URL construction using the title directly
@@ -198,6 +199,19 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
     // Replace with an API call if needed
   };
 
+
+  // Masking logic for names
+  // Masking logic for names
+  const maskName = (name) => {
+    const trimmedName = name.trim(); // Trim spaces
+    if (trimmedName.length === 0) {
+      return ""; // Return an empty string if the name is empty
+    }
+    if (trimmedName.length === 1) {
+      return trimmedName; // Return the name as is if it's 1 character
+    }
+    return `${trimmedName[0]}${'*'.repeat(trimmedName.length - 1)}`;
+  };
 
   return (
     <div className="min-h-screen">
@@ -421,7 +435,6 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
 
         {/* Credits Information */}
         <div className="mt-6 flex flex-col md:flex-row gap-8">
-
           {/* Left Side: Credits */}
           <div className="md:w-1/3 w-full p-4 bg-opacity-50 rounded-lg">
             <p className="text-xl font-semibold mb-4">Credits</p>
@@ -431,16 +444,23 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.directors?.length ? creditsInfoData.directors.map((director, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    <img
-                      src={director.photo || getCrewImageURL(director.firstName, director.lastName, title)}
-                      alt={director.firstName}
-                      className="w-20 h-20 rounded-full mb-2 object-cover"
-                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
-                    />
-                    {!director.photo && !getCrewImageURL(director.firstName, director.lastName, title) && (
-                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    {role === "Buyer" ? (
+                      // Masked info for buyers
+                      <p>
+                        {`${maskName(director.firstName)} ${maskName(director.lastName)}`}
+                      </p>
+                    ) : (
+                      // Full info for other roles
+                      <>
+                        <img
+                          src={director.photo || getCrewImageURL(director.firstName, director.lastName, title)}
+                          alt={director.firstName}
+                          className="w-20 h-20 rounded-full mb-2 object-cover"
+                          onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                        />
+                        <p>{director.firstName} {director.lastName}</p>
+                      </>
                     )}
-                    <p>{director.firstName} {director.lastName}</p>
                   </div>
                 )) : <p>No directors available</p>}
               </div>
@@ -451,16 +471,23 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.writers?.length ? creditsInfoData.writers.map((writer, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    <img
-                      src={writer.photo || getCrewImageURL(writer.firstName, writer.lastName, title)}
-                      alt={writer.firstName}
-                      className="w-20 h-20 rounded-full mb-2 object-cover"
-                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
-                    />
-                    {!writer.photo && !getCrewImageURL(writer.firstName, writer.lastName, title) && (
-                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    {role === "Buyer" ? (
+                      // Masked info for buyers
+                      <p>
+                        {`${writer.firstName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (writer.firstName?.trim()?.length || 0) - 1))} ${writer.lastName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (writer.lastName?.trim()?.length || 0) - 1))}`}
+                      </p>
+                    ) : (
+                      // Full info for other roles
+                      <>
+                        <img
+                          src={writer.photo || getCrewImageURL(writer.firstName, writer.lastName, title)}
+                          alt={writer.firstName}
+                          className="w-20 h-20 rounded-full mb-2 object-cover"
+                          onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                        />
+                        <p>{writer.firstName} {writer.lastName}</p>
+                      </>
                     )}
-                    <p>{writer.firstName} {writer.lastName}</p>
                   </div>
                 )) : <p>No writers available</p>}
               </div>
@@ -471,16 +498,23 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.producers?.length ? creditsInfoData.producers.map((producer, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    <img
-                      src={producer.photo || getCrewImageURL(producer.firstName, producer.lastName, title)}
-                      alt={producer.firstName}
-                      className="w-20 h-20 rounded-full mb-2 object-cover"
-                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
-                    />
-                    {!producer.photo && !getCrewImageURL(producer.firstName, producer.lastName, title) && (
-                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    {role === "Buyer" ? (
+                      // Masked info for buyers
+                      <p>
+                        {`${producer.firstName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (producer.firstName?.trim()?.length || 0) - 1))} ${producer.lastName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (producer.lastName?.trim()?.length || 0) - 1))}`}
+                      </p>
+                    ) : (
+                      // Full info for other roles
+                      <>
+                        <img
+                          src={producer.photo || getCrewImageURL(producer.firstName, producer.lastName, title)}
+                          alt={producer.firstName}
+                          className="w-20 h-20 rounded-full mb-2 object-cover"
+                          onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                        />
+                        <p>{producer.firstName} {producer.lastName}</p>
+                      </>
                     )}
-                    <p>{producer.firstName} {producer.lastName}</p>
                   </div>
                 )) : <p>No producers available</p>}
               </div>
@@ -491,16 +525,23 @@ const logoImageURL = projectInfoData.projectPosterS3Url || defaultPoster;
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.actors?.length ? creditsInfoData.actors.map((actor, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    <img
-                      src={actor.photo || getCrewImageURL(actor.firstName, actor.lastName, title)}
-                      alt={actor.firstName}
-                      className="w-20 h-20 rounded-full mb-2 object-cover"
-                      onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
-                    />
-                    {!actor.photo && !getCrewImageURL(actor.firstName, actor.lastName, title) && (
-                      <i className="fa-duotone fa-solid fa-clapperboard text-2xl"></i>
+                    {role === "Buyer" ? (
+                      // Masked info for buyers
+                      <p>
+                        {`${actor.firstName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (actor.firstName?.trim()?.length || 0) - 1))} ${actor.lastName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (actor.lastName?.trim()?.length || 0) - 1))}`}
+                      </p>
+                    ) : (
+                      // Full info for other roles
+                      <>
+                        <img
+                          src={actor.photo || getCrewImageURL(actor.firstName, actor.lastName, title)}
+                          alt={actor.firstName}
+                          className="w-20 h-20 rounded-full mb-2 object-cover"
+                          onError={(e) => e.target.style.display = 'none'} // Hide image if it fails to load
+                        />
+                        <p>{actor.firstName} {actor.lastName}</p>
+                      </>
                     )}
-                    <p>{actor.firstName} {actor.lastName}</p>
                   </div>
                 )) : <p>No actors available</p>}
               </div>

@@ -2,7 +2,8 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Card, CardContent, CardHeader, Typography, Tabs, Tab, Box, Button, CircularProgress } from "@mui/material"
+import React from "react"
+import { Alert, Snackbar, Card, CardContent, CardHeader, Typography, Tabs, Tab, Box, Button, CircularProgress } from "@mui/material"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import PrimaryContactDetails from "./components/PrimaryContactDetails"
 import UserDetails from "./components/UserDetails"
@@ -11,6 +12,8 @@ import OrganizationDetails from "./components/OrganizationDetails"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Breadcrumb from "../../components/breadcrumb/Breadcrumb"; // Import Breadcrumb
+import MuiAlert from "@mui/material/Alert";
+
 
 const formSchema = z
     .object({
@@ -37,6 +40,7 @@ const formSchema = z
         path: ["confirmPassword"],
     })
 
+
 function UserOrgManagement() {
     const navigate = useNavigate(); // Initialize useNavigate
     const [activeTab, setActiveTab] = useState(0)
@@ -46,6 +50,11 @@ function UserOrgManagement() {
         orgGstPdf: null,
         orgAgreementPdf: null,
     })
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "error"
+    });
 
     const breadcrumbItems = [
         { label: "Users", path: "/users-list" },
@@ -57,6 +66,7 @@ function UserOrgManagement() {
         handleSubmit,
         formState: { errors, isValid },
         watch,
+        trigger
     } = useForm({
         resolver: zodResolver(formSchema),
         mode: "onChange",
@@ -85,7 +95,7 @@ function UserOrgManagement() {
         try {
             // Log form values for debugging
             console.log("Form values:", values)
-            
+
             // Check for validation errors
             if (Object.keys(errors).length > 0) {
                 console.error("Form validation errors:", errors)
@@ -115,15 +125,17 @@ function UserOrgManagement() {
             const response = await axios.post(
                 "https://www.mediashippers.com/api/organization/register",
                 formData,
-              );
-          
-              console.log("Response from server:", response.data);
+            );
+
+            console.log("Response from server:", error.response.data.message);
 
             // Redirect to /users-list on success
             navigate("/users-list");
         } catch (error) {
-            console.error("Registration error:", error)
+            console.error("Registration error:", error.response.data.message)
             // You might want to show an error message to the user here
+            const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+            showSnackbar(errorMessage, "error");
         } finally {
             setIsSubmitting(false)
         }
@@ -140,12 +152,50 @@ function UserOrgManagement() {
         setActiveTab(newValue)
     }
 
-    const nextStep = (e) => {
-        e?.preventDefault();
-        if (activeTab < 3) {
-            setActiveTab((prevTab) => prevTab + 1)
+    const MUIAlert = React.forwardRef(function MUIAlert(props, ref) {
+        return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+    });
+
+
+    const nextStep = async (e) => {
+        e.preventDefault();
+
+        let fieldsToValidate = [];
+
+        switch (activeTab) {
+            case 0:
+                fieldsToValidate = ["orgName", "orgAddress", "orgCorpRegNo", "orgGstNo"];
+                break;
+            case 1:
+                fieldsToValidate = ["primaryName", "primaryEmail", "primaryNo"];
+                break;
+            case 2:
+                fieldsToValidate = ["userName", "userEmail", "role", "password", "confirmPassword"];
+                break;
+            case 3:
+                if (!files.orgCorpPdf || !files.orgGstPdf || !files.orgAgreementPdf) {
+                    showSnackbar("Please upload all required Documents.");
+                    return;
+                }
+                break;
+            default:
+                break;
         }
-    }
+
+        if (fieldsToValidate.length > 0) {
+            const isStepValid = await trigger(fieldsToValidate);
+            if (!isStepValid) {
+                showSnackbar("Please fix errors in this step before proceeding.");
+                return;
+            }
+        }
+
+        if (activeTab < 3) {
+            setActiveTab((prevTab) => prevTab + 1);
+        }
+    };
+
+
 
     const prevStep = (e) => {
         e?.preventDefault();
@@ -154,128 +204,149 @@ function UserOrgManagement() {
         }
     }
 
-    return (
-        <Card
-            style={{
-                width: "100%",
-                color: "white",
-                backgroundColor: "transparent",
-            }}
-        >
-            <CardContent sx={{padding: '16px'}}>
-                {/* Breadcrumb */}
-                <Breadcrumb items={breadcrumbItems} />
+    const showSnackbar = (message, severity = "error") => {
+        setSnackbar({ open: true, message, severity });
+    };
 
-                <form onSubmit={(e) => {
-                    e.preventDefault();
-                    if (activeTab === 3) {
-                        handleSubmit(onSubmit)(e);
-                    }
-                }}>
-                    <Box
-                        sx={{
-                            borderBottom: 1,
-                            borderColor: "divider",
-                            marginBottom: "24px",
-                            display: "flex",
-                            justifyContent: "center",
-                        }}
-                    >
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === "clickaway") return;
+        setSnackbar({ ...snackbar, open: false });
+    };
+
+    return (
+        <>
+            <Card
+                style={{
+                    width: "100%",
+                    color: "white",
+                    backgroundColor: "transparent",
+                }}
+            >
+                <CardContent sx={{ padding: '16px' }}>
+                    {/* Breadcrumb */}
+                    <Breadcrumb items={breadcrumbItems} />
+
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (activeTab === 3) {
+                            handleSubmit(onSubmit)(e);
+                        }
+                    }}>
                         <Box
                             sx={{
-                                width: "80%", // 👈 reduce width as per your need (e.g., 60%, 500px, etc.)
-                                maxWidth: "800px",
+                                borderBottom: 1,
+                                borderColor: "divider",
+                                marginBottom: "24px",
+                                display: "flex",
+                                justifyContent: "center",
                             }}
                         >
-                            <Tabs
-                                value={activeTab}
-                                onChange={handleTabChange}
-                                variant="fullWidth"
+                            <Box
                                 sx={{
-                                    "& .MuiTabs-indicator": {
-                                        backgroundColor: "#F26430",
-                                    },
-                                    "& .Mui-selected": {
-                                        color: "#F26430 !important",
-                                    },
-                                    "& .MuiTab-root": {
-                                        color: "#aaa",
-                                    },
+                                    width: "80%", // 👈 reduce width as per your need (e.g., 60%, 500px, etc.)
+                                    maxWidth: "800px",
                                 }}
                             >
-                                <Tab label="Organization" />
-                                <Tab label="Primary Contact" />
-                                <Tab label="User Details" />
-                                <Tab label="Documents" />
-                            </Tabs>
+                                <Tabs
+                                    value={activeTab}
+                                    onChange={handleTabChange}
+                                    variant="fullWidth"
+                                    sx={{
+                                        "& .MuiTabs-indicator": {
+                                            backgroundColor: "#F26430",
+                                        },
+                                        "& .Mui-selected": {
+                                            color: "#F26430 !important",
+                                        },
+                                        "& .MuiTab-root": {
+                                            color: "#aaa",
+                                        },
+                                    }}
+                                >
+                                    <Tab label="Organization" error={Boolean(errors.orgName || errors.orgAddress || errors.orgCorpRegNo || errors.orgGstNo)} />
+                                    <Tab label="Primary Contact" error={Boolean(errors.primaryName || errors.primaryEmail || errors.primaryNo)} />
+                                    <Tab label="User Details" error={Boolean(errors.userName || errors.userEmail || errors.role || errors.password || errors.confirmPassword)} />
+                                    <Tab label="Documents" error={!(files.orgCorpPdf && files.orgGstPdf && files.orgAgreementPdf)} />
+                                </Tabs>
+                            </Box>
                         </Box>
-                    </Box>
 
-                    <TabPanel value={activeTab} index={0}>
-                        <OrganizationDetails control={control} errors={errors} />
-                    </TabPanel>
-                    <TabPanel value={activeTab} index={1}>
-                        <PrimaryContactDetails control={control} errors={errors} />
-                    </TabPanel>
-                    <TabPanel value={activeTab} index={2}>
-                        <UserDetails control={control} errors={errors} />
-                    </TabPanel>
-                    <TabPanel value={activeTab} index={3}>
-                        <DocumentUpload onFileChange={handleFileChange} />
-                    </TabPanel>
+                        <TabPanel value={activeTab} index={0}>
+                            <OrganizationDetails control={control} errors={errors} />
+                        </TabPanel>
+                        <TabPanel value={activeTab} index={1}>
+                            <PrimaryContactDetails control={control} errors={errors} />
+                        </TabPanel>
+                        <TabPanel value={activeTab} index={2}>
+                            <UserDetails control={control} errors={errors} />
+                        </TabPanel>
+                        <TabPanel value={activeTab} index={3}>
+                            <DocumentUpload onFileChange={handleFileChange} />
+                        </TabPanel>
 
-                    <Box
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginTop: "24px",
-                        }}
-                    >
-                        <Button
-                            variant="outlined"
-                            onClick={prevStep}
-                            disabled={activeTab === 0}
+                        <Box
                             style={{
-                                borderColor: "#444",
-                                color: "#aaa",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                marginTop: "24px",
                             }}
                         >
-                            Previous
-                        </Button>
+                            <Button
+                                variant="outlined"
+                                onClick={prevStep}
+                                disabled={activeTab === 0}
+                                style={{
+                                    borderColor: "#444",
+                                    color: "#aaa",
+                                }}
+                            >
+                                Previous
+                            </Button>
 
-                        {activeTab !== 3 ? (
-                            <Button
-                                type="button"
-                                variant="contained"
-                                onClick={(e) => nextStep(e)}
-                                style={{
-                                    backgroundColor: "#F26430",
-                                    "&:hover": {
-                                        backgroundColor: "#e05a2a",
-                                    },
-                                }}
-                            >
-                                Next
-                            </Button>
-                        ) : (
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                disabled={isSubmitting}
-                                style={{
-                                    backgroundColor: "#F26430",
-                                    "&:hover": {
-                                        backgroundColor: "#e05a2a",
-                                    },
-                                }}
-                            >
-                                {isSubmitting ? <CircularProgress size={24} style={{ color: "white" }} /> : "Complete Registration"}
-                            </Button>
-                        )}
-                    </Box>
-                </form>
-            </CardContent>
-        </Card>
+                            {activeTab !== 3 ? (
+                                <Button
+                                    type="button"
+                                    variant="contained"
+                                    onClick={(e) => nextStep(e)}
+                                    style={{
+                                        backgroundColor: "#F26430",
+                                        "&:hover": {
+                                            backgroundColor: "#e05a2a",
+                                        },
+                                    }}
+                                >
+                                    Next
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    disabled={isSubmitting}
+                                    style={{
+                                        backgroundColor: "#F26430",
+                                        "&:hover": {
+                                            backgroundColor: "#e05a2a",
+                                        },
+                                    }}
+                                >
+                                    {isSubmitting ? <CircularProgress size={24} style={{ color: "white" }} /> : "Complete Registration"}
+                                </Button>
+                            )}
+                        </Box>
+                    </form>
+                </CardContent>
+            </Card>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <MUIAlert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </MUIAlert>
+            </Snackbar>
+        </>
     )
 }
 
