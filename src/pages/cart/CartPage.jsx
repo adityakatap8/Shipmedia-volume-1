@@ -72,6 +72,7 @@ const CartPage = () => {
   console.log("selectedBuyer", selectedBuyer);
   const [selectedSeller, setSelectedSeller] = useState([]);
   const [status, setStatus] = useState("");
+  const [selectedDeal, setSelectedDeal] = useState(null);
 
 
   const breadcrumbItems = [
@@ -187,9 +188,7 @@ const CartPage = () => {
   // Count selected movies
   const selectedCount = movies.filter((movie) => movie.selected).length
 
-  const isAnyDealSelected = () => {
-    return deals.some((deal) => deal.selected); // Check if any deal is selected
-  };
+  const isAnyDealSelected = () => selectedDeal !== null;
   // Handle proceed to checkout
   const handleProceedToCheckout = () => {
     if (!isAnyDealSelected()) {
@@ -203,10 +202,20 @@ const CartPage = () => {
 
   const handleSubmitForm = async () => {
     try {
-      const selectedDeal = deals.find((deal) => deal.selected);
-
       if (!selectedDeal) {
         alert("Please select a deal to proceed.");
+        return;
+      }
+
+      let receiverId = null;
+      if (selectedDeal.senderId && selectedDeal.senderId !== user._id) {
+        // Send to the deal's senderId if it's not the current user
+        receiverId = selectedDeal.senderId;
+      } else if (selectedBuyer && selectedBuyer._id) {
+        // Send to the selected buyer
+        receiverId = selectedBuyer._id;
+      } else {
+        alert("No recipient found. Please select a buyer.");
         return;
       }
       // Prepare the payload
@@ -217,7 +226,7 @@ const CartPage = () => {
         status: "curated_list_sent_to_buyer",
         message: {
           senderId: user?._id,
-          reciverId: selectedDeal.senderId,
+          reciverId: receiverId,
           content: message,
         },
       };
@@ -228,7 +237,7 @@ const CartPage = () => {
       const response = await axios.put(`http://localhost:3000/api/deal/update/${selectedDeal._id}/cart/${user._id}`, payload);
 
       if (response.status === 200) {
-        const {remainingDeals} = response.data || [];
+        const { remainingDeals } = response.data || [];
 
         // Update the cart in Redux
         dispatch(setCartMovies(remainingDeals));
@@ -453,8 +462,14 @@ const CartPage = () => {
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={deal.selected || false} // Track deal selection
-                        onChange={() => toggleDealSelection(deal._id)} // Handle deal selection
+                        checked={selectedDeal?._id === deal._id}
+                        onChange={() => {
+                          if (selectedDeal?._id === deal._id) {
+                            setSelectedDeal(null); // Unselect if already selected
+                          } else {
+                            setSelectedDeal(deal); // Select this deal
+                          }
+                        }}
                         sx={{
                           color: "gray",
                           "&.Mui-checked": {
@@ -473,7 +488,7 @@ const CartPage = () => {
                 </Box>
 
                 {/* Movies Inside the Selected Deal */}
-                {deal.selected && (
+                {selectedDeal?._id === deal._id && (
                   <Box>
                     {deal.movies.map((movie) => (
                       <Box
@@ -629,18 +644,31 @@ const CartPage = () => {
 
           <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
 
-            {/* {user?.role === 'Admin' && (
+            {user?.role === 'Admin' && (!selectedDeal?.assignedTo || selectedDeal.assignedTo.length === 0) && (
               <>
                 <Autocomplete
                   value={selectedBuyer}
                   onChange={(e, newValue) => {
-                    console.log("Selected Buyer:", newValue); // Debugging
+                    console.log("Selected Buyer:", newValue);
                     setSelectedBuyer(newValue);
                   }}
                   options={buyers}
-                  getOptionLabel={(option) => `${option.orgName} (${option.email})`} // Display orgName and email
-                  isOptionEqualToValue={(option, value) => option._id === value._id} // Ensure proper comparison
-                  disableClearable // Disable the default clear icon
+                  getOptionLabel={(option) => `${option.orgName} (${option.email})`}
+                  isOptionEqualToValue={(option, value) => option._id === value._id}
+                  disableClearable
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        label={`${option.orgName} (${option.email})`}
+                        {...getTagProps({ index })}
+                        sx={{
+                          backgroundColor: "#1e293b", // dark background
+                          color: "#ffffff", // white text
+                          border: "1px solid #475569",
+                        }}
+                      />
+                    ))
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -669,7 +697,8 @@ const CartPage = () => {
                     />
                   )}
                 />
-                <Autocomplete
+
+                {/* <Autocomplete
                   multiple
                   value={selectedSeller}
                   onChange={(e, newValue) => setSelectedSeller(newValue)}
@@ -719,11 +748,11 @@ const CartPage = () => {
                       }}
                     />
                   )}
-                /> 
+                /> */}
 
 
               </>
-            )} */}
+            )}
 
             {/* License Term Selection */}
             <Autocomplete
@@ -888,7 +917,7 @@ const CartPage = () => {
                   },
                   getContentAnchorEl: null,
                 }}
-              >
+               > 
                 {user?.role === "Admin" &&
                   [
                     // <MenuItem key="pending" value="pending">Pending</MenuItem>,
