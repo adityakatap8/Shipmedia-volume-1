@@ -38,6 +38,7 @@ import {
   Alert,
   Container,
   Paper,
+  Pagination,
 } from "@mui/material"
 import {
   Search as SearchIcon,
@@ -1112,24 +1113,28 @@ export default function MovieGrid() {
   const filterMovies = () => {
     let filteredData = [...originalProjectData]; // Start with the original data
     console.log("Filtering movies with current selections...", filteredData);
+    console.log("Selected Genres:", drawerSelectedRights);
+    console.log("Selected Years:", drawerSelectedTerritory);
     // Filter by Rights
-    if (drawerSelectedRights) {
+    if (drawerSelectedRights.length > 0) {
+      console.log("Filtering by Rights:", drawerSelectedRights.toLowerCase());
       if (drawerSelectedRights.toLowerCase() === "all rights") {
         // Show only content that has "All Rights"
+        console.log("Filtering by All Rights");
         filteredData = filteredData.filter((project) =>
-          project.formData.rightsInfo?.some((rightInfo) =>
-            rightInfo.rights?.some((right) =>
-              right.name?.toLowerCase() === "all rights"
+          project?.formData?.rightsInfo?.some((rightInfo) =>
+            rightInfo?.rights?.some((right) =>
+              right?.name?.toLowerCase() === "all rights"
             )
           )
         );
       } else {
         // Show content that has the selected right OR has "All Rights"
         filteredData = filteredData.filter((project) =>
-          project.formData.rightsInfo?.some((rightInfo) =>
-            rightInfo.rights?.some((right) =>
-              right.name?.toLowerCase() === drawerSelectedRights.toLowerCase() ||
-              right.name?.toLowerCase() === "all rights"
+          project?.formData?.rightsInfo?.some((rightInfo) =>
+            rightInfo?.rights?.some((right) =>
+              right?.name?.toLowerCase() === drawerSelectedRights.toLowerCase() ||
+              right?.name?.toLowerCase() === "all rights"
             )
           )
         );
@@ -1150,7 +1155,7 @@ export default function MovieGrid() {
           project?.formData.rightsInfo?.some((rightInfo) => {
             if (Array.isArray(rightInfo.territories)) {
               return rightInfo.territories.some((territory) =>
-                territory.region?.toLowerCase() === 'worldwide'
+                territory.id?.toLowerCase() === 'worldwide'
               );
             } else if (rightInfo.territories?.includedRegions) {
               return rightInfo.territories.includedRegions.some((region) =>
@@ -1167,8 +1172,8 @@ export default function MovieGrid() {
             if (Array.isArray(rightInfo.territories)) {
               return rightInfo.territories.some((territory) =>
                 drawerSelectedTerritory.some((selectedTerritory) =>
-                  territory.region?.toLowerCase() === selectedTerritory.toLowerCase() ||
-                  territory.region?.toLowerCase() === 'worldwide'
+                  territory.id?.toLowerCase() === selectedTerritory.toLowerCase() ||
+                  territory.id?.toLowerCase() === 'worldwide'
                 )
               );
             } else if (rightInfo.territories?.includedRegions) {
@@ -1251,16 +1256,24 @@ export default function MovieGrid() {
     // Filter by Genre
     if (drawerSelectedGenres.length > 0) {
       filteredData = filteredData.filter((project) => {
-        const projectGenres = project?.formData?.specificationsInfo?.genres
-          ?.split(",") // Split the comma-separated genres into an array
-          .map((genre) => genre.trim().toLowerCase()); // Trim whitespace and convert to lowercase
+        const rawGenres = project?.formData?.specificationsInfo?.genres;
+
+        let projectGenres = [];
+        if (Array.isArray(rawGenres)) {
+          projectGenres = rawGenres.flatMap((genreString) =>
+            genreString.split(',').map((g) => g.trim().toLowerCase())
+          );
+        } else if (typeof rawGenres === 'string') {
+          projectGenres = rawGenres.split(',').map((g) => g.trim().toLowerCase());
+        }
 
         return drawerSelectedGenres.some((selectedGenre) =>
-          projectGenres?.includes(selectedGenre.toLowerCase()) // Check if any selected genre matches
+          projectGenres.includes(selectedGenre.toLowerCase())
         );
       });
       console.log("Filtered by Genres:", filteredData);
     }
+
 
     // Filter by Year of Release
     if (drawerSelectedYears.length > 0) {
@@ -1326,7 +1339,7 @@ export default function MovieGrid() {
           </Box>
 
           {/* Compact Filter Bar */}
-         {user?.user?.role !== "Seller" && <Box sx={styles.compactFilterSection} gap={1}>
+          {user?.user?.role !== "Seller" && <Box sx={styles.compactFilterSection} gap={1}>
             {/* Sort Button */}
             <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
               Sort: {getSortDisplayText()}
@@ -2262,15 +2275,15 @@ export default function MovieGrid() {
                       </Box>
                       {user?.user?.role !== "Seller" && (
                         <Box sx={{ display: 'flex', gap: 2, mt: 1, ml: 1 }}>
-                        <Button
-                          variant="contained"
-                          sx={styles.checkoutButton}
-                          // onClick={() => navigate(`/movie/${project._id}`)}
-                          onClick={() => window.open(`/movie/${project._id}`, "_blank")}
-                        >
-                          View Details
-                        </Button>
-                      </Box>
+                          <Button
+                            variant="contained"
+                            sx={styles.checkoutButton}
+                            // onClick={() => navigate(`/movie/${project._id}`)}
+                            onClick={() => window.open(`/movie/${project._id}`, "_blank")}
+                          >
+                            View Details
+                          </Button>
+                        </Box>
                       )}
                     </CardContent>
                   </Card>
@@ -2436,6 +2449,38 @@ export default function MovieGrid() {
 
         </Box>
       )}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '20px',
+          paddingX: '16px',
+        }}
+      >
+        {/* Showing Count */}
+        <Typography sx={{ color: '#fff' }}>
+          Showing {`2`} - {`10`} of {`100`} items
+        </Typography>
+
+        {/* Pagination Controls */}
+        <Pagination
+          // count={totalPages}
+          // page={currentPage}
+          // onChange={(event, value) => setCurrentPage(value)}
+          color="primary"
+          sx={{
+            '& .MuiPaginationItem-root': {
+              color: '#fff',
+            },
+            '& .Mui-selected': {
+              backgroundColor: '#e1780c !important',
+              color: '#000',
+            },
+          }}
+        />
+      </Box>
+
     </>
   )
 }
