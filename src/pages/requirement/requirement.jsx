@@ -4,6 +4,7 @@ import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import Breadcrumb from "../../components/breadcrumb/Breadcrumb"
+import { useLocation } from "react-router-dom";
 
 // Simplified rights options
 const rightsOptions = [
@@ -437,7 +438,11 @@ const allGenres = [
 ]
 
 export default function Requirement() {
+    const navigate = useNavigate()
     const { user } = useSelector((state) => state.auth.user);
+    const location = useLocation();
+    const dealDetails = location.state?.dealDetails || null;
+    console.log("Deal Details from location:", dealDetails);
     const [activeTab, setActiveTab] = useState("create")
     const [viewMode, setViewMode] = useState("cards")
     const [savedRequirements, setSavedRequirements] = useState([])
@@ -450,17 +455,18 @@ export default function Requirement() {
     const [newYear, setNewYear] = useState("")
 
     const [formData, setFormData] = useState({
-        id: "",
-        rights: "",
-        includingRegions: [],
-        excludingCountries: [],
-        usageRights: "",
-        contentCategory: [],
-        languages: [],
-        genres: [],
-        yearOfRelease: [],
-        createdAt: "",
-    })
+        rights: dealDetails?.rights || "",
+        includingRegions: dealDetails?.includingRegions || [],
+        excludingCountries: dealDetails?.excludingCountries || [],
+        usageRights: dealDetails?.usageRights || "",
+        contentCategory: dealDetails?.contentCategory || [],
+        languages: dealDetails?.languages || [],
+        genres: dealDetails?.genres || [],
+        yearOfRelease: dealDetails?.yearOfRelease || [],
+        createdAt: dealDetails?.createdAt || "",
+    });
+
+    console.log("Initial formData:", formData);
 
     const [availableCountries, setAvailableCountries] = useState([])
     const [newRegion, setNewRegion] = useState("")
@@ -512,26 +518,6 @@ export default function Requirement() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        const requirement = {
-            ...formData,
-            id: editingId || Date.now().toString(),
-            createdAt: editingId ? formData.createdAt : new Date().toISOString(),
-        }
-
-        let updatedRequirements
-        if (editingId) {
-            updatedRequirements = savedRequirements.map((req) => (req.id === editingId ? requirement : req))
-            setEditingId(null)
-        } else {
-            updatedRequirements = [...savedRequirements, requirement]
-        }
-
-        setSavedRequirements(updatedRequirements)
-
-        setSnackbarMessage(editingId ? "Requirement updated successfully!" : "Requirement saved successfully!")
-        setSnackbarOpen(true)
-        setActiveTab("view")
-
         // Prepare the payload for the API
         const payload = {
             senderId: user?._id,
@@ -553,17 +539,26 @@ export default function Requirement() {
         console.log("Payload to be sent:", payload)
 
         try {
-            // Call the API
-            const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload)
-
-            if (response.status === 201) {
-                const remainingMovies = response.data.remainingMovies || []
-
-
-                // Navigate to deals page
-                Navigate("/deals")
+            if (dealDetails?._id) {
+                const response = await axios.put(
+                    `http://localhost:3000/api/deal/updateDealOrRequirement/${dealDetails?._id}`,
+                    payload
+                );
+                if (response.status === 200) {
+                    Navigate("/deals")
+                } else {
+                    console.error("Unexpected response status:", response.status);
+                }
             } else {
-                console.error("Unexpected response status:", response.status)
+                // Call the API
+                const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload)
+
+                if (response.status === 201) {
+                    navigate("/showcase-projects", {state: { dealDetails: response?.data?.deal }})
+                    console.log("Requirement created successfully:", response.data)
+                } else {
+                    console.error("Unexpected response status:", response.status)
+                }
             }
         } catch (error) {
             console.error("Error submitting form:", error)
@@ -1520,7 +1515,7 @@ export default function Requirement() {
                     {/* Submit Button */}
                     <div style={{ display: "flex", justifyContent: "right" }}>
                         <Button
-                            type="submit" variant="contained">Save Requirement</Button>
+                            type="submit" variant="contained">{dealDetails?._id ? "Edit Requirement" : "Save Requirement"}</Button>
                         {/* <button
                             type="submit"
                             style={{

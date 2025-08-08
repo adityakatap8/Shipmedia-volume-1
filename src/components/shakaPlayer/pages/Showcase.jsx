@@ -39,6 +39,7 @@ import {
   Container,
   Paper,
   Pagination,
+  Modal,
 } from "@mui/material"
 import {
   Search as SearchIcon,
@@ -62,7 +63,7 @@ export default function MovieGrid() {
   const location = useLocation();
   const dealDetails = location.state?.dealDetails;
 
-  console.log("Received Deal Details:", dealDetails);
+  console.log("Received Deal Details:", location.state);
   const { toast } = useToast();
   const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -94,6 +95,7 @@ export default function MovieGrid() {
   const [drawerSelectedGenres, setDrawerSelectedGenres] = useState([]);
   const [drawerSelectedYears, setDrawerSelectedYears] = useState([]);
   const [selectedExcludingTerritory, setSelectedExcludingTerritory] = useState([]);
+  const [hasFilteredOnce, setHasFilteredOnce] = useState(false);
 
   const { orgName, _id:
     userId, role } = useSelector((state) => state.auth.user.user)
@@ -292,6 +294,7 @@ export default function MovieGrid() {
   const [snackbarMessage, setSnackbarMessage] = useState(""); // State to store the message
   const [snackbarSeverity, setSnackbarSeverity] = useState("error"); // State to store the severity (error, success, etc.)
   const [filteredExcludingCountries, setFilteredExcludingCountries] = useState([]); // Filtered countries for excluding
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); // State for the warning modal
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false); // Close the Snackbar
@@ -1095,17 +1098,17 @@ export default function MovieGrid() {
   };
 
   const handleCheckboxChange = (id) => {
+    if (!filtersApplied) {
+      setIsWarningModalOpen(true); // Show the warning modal
+      return; // Prevent checkbox selection
+    }
+
     if (selectedItems.includes(id)) {
       // Remove the item if already selected
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
     } else {
       // Add the item to the selected list
       setSelectedItems([...selectedItems, id]);
-
-      // Open the drawer only if any drawer field is empty
-      if (!areDrawerFieldsFilled()) {
-        setAdvancedFiltersOpen(true);
-      }
     }
   };
 
@@ -1115,6 +1118,7 @@ export default function MovieGrid() {
     console.log("Filtering movies with current selections...", filteredData);
     console.log("Selected Genres:", drawerSelectedRights);
     console.log("Selected Years:", drawerSelectedTerritory);
+
     // Filter by Rights
     if (drawerSelectedRights.length > 0) {
       console.log("Filtering by Rights:", drawerSelectedRights.toLowerCase());
@@ -1287,12 +1291,13 @@ export default function MovieGrid() {
     }
 
     // Update the filtered data
+    setHasFilteredOnce(true);
     setProjectData(filteredData);
+
   };
 
   useEffect(() => {
-    if (dealDetails) {
-      // Automatically populate filter values based on deal details
+    if (dealDetails && originalProjectData) {
       setDrawerSelectedRights(dealDetails.rights || "");
       setDrawerSelectedTerritory(dealDetails.includingRegions || []);
       setDrawerSelectedUsageRights(dealDetails.usageRights ? [dealDetails.usageRights] : []);
@@ -1301,10 +1306,16 @@ export default function MovieGrid() {
       setDrawerSelectedGenres(dealDetails.genre || []);
       setDrawerSelectedYears(dealDetails.yearOfRelease || []);
       setSelectedExcludingTerritory(dealDetails.excludingCountries || []);
-      // Open the drawer automatically
+
       setAdvancedFiltersOpen(true);
+      filterMovies();
     }
-  }, [dealDetails]);
+  }, [dealDetails, originalProjectData]);
+
+
+
+
+
 
   return (
     <>
@@ -1737,29 +1748,39 @@ export default function MovieGrid() {
             </Popover>
 
             {/* Advanced Filters Button */}
-            <Button
-              sx={styles.advancedFilterButton}
-              onClick={() => {
-                role === "Admin" ? navigate("/deals") : navigate("/create-requirement"); // Redirect to the "Received Deal" tab
-              }}
-              startIcon={<TuneIcon fontSize="small" />}
-            >
-              {role === "Admin" ? "Set Requirement" : "Create Requirement"}
-              {activeFiltersCount > 0 && (
-                <Badge
-                  badgeContent={activeFiltersCount}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
+            {dealDetails ? (
+              // Add a toggle button to reopen the drawer
+              <Button
+                variant="contained"
+                onClick={() => setAdvancedFiltersOpen(true)} // Reopen the drawer
+                sx={styles.advancedFilterButton}
+              >
+                Advanced Filters
+              </Button>
+            ) :
+              <Button
+                sx={styles.advancedFilterButton}
+                onClick={() => {
+                  navigate("/create-requirement");
+                }}
+                startIcon={<TuneIcon fontSize="small" />}
+              >
+                Create Requirement
+                {activeFiltersCount > 0 && (
+                  <Badge
+                    badgeContent={activeFiltersCount}
+                    color="primary"
+                    sx={{
+                      marginLeft: "4px",
+                      "& .MuiBadge-badge": {
+                        backgroundColor: "#7ab5e7",
+                        color: "#000",
+                        fontWeight: "bold",
+                      },
+                    }}
+                  />
+                )}
+              </Button>}
             {filtersApplied && (
               <Button
                 variant="outlined"
@@ -2248,20 +2269,20 @@ export default function MovieGrid() {
               return (
                 <Box key={project._id} sx={responsiveStyles.movieItem}>
                   <Card sx={{ ...styles.card, position: 'relative' }} elevation={0}>
-                    {areDrawerFieldsFilled() && filtersApplied && (
-                      <Checkbox
-                        sx={{
-                          position: 'absolute',
-                          top: 1,
-                          right: 1,
-                          color: '#fff',
-                          '&.Mui-checked': {
-                            color: '#7ab5e7',
-                          },
-                        }}
-                        checked={isChecked}
-                        onChange={() => handleCheckboxChange(project._id)}
-                      />)}
+
+                    <Checkbox
+                      sx={{
+                        position: 'absolute',
+                        top: 1,
+                        right: 1,
+                        color: '#fff',
+                        '&.Mui-checked': {
+                          color: '#7ab5e7',
+                        },
+                      }}
+                      checked={selectedItems.includes(project._id)}
+                      onChange={() => handleCheckboxChange(project._id)} // Updated handler
+                    />
                     <CardMedia sx={styles.cardMedia} image={logoImageURL} title={title} />
                     <CardContent sx={styles.cardContent}>
                       <Typography gutterBottom variant="h6" component="div" sx={styles.movieTitle}>
@@ -2481,6 +2502,81 @@ export default function MovieGrid() {
         />
       </Box>
 
+      <Modal
+        open={isWarningModalOpen}
+        onClose={() => setIsWarningModalOpen(false)} // Close the modal
+        aria-labelledby="warning-modal-title"
+        aria-describedby="warning-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 450,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            textAlign: "center",
+            position: "relative",
+          }}
+        >
+          {/* Cross Icon for Closing */}
+          <IconButton
+            onClick={() => setIsWarningModalOpen(false)}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              color: "#888",
+              "&:hover": {
+                color: "#000",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          {/* Title */}
+          <Typography id="warning-modal-title" variant="h5" component="h2" sx={{ mb: 2, fontWeight: "bold", color: "#e1780c" }}>
+            Action Required: Create a Requirement
+          </Typography>
+
+          {/* Message */}
+          <Typography id="warning-modal-description" sx={{ mb: 3, color: "#555", lineHeight: 1.6 }}>
+            <strong>Let’s Customize Your Content!</strong><br />
+            Please <strong>create a requirement</strong> or <strong>select an existing one</strong> to filter content that matches your needs.
+          </Typography>
+
+          {/* Button to Navigate to Create Requirement */}
+          <Button
+            variant="contained"
+            onClick={() => {
+              setIsWarningModalOpen(false); // Close the modal
+              navigate("/create-requirement"); // Navigate to the Create Requirement page
+            }}
+            sx={{
+              bgcolor: "#e1780c",
+              color: "#fff",
+              "&:hover": { bgcolor: "#c26509" },
+              mt: 2,
+              textTransform: "none",
+              fontWeight: "bold",
+              paddingX: 3,
+              paddingY: 1.5,
+            }}
+          >
+            Create Requirement
+          </Button>
+
+          {/* Help Link */}
+          <Typography sx={{ mt: 2, fontSize: "0.9rem", color: "#888" }}>
+            Need help? <a style={{ color: "#e1780c", textDecoration: "none" }}>Visit our Help Center</a>.
+          </Typography>
+        </Box>
+      </Modal>
     </>
   )
 }

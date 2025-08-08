@@ -55,6 +55,8 @@ import {
     PauseCircle,
     FilePresent,
     Add,
+    Edit,
+    Delete
 } from "@mui/icons-material"
 import axios from "axios"
 import { useSelector } from "react-redux"
@@ -585,6 +587,21 @@ export default function DealDashboard() {
         setRemark("") // Reset the remark field
     }
 
+    const handleDeleteDeal = async (dealId) => {
+        try {
+            setLoading(true); // Show loader
+            const response = await axios.delete(`http://localhost:3000/api/deal/deleteDealOrRequirement/${dealId}`);
+            console.log("Delete Response:", response.data);
+    
+            // Fetch updated deals after deletion
+            fetchDeals();
+        } catch (error) {
+            console.error("Error deleting deal:", error);
+        } finally {
+            setLoading(false); // Hide loader
+        }
+    };
+
     const handleSubmitAction = async () => {
         try {
             setLoading(true); // Show loader
@@ -718,17 +735,14 @@ export default function DealDashboard() {
                         <Button
                             onClick={() => navigate(`/deal-details/${deal._id}`)}
                             size="small"
-                            variant="outlined"
+                            variant="contained"
                             sx={{
                                 padding: "2px 8px", // Reduce padding
                                 fontSize: "12px", // Smaller font size
                                 height: "28px", // Reduce height
                                 minWidth: "auto", // Remove default width
-                                color: "#a855f7",
-                                "&:hover": {
-                                    bgcolor: "rgba(168, 85, 247, 0.1)",
-                                    transform: "scale(1.05)", // Slight hover effect
-                                },
+                                color: "#fff",
+                                backgroundColor: "#52064b",
                                 transition: "all 0.2s",
                             }}
                         >
@@ -831,6 +845,43 @@ export default function DealDashboard() {
                                 </IconButton>
                             </Tooltip>
                         )}
+                            {user.role === 'Admin' && deal.status === "pending" && (
+                                <Tooltip title="Edit Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => navigate("/create-requirement", { state: { dealDetails: deal } })}
+                                        disabled={deal.status !== "pending"} // Enable only for pending deals
+                                        sx={{
+                                            color: deal.status === "pending" ? "#0bf580" : "#9e9e9e",
+                                            "&:hover": {
+                                                bgcolor: deal.status === "pending" ? "hsla(150, 92.10%, 50.20%, 0.10)" : "transparent",
+                                                transform: deal.status === "pending" ? "scale(1.1)" : "none",
+                                            }
+                                        }}
+                                    >
+                                        <Edit fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
+
+                            {user.role === 'Admin' && deal.status === "pending" && (
+                                <Tooltip title="Delete Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteDeal(deal._id)} // Call the delete function
+                                        disabled={deal.status !== "pending"} // Enable only for pending deals
+                                        sx={{
+                                            color: deal.status === "pending" ? "#ff0000" : "#9e9e9e",
+                                            "&:hover": {
+                                                bgcolor: deal.status === "pending" ? "rgba(245, 176, 20, 0.1)" : "transparent",
+                                                transform: deal.status === "pending" ? "scale(1.1)" : "none",
+                                            }
+                                        }}
+                                    >
+                                        <Delete fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            )}
                             {user.role === "Admin" && deal.status === "admin_filtered_content" && (
                                 <Tooltip title="Filtered Content" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                     <IconButton
