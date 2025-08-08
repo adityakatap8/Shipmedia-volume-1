@@ -590,7 +590,7 @@ export default function DealDashboard() {
     const handleDeleteDeal = async (dealId) => {
         try {
             setLoading(true); // Show loader
-            const response = await axios.delete(`http://localhost:3000/api/deal/deleteDealOrRequirement/${dealId}`);
+            const response = await axios.delete(`https://www.mediashippers.com/api/deal/deleteDealOrRequirement/${dealId}`);
             console.log("Delete Response:", response.data);
     
             // Fetch updated deals after deletion

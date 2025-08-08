@@ -541,7 +541,7 @@ export default function Requirement() {
         try {
             if (dealDetails?._id) {
                 const response = await axios.put(
-                    `http://localhost:3000/api/deal/updateDealOrRequirement/${dealDetails?._id}`,
+                    `https://www.mediashippers.com/api/deal/updateDealOrRequirement/${dealDetails?._id}`,
                     payload
                 );
                 if (response.status === 200) {
