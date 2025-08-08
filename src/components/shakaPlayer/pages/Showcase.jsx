@@ -53,6 +53,7 @@ import {
   HelpOutlined,
   Send,
   ContactSupport,
+  Edit,
 } from "@mui/icons-material"
 import Loader from '../../loader/Loader.jsx'
 import { setCartMovies } from "../../../redux/cartSlice/cartSlice.js";
@@ -255,8 +256,10 @@ export default function MovieGrid() {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (!searchTerm) {
-        // If search term is empty, reset to original data
-        setProjectData([...originalProjectData]);
+        // Only reset to original data if dealDetails is not present
+        if (!dealDetails) {
+          setProjectData([...originalProjectData]);
+        }
       } else {
         // Filter project data based on the search term
         const filteredData = originalProjectData.filter((project) =>
@@ -267,7 +270,7 @@ export default function MovieGrid() {
     }, 300); // 300ms debounce delay
 
     return () => clearTimeout(delayDebounceFn); // Cleanup the timeout
-  }, [searchTerm, originalProjectData]);
+  }, [searchTerm, originalProjectData, dealDetails]);
 
   const [filtersApplied, setFiltersApplied] = useState(false);
   console.log("Filters applied state:", filtersApplied);
@@ -1293,7 +1296,7 @@ export default function MovieGrid() {
     // Update the filtered data
     setHasFilteredOnce(true);
     setProjectData(filteredData);
-
+    setFiltersApplied(true);
   };
 
   useEffect(() => {
@@ -1843,14 +1846,21 @@ export default function MovieGrid() {
           >
             <Box sx={styles.drawerContent}>
               <Box sx={styles.drawerHeader}>
-                <Typography sx={styles.drawerTitle}>Set Your Requirements</Typography>
-                <IconButton onClick={() => {
-                  setAdvancedFiltersOpen(false);
-                  setSelectedItems([]);
-                  setSelectAll(false);
-                }} sx={{ color: "#fff" }}>
-                  <CloseIcon />
-                </IconButton>
+                <Typography sx={styles.drawerTitle}>Your Requirement</Typography>
+                <div>
+                  <IconButton
+                    onClick={() => navigate("/create-requirement", { state: { dealDetails: dealDetails } })}
+                    sx={{ color: "#3848a2" }}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton onClick={() => {
+                    setAdvancedFiltersOpen(false);
+                    setSelectedItems([]);
+                    setSelectAll(false);
+                  }} sx={{ color: "#FF0000" }}>
+                    <CloseIcon />
+                  </IconButton>
+                </div>
               </Box>
               <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 {/* Rights (Mandatory) */}
@@ -2181,7 +2191,7 @@ export default function MovieGrid() {
                 />
 
                 {/* Filter Button */}
-                <Button
+                {/* <Button
                   variant="contained"
                   sx={{
                     bgcolor: "#e1780c",
@@ -2196,7 +2206,7 @@ export default function MovieGrid() {
                   }}
                 >
                   Filter Movies
-                </Button>
+                </Button> */}
 
               </Box>
             </Box>
