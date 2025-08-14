@@ -134,7 +134,7 @@ const handleNavigate = (path) => {
           setLoading(true); // Show loader
           const token = Cookies.get("token");
           const response = await axios.get(
-            `http://localhost:3000/api/projectsInfo/userProjects/${user._id}`,
+            `https://www.mediashippers.com/api/projectsInfo/userProjects/${user._id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

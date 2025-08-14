@@ -71,7 +71,7 @@ export default function MovieDetails() {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/project-form/data/${projectId}`,
+        `https://www.mediashippers.com/api/project-form/data/${projectId}`,
         {
           withCredentials: true,
           headers: {
