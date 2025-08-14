@@ -247,7 +247,7 @@ export default function MovieGrid() {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/project-form/all-details`,
+        `https://www.mediashippers.com/api/project-form/all-details`,
         {
           params: queryParams,
           headers: {
