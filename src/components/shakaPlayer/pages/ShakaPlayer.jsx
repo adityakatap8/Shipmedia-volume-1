@@ -97,7 +97,7 @@ const ShakaPlayer = ({
 
   return (
     <div
-      className="min-h-screen relative"
+      className="relative"
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -108,7 +108,7 @@ const ShakaPlayer = ({
       >
         <ArrowLeft className="h-6 w-6" />
       </Button> */}
-      <div className="h-screen flex items-center justify-center">
+      <div className="flex items-center">
         <div className="w-auto h-auto">
           <div className="relative w-1/2 aspect-video mx-auto video-player" style={{ zIndex: 1 }}>
             <video
