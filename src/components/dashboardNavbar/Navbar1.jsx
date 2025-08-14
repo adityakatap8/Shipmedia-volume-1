@@ -55,7 +55,7 @@ export function Navebar1({
     { name: "Titles", icon: <MovieIcon />, href: "/projects" },
     { name: "Title Files", icon: <UploadIcon />, href: "/video-catalogue" },
     { name: "Deals", icon: <MovieIcon />, href: "/deals" },
-    { name: "Services", icon: <VideocamIcon />, href: "/main" },
+    // { name: "Services", icon: <VideocamIcon />, href: "/main" },
     { name: "Account", icon: <AccountCircleIcon />, href: "/users-list" },
   ];
 

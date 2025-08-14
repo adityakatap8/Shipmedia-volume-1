@@ -466,6 +466,8 @@ export default function Requirement() {
         createdAt: dealDetails?.createdAt || "",
     });
 
+
+
     console.log("Initial formData:", formData);
 
     const [availableCountries, setAvailableCountries] = useState([])
@@ -518,6 +520,13 @@ export default function Requirement() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
+        const fromYear = parseInt(formData.yearOfRelease[0], 10);
+        const toYear = parseInt(formData.yearOfRelease[1], 10);
+        const yearRange =
+            fromYear && toYear && fromYear <= toYear
+                ? Array.from({ length: toYear - fromYear + 1 }, (_, i) => fromYear + i)
+                : [];
+
         // Prepare the payload for the API
         const payload = {
             senderId: user?._id,
@@ -532,7 +541,7 @@ export default function Requirement() {
             contentCategory: formData.contentCategory,
             languages: formData.languages,
             genre: formData.genres,
-            yearOfRelease: formData.yearOfRelease,// Add remarks if applicable
+            yearOfRelease: yearRange, // Add remarks if applicable
             status: user.role === "Admin" ? "pending" : "submitted_by_buyer",
         }
 
@@ -554,7 +563,7 @@ export default function Requirement() {
                 const response = await axios.post("https://www.mediashippers.com/api/deal/create", payload)
 
                 if (response.status === 201) {
-                    navigate("/showcase-projects", {state: { dealDetails: response?.data?.deal }})
+                    navigate("/showcase-projects", { state: { dealDetails: response?.data?.deal } })
                     console.log("Requirement created successfully:", response.data)
                 } else {
                     console.error("Unexpected response status:", response.status)
@@ -1253,17 +1262,16 @@ export default function Requirement() {
                             </div>
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Select multiple years of release</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                                {/* From Year Dropdown */}
                                 <select
                                     onChange={(e) => {
                                         const selectedYear = e.target.value;
-                                        if (selectedYear && !formData.yearOfRelease.includes(selectedYear)) {
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                yearOfRelease: [...prev.yearOfRelease, selectedYear],
-                                            }));
-                                        }
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            yearOfRelease: [selectedYear, prev.yearOfRelease[1] || ""],
+                                        }));
                                     }}
-                                    defaultValue=""
+                                    value={formData.yearOfRelease[0] || ""}
                                     style={{
                                         flex: 1,
                                         background: "#374151",
@@ -1273,7 +1281,9 @@ export default function Requirement() {
                                         borderRadius: "6px",
                                     }}
                                 >
-                                    <option value="" disabled>Select year</option>
+                                    <option value="" disabled>
+                                        From Year
+                                    </option>
                                     {Array.from({ length: 50 }, (_, i) => {
                                         const year = new Date().getFullYear() - i;
                                         return (
@@ -1283,7 +1293,45 @@ export default function Requirement() {
                                         );
                                     })}
                                 </select>
+
+                                {/* To Year Dropdown */}
+                                <select
+                                    onChange={(e) => {
+                                        const selectedYear = e.target.value;
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            yearOfRelease: [prev.yearOfRelease[0] || "", selectedYear],
+                                        }));
+                                    }}
+                                    value={formData.yearOfRelease[1] || ""}
+                                    style={{
+                                        flex: 1,
+                                        background: "#374151",
+                                        border: "1px solid #4b5563",
+                                        color: "white",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                    }}
+                                >
+                                    <option value="" disabled>
+                                        To Year
+                                    </option>
+                                    {Array.from({ length: 50 }, (_, i) => {
+                                        const year = new Date().getFullYear() - i;
+                                        // Only show years greater than or equal to the selected "From Year"
+                                        if (!formData.yearOfRelease[0] || year >= formData.yearOfRelease[0]) {
+                                            return (
+                                                <option key={year} value={year}>
+                                                    {year}
+                                                </option>
+                                            );
+                                        }
+                                        return null;
+                                    })}
+                                </select>
                             </div>
+
+                            {/* Display Selected Year Range */}
                             <div
                                 style={{
                                     display: "flex",
@@ -1293,9 +1341,8 @@ export default function Requirement() {
                                     overflowY: "auto",
                                 }}
                             >
-                                {formData.yearOfRelease.map((year) => (
+                                {formData.yearOfRelease[0] && (
                                     <span
-                                        key={year}
                                         style={{
                                             background: "rgba(251, 191, 36, 0.2)",
                                             color: "#fbbf24",
@@ -1308,29 +1355,26 @@ export default function Requirement() {
                                             gap: "4px",
                                         }}
                                     >
-                                        {year}
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                removeFromArray(formData.yearOfRelease, year, (arr) =>
-                                                    setFormData((prev) => ({ ...prev, yearOfRelease: arr }))
-                                                )
-                                            }
-                                            style={{
-                                                background: "none",
-                                                border: "none",
-                                                color: "inherit",
-                                                cursor: "pointer",
-                                                padding: "0",
-                                                marginLeft: "4px",
-                                            }}
-                                        >
-                                            <svg style={{ width: "12px", height: "12px" }} fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
-                                            </svg>
-                                        </button>
+                                        From: {formData.yearOfRelease[0]}
                                     </span>
-                                ))}
+                                )}
+                                {formData.yearOfRelease[1] && (
+                                    <span
+                                        style={{
+                                            background: "rgba(251, 191, 36, 0.2)",
+                                            color: "#fbbf24",
+                                            border: "1px solid rgba(251, 191, 36, 0.3)",
+                                            padding: "4px 8px",
+                                            borderRadius: "6px",
+                                            fontSize: "0.875rem",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "4px",
+                                        }}
+                                    >
+                                        To: {formData.yearOfRelease[1]}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

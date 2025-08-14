@@ -1,59 +1,45 @@
 import { useState, useEffect, useRef } from "react";
-import { PlayerMenu } from "../components/PlayerMenu.jsx";
 import { useToast } from "../components/ui/use-toast.js";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-
-import Search from "./Search.jsx";
-import Categories from "./Categories.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import defaultPoster from '../../../assets/Logo-holder.png';
-import defaultBanner from '../../../assets/Banner-Holder.png';
-import { UserContext } from '../../../contexts/UserContext.jsx';
 import Cookies from 'js-cookie';
 
 import {
   Box,
   Button,
   Card,
-  Autocomplete,
   CardContent,
   CardMedia,
   Chip,
   IconButton,
   InputBase,
-  Toolbar,
-  TextField,
   Typography,
   alpha,
-  Slider,
   Badge,
   Drawer,
-  Divider,
   Popover,
-  Rating,
   Checkbox,
   FormControlLabel,
   Snackbar,
   Alert,
   Container,
   Paper,
-  Pagination,
   Modal,
+  Stack,
 } from "@mui/material"
 import {
   Search as SearchIcon,
-  GridView as GridViewIcon,
-  ViewList as ViewListIcon,
   TuneOutlined as TuneIcon,
   Close as CloseIcon,
-  Star as StarIcon,
   KeyboardArrowDown as ArrowDownIcon,
-  CheckBox,
   HelpOutlined,
   Send,
   ContactSupport,
   Edit,
+  ChevronLeft,
+  ChevronRight,
 } from "@mui/icons-material"
 import Loader from '../../loader/Loader.jsx'
 import { setCartMovies } from "../../../redux/cartSlice/cartSlice.js";
@@ -63,13 +49,10 @@ import { setCartMovies } from "../../../redux/cartSlice/cartSlice.js";
 export default function MovieGrid() {
   const location = useLocation();
   const dealDetails = location.state?.dealDetails;
-
-  console.log("Received Deal Details:", location.state);
   const { toast } = useToast();
   const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [projectData, setProjectData] = useState([]);
-  console.log("Project Data:", projectData);
   const [specificationsData, setSpecificationsData] = useState([]);
   const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState('');
@@ -84,6 +67,7 @@ export default function MovieGrid() {
   const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [selectedContentCategories, setSelectedContentCategories] = useState([]);
   const [selectedRights, setSelectedRights] = useState([]);
+  console.log("selectedRights:", selectedRights); // Ensure it's an array
   const [originalProjectData, setOriginalProjectData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   // Drawer-specific states
@@ -97,10 +81,37 @@ export default function MovieGrid() {
   const [drawerSelectedYears, setDrawerSelectedYears] = useState([]);
   const [selectedExcludingTerritory, setSelectedExcludingTerritory] = useState([]);
   const [hasFilteredOnce, setHasFilteredOnce] = useState(false);
-
+  const [currentPage, setCurrentPage] = useState(1); // Track the current page
+  const [totalPages, setTotalPages] = useState(1);
   const { orgName, _id:
     userId, role } = useSelector((state) => state.auth.user.user)
+  const [filtersApplied, setFiltersApplied] = useState(false);
+  console.log("Filters applied state:", filtersApplied);
+  // Filter states
+  const [selectedGenres, setSelectedGenres] = useState([])
+  const [selectedYears, setSelectedYears] = useState([])
+  const [priceRange, setPriceRange] = useState([0, 30])
+  const [ratingFilter, setRatingFilter] = useState(0)
+  const [activeFiltersCount, setActiveFiltersCount] = useState(0)
+  const [sortOption, setSortOption] = useState("featured")
 
+  // UI states
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
+  const [genreAnchorEl, setGenreAnchorEl] = useState(null)
+  const [yearAnchorEl, setYearAnchorEl] = useState(null)
+  const [sortAnchorEl, setSortAnchorEl] = useState(null)
+  const [territoryAnchorEl, setTerritoryAnchorEl] = useState(null);
+  const [includingRegions, setIncludingRegions] = useState([]);
+  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  const [rightsAnchorEl, setRightsAnchorEl] = useState(null); // Add state for rights popover
+  const [contentCategoryAnchorEl, setContentCategoryAnchorEl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State to control Snackbar visibility
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // State to store the message
+  const [snackbarSeverity, setSnackbarSeverity] = useState("error"); // State to store the severity (error, success, etc.)
+  const [filteredExcludingCountries, setFilteredExcludingCountries] = useState([]); // Filtered countries for excluding
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); // State for the warning modal
+  const [excludingCountryAnchorEl, setExcludingCountryAnchorEl] = useState(null);
   console.log("user from redux", user)
   // Sample movie data with ratings added
   const movies = [
@@ -189,122 +200,128 @@ export default function MovieGrid() {
 
   const token = Cookies.get('token'); // 🔐 Add this at the top of your component, just below useState declarations
 
+  // Fetch all project data from the backend
+  const fetchAllProjectData = async (
+    page = currentPage,
+    clear = true,
+    rights = selectedRights,
+    includingRegions = selectedTerritories,
+    excludingCountries = selectedExcludingTerritory,
+    years = selectedYears,
+    genres = selectedGenres,
+    languages = selectedLanguages,
+    contentCategories = selectedContentCategories
+  ) => {
+    setLoading(true);
+    console.log("Fetching all project data with page:",);
 
-
-  useEffect(() => {
-    console.log("all details hit");
-
-    // Fetch userId and role from Redux (already done outside)
-    const token = Cookies.get("token");
-    console.log("UserId and role", userId, role);
-
-    if (!userId || !role || !token) return;
-
-    // Fetch all project data from the backend
-    const fetchAllProjectData = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `https://www.mediashippers.com/api/project-form/all-details?userId=${userId}&role=${role}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            withCredentials: true,
-          }
-        );
-
-        const projects = response.data?.projects || [];
-
-        console.log("Respone from get alldata", response.data)
-
-        // Set the full project data (including formData)
-        setProjectData(projects);
-        setOriginalProjectData(projects);
-
-        // Optionally extract and set poster/trailer/specification info if needed
-        const formattedSpecs = projects.map((project) => ({
-          projectId: project._id,
-          projectTitle: project.projectTitle,
-          projectPoster: project.posterFileName,
-          trailerFile: project.trailerFileName,
-        }));
-        setSpecificationsData(formattedSpecs);
-
-        // Save project IDs and user IDs if needed
-
-        allUserIds.current = [...new Set(projects.map((p) => p.userId))];
-
-        console.log("✅ All project + form data loaded");
-      } catch (error) {
-        console.error("❌ Error fetching merged data:", error.response?.data || error.message);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load full project details.",
-        });
-      } finally {
-        setLoading(false); // Set loading to false once data is loaded (or if an error occurs)
+    const queryParams = dealDetails && clear
+      ? {
+        userId,
+        role,
+        page,
+        limit: 48,
+        rights: dealDetails?.rights || "",
+        includingRegions: dealDetails?.includingRegions || [],
+        excludingCountries: dealDetails?.excludingCountries || [],
+        usageRights: dealDetails?.usageRights || [],
+        contentCategory: dealDetails?.contentCategory || [],
+        genre: dealDetails?.genre || [],
+        yearOfRelease: dealDetails?.yearOfRelease || [],
       }
-    };
+      : {
+        userId,
+        role,
+        page,
+        limit: 48,
+        rights,
+        includingRegions,
+        excludingCountries,
+        contentCategory: contentCategories,
+        genre: genres,
+        yearOfRelease: years,
+        languages,
+      };
 
-    fetchAllProjectData();
-  }, [userId, role, token, toast]);
+    console.log("Query Params for fetching all data:", queryParams);
 
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (!searchTerm) {
-        // Only reset to original data if dealDetails is not present
-        if (!dealDetails) {
-          setProjectData([...originalProjectData]);
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/project-form/all-details`,
+        {
+          params: queryParams,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
         }
-      } else {
-        // Filter project data based on the search term
-        const filteredData = originalProjectData.filter((project) =>
-          project?.projectTitle?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setProjectData(filteredData);
-      }
-    }, 300); // 300ms debounce delay
+      );
 
-    return () => clearTimeout(delayDebounceFn); // Cleanup the timeout
-  }, [searchTerm, originalProjectData, dealDetails]);
+      const projects = response.data?.projects || [];
 
-  const [filtersApplied, setFiltersApplied] = useState(false);
-  console.log("Filters applied state:", filtersApplied);
-  // Filter states
-  const [selectedGenres, setSelectedGenres] = useState([])
-  const [selectedYears, setSelectedYears] = useState([])
-  const [priceRange, setPriceRange] = useState([0, 30])
-  const [ratingFilter, setRatingFilter] = useState(0)
-  const [filteredMovies, setFilteredMovies] = useState(movies)
-  const [activeFiltersCount, setActiveFiltersCount] = useState(0)
-  const [sortOption, setSortOption] = useState("featured")
+      const mergedData = projects.map((project) => ({
+        ...project,
+        isSelected: selectedItems.includes(project._id), // Mark as selected if already in selectedItems
+      }));
 
-  // UI states
-  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
-  const [genreAnchorEl, setGenreAnchorEl] = useState(null)
-  const [yearAnchorEl, setYearAnchorEl] = useState(null)
-  const [sortAnchorEl, setSortAnchorEl] = useState(null)
-  const [territoryAnchorEl, setTerritoryAnchorEl] = useState(null);
-  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
-  const [rightsAnchorEl, setRightsAnchorEl] = useState(null); // Add state for rights popover
-  const [contentCategoryAnchorEl, setContentCategoryAnchorEl] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // State to control Snackbar visibility
-  const [snackbarMessage, setSnackbarMessage] = useState(""); // State to store the message
-  const [snackbarSeverity, setSnackbarSeverity] = useState("error"); // State to store the severity (error, success, etc.)
-  const [filteredExcludingCountries, setFilteredExcludingCountries] = useState([]); // Filtered countries for excluding
-  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); // State for the warning modal
+      console.log("Respone from get alldata", response.data)
+      setCurrentPage(response?.data?.currentPage || 1); // Reset current page to 1 after fetching new data
+      setTotalPages(response?.data?.totalPages || 1); // Set total pages from response
+      // Set the full project data (including formData)
+      setProjectData(mergedData);
+      setOriginalProjectData(projects);
+
+      // Optionally extract and set poster/trailer/specification info if needed
+      const formattedSpecs = projects.map((project) => ({
+        projectId: project._id,
+        projectTitle: project.projectTitle,
+        projectPoster: project.posterFileName,
+        trailerFile: project.trailerFileName,
+      }));
+      setSpecificationsData(formattedSpecs);
+
+      // Save project IDs and user IDs if needed
+
+      allUserIds.current = [...new Set(projects.map((p) => p.userId))];
+
+      console.log("✅ All project + form data loaded");
+    } catch (error) {
+      console.error("❌ Error fetching merged data:", error.response?.data || error.message);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load full project details.",
+      });
+    } finally {
+      setLoading(false); // Set loading to false once data is loaded (or if an error occurs)
+    }
+  };
+
+
+
+
+
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false); // Close the Snackbar
   };
 
 
+  const addToArray = (array, value, setter) => {
+    if (value && !array.includes(value)) {
+      setter([...array, value]);
+    }
+  };
 
+  const removeFromArray = (array, value, setter) => {
+    setter(array.filter((item) => item !== value));
+  };
+
+  const handleGlobalRegionSelection = () => {
+    const allRegions = Object.keys(regionCountryMapping).filter((region) => region !== "Worldwide");
+    setIncludingRegions(["Worldwide", ...allRegions]);
+  };
 
 
 
@@ -329,57 +346,6 @@ export default function MovieGrid() {
   };
 
 
-  const handleGenreFilter = (genre) => {
-
-    // Update selectedGenres state
-    let updatedGenres;
-    if (selectedGenres.includes(genre)) {
-      updatedGenres = selectedGenres.filter((g) => g !== genre); // Remove genre
-    } else {
-      updatedGenres = [...selectedGenres, genre]; // Add genre
-    }
-    setSelectedGenres(updatedGenres);
-
-    // Filter project data based on the updated genres
-    const filteredData = originalProjectData.filter((project) => {
-      const projectGenres = project?.formData?.specificationsInfo?.genres
-        ?.split(",") // Convert comma-separated string into an array
-        .map((g) => g.trim().toLowerCase()); // Trim and convert to lowercase
-
-      return updatedGenres.length > 0
-        ? updatedGenres.some((selectedGenre) =>
-          projectGenres?.includes(selectedGenre.toLowerCase())
-        )
-        : true;
-    });
-
-    console.log("Filtered Data by Genre:", filteredData);
-    setProjectData(filteredData); // Update the filtered movies state
-  };
-
-  const handleYearFilter = (year) => {
-    // Update selectedYears state
-    let updatedYears;
-    if (selectedYears.includes(year)) {
-      updatedYears = selectedYears.filter((y) => y !== year); // Remove year
-    } else {
-      updatedYears = [...selectedYears, year]; // Add year
-    }
-    setSelectedYears(updatedYears);
-    console.log("Selected Years:", updatedYears);
-    // Filter project data based on the selected years
-    const filteredData = originalProjectData.filter((project) => {
-      const completionDate = project?.formData?.specificationsInfo?.completionDate;
-      const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
-      console.log("project Years:", projectYear);
-      return updatedYears.length > 0
-        ? updatedYears.includes(projectYear)
-        : true;
-    });
-
-    console.log("Filtered Data by Year:", filteredData);
-    setProjectData(filteredData); // Update the filtered movies state
-  };
 
   const handlePriceChange = (event, newValue) => {
     setPriceRange(newValue)
@@ -465,133 +431,107 @@ export default function MovieGrid() {
     setFilteredExcludingCountries(filteredCountries.map((option) => option.name));
   };
 
-  const handleLanguageFilter = (language) => {
-    let updatedLanguages;
 
-    if (selectedLanguages.includes(language)) {
-      // Remove the language if already selected
-      updatedLanguages = selectedLanguages.filter((l) => l !== language);
-    } else {
-      // Add the language to the selected list
-      updatedLanguages = [...selectedLanguages, language];
+
+  const handlePageChange = (page) => {
+    console.log("Changing to page:", page);
+    if (page >= 1 && page <= totalPages) {
+      fetchAllProjectData(page);
     }
-
-    setSelectedLanguages(updatedLanguages);
-
-    // Filter project data based on the updated languages
-    const filteredData =
-      updatedLanguages.length > 0
-        ? originalProjectData.filter((project) =>
-          updatedLanguages.some(
-            (selectedLanguage) =>
-              project?.formData?.specificationsInfo?.language?.toLowerCase() ===
-              selectedLanguage.toLowerCase()
-          )
-        )
-        : [...originalProjectData]; // Reset to original data if no languages are selected
-
-    setProjectData(filteredData); // Update the filtered project data
+    setCurrentPage(page);
   };
 
-  const handleContentCategoryFilter = (category) => {
-    let updatedCategories;
-
-    if (selectedContentCategories.includes(category)) {
-      // Remove category if already selected
-      updatedCategories = selectedContentCategories.filter((c) => c !== category);
+  // Generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      // Show all pages if total pages are less than or equal to 7
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
     } else {
-      // Add category to the selected list
-      updatedCategories = [...selectedContentCategories, category];
+      // Show first 2, last 2, and ellipsis in between
+      if (currentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, "...", totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+      }
     }
-
-    setSelectedContentCategories(updatedCategories);
-
-    // Filter project data based on the updated categories
-    const filteredData =
-      updatedCategories.length > 0
-        ? originalProjectData.filter((project) =>
-          updatedCategories.some((selectedCategory) => {
-            const projectType = project?.formData?.specificationsInfo?.projectType
-              ?.replace(/_/g, " ") // Replace underscores with spaces
-              ?.toLowerCase(); // Convert to lowercase for case-insensitive comparison
-            return projectType === selectedCategory.toLowerCase();
-          })
-        )
-        : [...originalProjectData]; // Reset to original data if no categories are selected
-
-    setProjectData(filteredData); // Update the filtered project data
+    return pages;
   };
 
   const handleRightsFilter = (right) => {
-    if (selectedRights.includes(right)) {
-      setSelectedRights(selectedRights.filter((r) => r !== right)); // Remove right
-    } else {
-      setSelectedRights([...selectedRights, right]); // Add right
-    }
+    setSelectedRights((prevRights) => {
+      const updatedRights = prevRights.includes(right)
+        ? prevRights.filter((r) => r !== right)
+        : [...prevRights, right];
+      fetchAllProjectData(1, false, updatedRights);
+      setRightsAnchorEl(null); // Close the popover immediately
+      return updatedRights;
+    });
   };
 
-  // Apply filters and sorting
-  useEffect(() => {
-    let result = [...movies];
+  const handleIncludingRegionFilter = (region) => {
+    setSelectedTerritories((prevTerritories) => {
+      const updatedTerritories = prevTerritories.includes(region)
+        ? prevTerritories.filter((t) => t !== region)
+        : [...prevTerritories, region];
+      fetchAllProjectData(1, false, selectedRights, updatedTerritories);
+      setTerritoryAnchorEl(null); // Close the popover immediately
+      return updatedTerritories;
+    });
+  };
 
-    // Apply genre filter
-    if (selectedGenres.length > 0) {
-      result = result.filter((movie) => selectedGenres.includes(movie.genre));
-    }
+  const handleGenreFilter = (genre) => {
+    setSelectedGenres((prevGenres) => {
+      const updatedGenres = prevGenres.includes(genre)
+        ? prevGenres.filter((g) => g !== genre)
+        : [...prevGenres, genre];
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedContentCategories, selectedYears, updatedGenres, selectedLanguages);
+      return updatedGenres;
+    });
+  };
 
-    // Apply year filter
-    if (selectedYears.length > 0) {
-      result = result.filter((movie) => selectedYears.includes(movie.year));
-    }
-
-    // Apply territory filter
-    if (selectedTerritories.length > 0) {
-      result = result.filter((movie) =>
-        selectedTerritories.some((territory) => movie.territories?.includes(territory))
+  const handleYearFilter = (year) => {
+    setSelectedYears((prevYears) => {
+      const updatedYears = prevYears.includes(year)
+        ? prevYears.filter((y) => y !== year)
+        : [...prevYears, year];
+      fetchAllProjectData(
+        1,
+        false,
+        selectedRights,
+        selectedTerritories,
+        selectedGenres,
+        updatedYears,
+        selectedLanguages,
+        selectedContentCategories
       );
-    }
+      return updatedYears;
+    });
+  };
 
-    // Apply language filter
-    if (selectedLanguages.length > 0) {
-      result = result.filter((movie) =>
-        selectedLanguages.some((language) => movie.languages?.includes(language))
-      );
-    }
+  const handleLanguageFilter = (language) => {
+    setSelectedLanguages((prevLanguages) => {
+      const updatedLanguages = prevLanguages.includes(language)
+        ? prevLanguages.filter((l) => l !== language)
+        : [...prevLanguages, language];
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedContentCategories, selectedGenres, selectedYears, updatedLanguages);
+      return updatedLanguages;
+    });
+  };
 
-    // Apply content category filter
-    if (selectedContentCategories.length > 0) {
-      result = result.filter((movie) =>
-        selectedContentCategories.some((category) => movie.contentCategories?.includes(category))
-      );
-    }
-
-    // Apply rights filter
-    if (selectedRights.length > 0) {
-      result = result.filter((movie) =>
-        selectedRights.some((right) => movie.rights?.includes(right))
-      );
-    }
-
-    setFilteredMovies(result);
-
-    // Count active filters
-    let count = 0;
-    if (selectedGenres.length > 0) count += selectedGenres.length;
-    if (selectedYears.length > 0) count += selectedYears.length;
-    if (selectedTerritories.length > 0) count += selectedTerritories.length;
-    if (selectedLanguages.length > 0) count += selectedLanguages.length;
-    if (selectedContentCategories.length > 0) count += selectedContentCategories.length;
-    if (selectedRights.length > 0) count += selectedRights.length;
-
-    setActiveFiltersCount(count);
-  }, [
-    selectedGenres,
-    selectedYears,
-    selectedTerritories,
-    selectedLanguages,
-    selectedContentCategories,
-    selectedRights,
-  ]);
+  const handleContentCategoryFilter = (category) => {
+    setSelectedContentCategories((prevCategories) => {
+      const updatedCategories = prevCategories.includes(category)
+        ? prevCategories.filter((c) => c !== category)
+        : [...prevCategories, category];
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, updatedCategories);
+      return updatedCategories;
+    });
+  };
 
 
 
@@ -834,7 +774,7 @@ export default function MovieGrid() {
       backgroundColor: "#111",
       color: "#fff",
       width: "320px",
-      height: "auto",
+      height: "100%",
       padding: "24px",
     },
     drawerHeader: {
@@ -1106,14 +1046,22 @@ export default function MovieGrid() {
       return; // Prevent checkbox selection
     }
 
-    if (selectedItems.includes(id)) {
-      // Remove the item if already selected
-      setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
-    } else {
-      // Add the item to the selected list
-      setSelectedItems([...selectedItems, id]);
-    }
+    setSelectedItems((prevSelectedItems) => {
+      if (prevSelectedItems.includes(id)) {
+        // If the item is already selected, remove it
+        return prevSelectedItems.filter((itemId) => itemId !== id);
+      } else {
+        // Otherwise, add it to the selection
+        return [...prevSelectedItems, id];
+      }
+    });
   };
+
+  const allCountries = Object.values(regionCountryMapping).flat();
+const availableExcludingCountries =
+  selectedTerritories.includes("Worldwide")
+    ? allCountries
+    : selectedTerritories.flatMap(region => regionCountryMapping[region] || []);
 
   // New filtering function
   const filterMovies = () => {
@@ -1299,6 +1247,76 @@ export default function MovieGrid() {
     setFiltersApplied(true);
   };
 
+  const handleCommonFilterChange = (filterType, value) => {
+    let updated;
+    switch (filterType) {
+      case "genre":
+        updated = selectedGenres.includes(value)
+          ? selectedGenres.filter((g) => g !== value)
+          : [...selectedGenres, value];
+        setSelectedGenres(updated);
+        break;
+      case "year":
+        updated = selectedYears.includes(value)
+          ? selectedYears.filter((y) => y !== value)
+          : [...selectedYears, value];
+        setSelectedYears(updated);
+        break;
+      case "language":
+        updated = selectedLanguages.includes(value)
+          ? selectedLanguages.filter((l) => l !== value)
+          : [...selectedLanguages, value];
+        setSelectedLanguages(updated);
+        break;
+      case "territory":
+        updated = selectedTerritories.includes(value)
+          ? selectedTerritories.filter((t) => t !== value)
+          : [...selectedTerritories, value];
+        setSelectedTerritories(updated);
+        break;
+      case "contentCategory":
+        updated = selectedContentCategories.includes(value)
+          ? selectedContentCategories.filter((c) => c !== value)
+          : [...selectedContentCategories, value];
+        setSelectedContentCategories(updated);
+        break;
+      case "rights":
+        updated = selectedRights.includes(value)
+          ? selectedRights.filter((r) => r !== value)
+          : [...selectedRights, value];
+        setSelectedRights(updated);
+        break;
+      default:
+        break;
+    }
+    // Fetch API only if dealDetails is not present
+    if (!dealDetails) {
+      fetchAllProjectData(1, false);
+    }
+  };
+
+  const clearSelectedFilters = () => {
+    // Reset all filter states
+    setSelectedGenres([]);
+    setSelectedYears([]);
+    setSelectedLanguages([]);
+    setSelectedTerritories([]);
+    setSelectedContentCategories([]);
+    setSelectedRights([]);
+    setRatingFilter(0);
+    setDrawerSelectedRights("");
+    setDrawerSelectedTerritory([]);
+    setDrawerSelectedUsageRights([]);
+    setDrawerSelectedContentCategories([]);
+    setDrawerSelectedLanguages([]);
+    setDrawerSelectedGenres([]);
+    setDrawerSelectedYears([]);
+    setSelectedExcludingTerritory([]);
+    setFiltersApplied(false);
+    navigate(location.pathname, { state: { dealDetails: null } });
+    fetchAllProjectData(1, false); // Reset to page 1 and fetch unfiltered data
+  };
+
   useEffect(() => {
     if (dealDetails && originalProjectData) {
       setDrawerSelectedRights(dealDetails.rights || "");
@@ -1310,14 +1328,119 @@ export default function MovieGrid() {
       setDrawerSelectedYears(dealDetails.yearOfRelease || []);
       setSelectedExcludingTerritory(dealDetails.excludingCountries || []);
 
-      setAdvancedFiltersOpen(true);
-      filterMovies();
+      // setAdvancedFiltersOpen(true);
+      // filterMovies();
+      setFiltersApplied(true); // Set filtersApplied to true when dealDetails are set
     }
   }, [dealDetails, originalProjectData]);
 
+  useEffect(() => {
+    let result = [...movies];
+
+    // Apply genre filter
+    if (selectedGenres.length > 0) {
+      result = result.filter((movie) => selectedGenres.includes(movie.genre));
+    }
+
+    // Apply year filter
+    if (selectedYears.length > 0) {
+      result = result.filter((movie) => selectedYears.includes(movie.year));
+    }
+
+    // Apply territory filter
+    if (selectedTerritories.length > 0) {
+      result = result.filter((movie) =>
+        selectedTerritories.some((territory) => movie.territories?.includes(territory))
+      );
+    }
+
+    // Apply language filter
+    if (selectedLanguages.length > 0) {
+      result = result.filter((movie) =>
+        selectedLanguages.some((language) => movie.languages?.includes(language))
+      );
+    }
+
+    // Apply content category filter
+    if (selectedContentCategories.length > 0) {
+      result = result.filter((movie) =>
+        selectedContentCategories.some((category) => movie.contentCategories?.includes(category))
+      );
+    }
+
+    // Apply rights filter
+    if (selectedRights.length > 0) {
+      result = result.filter((movie) =>
+        selectedRights.some((right) => movie.rights?.includes(right))
+      );
+    }
+
+
+    // Count active filters
+    let count = 0;
+    if (selectedGenres.length > 0) count += selectedGenres.length;
+    if (selectedYears.length > 0) count += selectedYears.length;
+    if (selectedTerritories.length > 0) count += selectedTerritories.length;
+    if (selectedLanguages.length > 0) count += selectedLanguages.length;
+    if (selectedContentCategories.length > 0) count += selectedContentCategories.length;
+    if (selectedRights.length > 0) count += selectedRights.length;
+
+    setActiveFiltersCount(count);
+  }, [
+    selectedGenres,
+    selectedYears,
+    selectedTerritories,
+    selectedLanguages,
+    selectedContentCategories,
+    selectedRights,
+  ]);
 
 
 
+  useEffect(() => {
+    if (selectedTerritories.length > 0) {
+      // Filter countries based on selected regions
+      const filteredCountries = selectedTerritories.flatMap(
+        (region) => regionCountryMapping[region] || []
+      );
+      setFilteredExcludingCountries(filteredCountries);
+    } else {
+      // Reset to all countries if no region is selected
+      setFilteredExcludingCountries([]);
+    }
+  }, [selectedTerritories]);
+
+  useEffect(() => {
+    console.log("all details hit");
+
+    // Fetch userId and role from Redux (already done outside)
+    const token = Cookies.get("token");
+    console.log("UserId and role", userId, role);
+
+    if (!userId || !role || !token) return;
+
+    fetchAllProjectData();
+  }, [userId, role, token, toast]);
+
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (!searchTerm) {
+        // Only reset to original data if dealDetails is not present
+        if (!dealDetails) {
+          setProjectData([...originalProjectData]);
+        }
+      } else {
+        // Filter project data based on the search term
+        const filteredData = originalProjectData.filter((project) =>
+          project?.projectTitle?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setProjectData(filteredData);
+      }
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(delayDebounceFn); // Cleanup the timeout
+  }, [searchTerm, originalProjectData, dealDetails]);
 
 
   return (
@@ -1336,26 +1459,27 @@ export default function MovieGrid() {
         <Loader />  // Show loader when loading is true
       ) : (
         <Box sx={styles.root}>
-          <Box sx={styles.search}>
-            <Box sx={styles.searchIcon}>
-              <SearchIcon />
-            </Box>
-            <InputBase
-              placeholder="Search movies..."
-              sx={{
-                ...styles.inputRoot,
-                "& .MuiInputBase-input": styles.inputInput,
-              }}
-              inputProps={{ "aria-label": "search" }}
-              value={searchTerm} // Bind the searchTerm state
-              onChange={(e) => setSearchTerm(e.target.value)} // Update searchTerm on input change
-            />
-          </Box>
+          {!dealDetails &&
+            <Box sx={styles.search}>
+              <Box sx={styles.searchIcon}>
+                <SearchIcon />
+              </Box>
+              <InputBase
+                placeholder="Search movies..."
+                sx={{
+                  ...styles.inputRoot,
+                  "& .MuiInputBase-input": styles.inputInput,
+                }}
+                inputProps={{ "aria-label": "search" }}
+                value={searchTerm} // Bind the searchTerm state
+                onChange={(e) => setSearchTerm(e.target.value)} // Update searchTerm on input change
+              />
+            </Box>}
 
           {/* Compact Filter Bar */}
-          {user?.user?.role !== "Seller" && <Box sx={styles.compactFilterSection} gap={1}>
+          <Box sx={styles.compactFilterSection} gap={1}>
             {/* Sort Button */}
-            <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
+            {/* <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
               Sort: {getSortDisplayText()}
             </Button>
             <Popover
@@ -1391,364 +1515,481 @@ export default function MovieGrid() {
                   </Box>
                 </Box>
               </Box>
-            </Popover>
-
-            {/* Genre Button */}
-            <Button
-              sx={selectedGenres.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={(e) => setGenreAnchorEl(e.currentTarget)} // Open the popover
-              endIcon={<ArrowDownIcon fontSize="small" />}
-            >
-              Genre
-              {selectedGenres.length > 0 && (
-                <Badge
-                  badgeContent={selectedGenres.length}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
-            <Popover
-              open={Boolean(genreAnchorEl)}
-              anchorEl={genreAnchorEl}
-              onClose={() => setGenreAnchorEl(null)} // Close the popover
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>
-                  Genre
-                  {selectedGenres.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
-                      Clear
-                    </Button>
-                  )}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {genresOptions.map((genre) => (
-                    <Chip
-                      key={genre.id}
-                      label={genre.name} // Use the name property for the label
-                      onClick={() => handleGenreFilter(genre.name)} // Pass only the name to the handler
-                      sx={selectedGenres.includes(genre.name) ? styles.popoverChipActive : styles.popoverChip}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Popover>
-
-            {/* Year Button */}
-            <Button
-              sx={selectedYears.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={handleYearClick}
-              endIcon={<ArrowDownIcon fontSize="small" />}
-            >
-              Year Of Release
-              {selectedYears.length > 0 && (
-                <Badge
-                  badgeContent={selectedYears.length}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
-            <Popover
-              open={Boolean(yearAnchorEl)}
-              anchorEl={yearAnchorEl}
-              onClose={handleYearClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>
-                  Year
-                  {selectedYears.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
-                      Clear
-                    </Button>
-                  )}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {allYears.map((year) => (
-                    <Chip
-                      label={year}
-                      key={year}
-                      onClick={() => handleYearFilter(year)
-                      }
-                      sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Popover>
-
-            <Button
-              sx={selectedLanguages.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={(e) => setLanguageAnchorEl(e.currentTarget)} // Open the popover
-              endIcon={<ArrowDownIcon fontSize="small" />}
-            >
-              Language
-              {selectedLanguages.length > 0 && (
-                <Badge
-                  badgeContent={selectedLanguages.length}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
-            <Popover
-              open={Boolean(languageAnchorEl)}
-              anchorEl={languageAnchorEl}
-              onClose={() => setLanguageAnchorEl(null)} // Close the popover
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>
-                  Language
-                  {selectedLanguages.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
-                      Clear
-                    </Button>
-                  )}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {languageList.map((language) => (
-                    <Chip
-                      key={language}
-                      label={language}
-                      onClick={() => handleLanguageFilter(language)} // Toggle language selection
-                      sx={selectedLanguages.includes(language) ? styles.popoverChipActive : styles.popoverChip}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Popover>
-
-            <Button
-              sx={selectedTerritories.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={(e) => setTerritoryAnchorEl(e.currentTarget)}
-              endIcon={<ArrowDownIcon fontSize="small" />}
-            >
-              Territory
-              {selectedTerritories.length > 0 && (
-                <Badge
-                  badgeContent={selectedTerritories.length}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
-            <Popover
-              open={Boolean(territoryAnchorEl)}
-              anchorEl={territoryAnchorEl}
-              onClose={() => setTerritoryAnchorEl(null)}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>
-                  Territory
-                  {selectedTerritories.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
-                      Clear
-                    </Button>
-                  )}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {territoryGroupedOptions.map((territory) => (
-                    <Chip
-                      key={territory.name}
-                      label={territory.name}
-                      onClick={() => handleTerritoryFilter(territory.name)}
-                      sx={selectedTerritories.includes(territory.name) ? styles.popoverChipActive : styles.popoverChip}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Popover>
-
-            <Button
-              sx={selectedContentCategories.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={(e) => setContentCategoryAnchorEl(e.currentTarget)} // Open the popover
-              endIcon={<ArrowDownIcon fontSize="small" />}
-            >
-              Content Category
-              {selectedContentCategories.length > 0 && (
-                <Badge
-                  badgeContent={selectedContentCategories.length}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
-            <Popover
-              open={Boolean(contentCategoryAnchorEl)}
-              anchorEl={contentCategoryAnchorEl}
-              onClose={() => setContentCategoryAnchorEl(null)} // Close the popover
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>
-                  Content Category
-                  {selectedContentCategories.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
-                      Clear
-                    </Button>
-                  )}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {contentCategoryOptions.map((category) => (
-                    <Chip
-                      key={category.id}
-                      label={category.name}
-                      onClick={() => handleContentCategoryFilter(category.name)} // Toggle content category selection
-                      sx={selectedContentCategories.includes(category.name) ? styles.popoverChipActive : styles.popoverChip}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Popover>
-
-            <Button
-              sx={selectedRights.length > 0 ? styles.filterButtonActive : styles.filterButton}
-              onClick={(e) => setRightsAnchorEl(e.currentTarget)} // Open the popover
-              endIcon={<ArrowDownIcon fontSize="small" />}
-            >
-              Rights
-              {selectedRights.length > 0 && (
-                <Badge
-                  badgeContent={selectedRights.length}
-                  color="primary"
-                  sx={{
-                    marginLeft: "4px",
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#7ab5e7",
-                      color: "#000",
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              )}
-            </Button>
-            <Popover
-              open={Boolean(rightsAnchorEl)}
-              anchorEl={rightsAnchorEl}
-              onClose={() => setRightsAnchorEl(null)} // Close the popover
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>
+            </Popover> */}
+            {!dealDetails && user?.user?.role !== "Seller" &&
+              <>
+                <Button
+                  sx={selectedRights.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                  onClick={(e) => setRightsAnchorEl(e.currentTarget)} // Open the popover
+                  endIcon={<ArrowDownIcon fontSize="small" />}
+                >
                   Rights
                   {selectedRights.length > 0 && (
-                    <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
-                      Clear
-                    </Button>
+                    <Badge
+                      badgeContent={selectedRights.length}
+                      color="primary"
+                      sx={{
+                        marginLeft: "4px",
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
                   )}
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                  {rightsOptions.map((right) => (
+                </Button>
+                <Popover
+                  open={Boolean(rightsAnchorEl)}
+                  anchorEl={rightsAnchorEl}
+                  onClose={() => setRightsAnchorEl(null)} // Close the popover
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  PaperProps={{
+                    style: { backgroundColor: "#111" },
+                  }}
+                >
+                  <Box sx={styles.popoverContent}>
+                    <Typography sx={styles.popoverTitle}>
+                      Rights
+                      {selectedRights.length > 0 && (
+                        <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                          Clear
+                        </Button>
+                      )}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                      {rightsOptions.map((right) => (
+                        <Chip
+                          key={right.id}
+                          label={right.name}
+                          onClick={() => handleRightsFilter(right.name)} // Toggle rights selection
+                          sx={selectedRights.includes(right.name) ? styles.popoverChipActive : styles.popoverChip}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Popover></>}
+            {!dealDetails && user?.user?.role !== "Seller" && <>
+              <Button
+                sx={selectedTerritories.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                onClick={(e) => setTerritoryAnchorEl(e.currentTarget)}
+                endIcon={<ArrowDownIcon fontSize="small" />}
+              >
+                Including Region
+                {selectedTerritories.length > 0 && (
+                  <Badge
+                    badgeContent={selectedTerritories.length}
+                    color="primary"
+                    sx={{
+                      marginLeft: "4px",
+                      "& .MuiBadge-badge": {
+                        backgroundColor: "#7ab5e7",
+                        color: "#000",
+                        fontWeight: "bold",
+                      },
+                    }}
+                  />
+                )}
+              </Button>
+              <Popover
+                open={Boolean(territoryAnchorEl)}
+                anchorEl={territoryAnchorEl}
+                onClose={() => setTerritoryAnchorEl(null)}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+                PaperProps={{
+                  style: { backgroundColor: "#111" },
+                }}
+              >
+                <Box sx={styles.popoverContent}>
+                  <Typography sx={styles.popoverTitle}>
+                    Including Region
+                    {selectedTerritories.length > 0 && (
+                      <Button
+                        size="small"
+                        sx={styles.clearButton}
+                        onClick={() => {
+                          setSelectedTerritories([]); // Clear selected regions
+                          setProjectData([...originalProjectData]); // Reset to original data
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Typography>
+                  {Object.keys(regionCountryMapping).map((region) => (
                     <Chip
-                      key={right.id}
-                      label={right.name}
-                      onClick={() => handleRightsFilter(right.name)} // Toggle rights selection
-                      sx={selectedRights.includes(right.name) ? styles.popoverChipActive : styles.popoverChip}
+                      key={region}
+                      label={region}
+                      onClick={() => handleIncludingRegionFilter(region)}
+                      sx={selectedTerritories.includes(region) ? styles.popoverChipActive : styles.popoverChip}
                     />
                   ))}
                 </Box>
-              </Box>
-            </Popover>
+              </Popover></>}
+
+            {/* Excluding Countries Filter */}
+            {!dealDetails && user?.user?.role !== "Seller" && <><Button
+              sx={selectedExcludingTerritory.length > 0 ? styles.filterButtonActive : styles.filterButton}
+              onClick={(e) => setExcludingCountryAnchorEl(e.currentTarget)}
+              endIcon={<ArrowDownIcon fontSize="small" />}
+            >
+              Excluding Countries
+              {selectedExcludingTerritory.length > 0 && (
+                <Badge
+                  badgeContent={selectedExcludingTerritory.length}
+                  color="primary"
+                  sx={{
+                    marginLeft: "4px",
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "#7ab5e7",
+                      color: "#000",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              )}
+            </Button>
+              <Popover
+                open={Boolean(excludingCountryAnchorEl)}
+                anchorEl={excludingCountryAnchorEl}
+                onClose={() => setExcludingCountryAnchorEl(null)}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+                PaperProps={{
+                  style: { backgroundColor: "#111" },
+                }}
+              >
+                <Box sx={styles.popoverContent}>
+                  <Typography sx={styles.popoverTitle}>
+                    Excluding Countries
+                    {selectedExcludingTerritory.length > 0 && (
+                      <Button
+                        size="small"
+                        sx={styles.clearButton}
+                        onClick={() => {
+                          setSelectedExcludingTerritory([]);
+                          setExcludingCountryAnchorEl(null);
+                          fetchAllProjectData(
+                            1,
+                            false,
+                            selectedRights,
+                            selectedTerritories,
+                            [],
+                            selectedYears,
+                            selectedGenres,
+                            selectedLanguages,
+                            selectedContentCategories
+                          );
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                    {availableExcludingCountries.map((country) => (
+                      <Chip
+                        key={country}
+                        label={country}
+                        onClick={() => {
+                          setSelectedExcludingTerritory((prev) => {
+                            const updated = prev.includes(country)
+                              ? prev.filter((c) => c !== country)
+                              : [...prev, country];
+                            fetchAllProjectData(
+                              1,
+                              false,
+                              selectedRights,
+                              selectedTerritories,
+                              updated,
+                              selectedYears,
+                              selectedGenres,
+                              selectedLanguages,
+                              selectedContentCategories
+                            );
+                            setExcludingCountryAnchorEl(null); // Close popover after selection
+                            return updated;
+                          });
+                        }}
+                        sx={
+                          selectedExcludingTerritory.includes(country)
+                            ? styles.popoverChipActive
+                            : styles.popoverChip
+                        }
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              </Popover></>}
+
+            {/* Genre Button */}
+            {!dealDetails && user?.user?.role !== "Seller" &&
+              <>
+                <Button
+                  sx={selectedGenres.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                  onClick={(e) => setGenreAnchorEl(e.currentTarget)} // Open the popover
+                  endIcon={<ArrowDownIcon fontSize="small" />}
+                >
+                  Genre
+                  {selectedGenres.length > 0 && (
+                    <Badge
+                      badgeContent={selectedGenres.length}
+                      color="primary"
+                      sx={{
+                        marginLeft: "4px",
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
+                  )}
+                </Button>
+                <Popover
+                  open={Boolean(genreAnchorEl)}
+                  anchorEl={genreAnchorEl}
+                  onClose={() => setGenreAnchorEl(null)} // Close the popover
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  PaperProps={{
+                    style: { backgroundColor: "#111" },
+                  }}
+                >
+                  <Box sx={styles.popoverContent}>
+                    <Typography sx={styles.popoverTitle}>
+                      Genre
+                      {selectedGenres.length > 0 && (
+                        <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                          Clear
+                        </Button>
+                      )}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                      {genresOptions.map((genre) => (
+                        <Chip
+                          key={genre.id}
+                          label={genre.name} // Use the name property for the label
+                          onClick={() => handleGenreFilter(genre.name)} // Pass only the name to the handler
+                          sx={selectedGenres.includes(genre.name) ? styles.popoverChipActive : styles.popoverChip}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Popover></>}
+
+            {/* Year Button */}
+            {!dealDetails && user?.user?.role !== "Seller" &&
+              <>
+                <Button
+                  sx={selectedYears.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                  onClick={handleYearClick}
+                  endIcon={<ArrowDownIcon fontSize="small" />}
+                >
+                  Year Of Release
+                  {selectedYears.length > 0 && (
+                    <Badge
+                      badgeContent={selectedYears.length}
+                      color="primary"
+                      sx={{
+                        marginLeft: "4px",
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
+                  )}
+                </Button>
+                <Popover
+                  open={Boolean(yearAnchorEl)}
+                  anchorEl={yearAnchorEl}
+                  onClose={handleYearClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  PaperProps={{
+                    style: { backgroundColor: "#111" },
+                  }}
+                >
+                  <Box sx={styles.popoverContent}>
+                    <Typography sx={styles.popoverTitle}>
+                      Year
+                      {selectedYears.length > 0 && (
+                        <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                          Clear
+                        </Button>
+                      )}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                      {allYears.map((year) => (
+                        <Chip
+                          label={year}
+                          key={year}
+                          onClick={() => handleYearFilter(year)
+                          }
+                          sx={selectedYears.includes(year) ? styles.popoverChipActive : styles.popoverChip}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Popover>
+              </>}
+
+            {!dealDetails && user?.user?.role !== "Seller" &&
+              <>
+                <Button
+                  sx={selectedLanguages.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                  onClick={(e) => setLanguageAnchorEl(e.currentTarget)} // Open the popover
+                  endIcon={<ArrowDownIcon fontSize="small" />}
+                >
+                  Language
+                  {selectedLanguages.length > 0 && (
+                    <Badge
+                      badgeContent={selectedLanguages.length}
+                      color="primary"
+                      sx={{
+                        marginLeft: "4px",
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
+                  )}
+                </Button>
+                <Popover
+                  open={Boolean(languageAnchorEl)}
+                  anchorEl={languageAnchorEl}
+                  onClose={() => setLanguageAnchorEl(null)} // Close the popover
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  PaperProps={{
+                    style: { backgroundColor: "#111" },
+                  }}
+                >
+                  <Box sx={styles.popoverContent}>
+                    <Typography sx={styles.popoverTitle}>
+                      Language
+                      {selectedLanguages.length > 0 && (
+                        <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                          Clear
+                        </Button>
+                      )}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                      {languageList.map((language) => (
+                        <Chip
+                          key={language}
+                          label={language}
+                          onClick={() => handleLanguageFilter(language)} // Toggle language selection
+                          sx={selectedLanguages.includes(language) ? styles.popoverChipActive : styles.popoverChip}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Popover></>}
+
+            {!dealDetails && user?.user?.role !== "Seller" &&
+              <>
+                <Button
+                  sx={selectedContentCategories.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                  onClick={(e) => setContentCategoryAnchorEl(e.currentTarget)} // Open the popover
+                  endIcon={<ArrowDownIcon fontSize="small" />}
+                >
+                  Content Category
+                  {selectedContentCategories.length > 0 && (
+                    <Badge
+                      badgeContent={selectedContentCategories.length}
+                      color="primary"
+                      sx={{
+                        marginLeft: "4px",
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
+                  )}
+                </Button>
+                <Popover
+                  open={Boolean(contentCategoryAnchorEl)}
+                  anchorEl={contentCategoryAnchorEl}
+                  onClose={() => setContentCategoryAnchorEl(null)} // Close the popover
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  PaperProps={{
+                    style: { backgroundColor: "#111" },
+                  }}
+                >
+                  <Box sx={styles.popoverContent}>
+                    <Typography sx={styles.popoverTitle}>
+                      Content Category
+                      {selectedContentCategories.length > 0 && (
+                        <Button size="small" sx={styles.clearButton} onClick={clearFilters}>
+                          Clear
+                        </Button>
+                      )}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                      {contentCategoryOptions.map((category) => (
+                        <Chip
+                          key={category.id}
+                          label={category.name}
+                          onClick={() => handleContentCategoryFilter(category.name)} // Toggle content category selection
+                          sx={selectedContentCategories.includes(category.name) ? styles.popoverChipActive : styles.popoverChip}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Popover>
+              </>}
 
             {/* Advanced Filters Button */}
             {dealDetails ? (
@@ -1758,7 +1999,7 @@ export default function MovieGrid() {
                 onClick={() => setAdvancedFiltersOpen(true)} // Reopen the drawer
                 sx={styles.advancedFilterButton}
               >
-                Advanced Filters
+                Open Filters
               </Button>
             ) :
               <Button
@@ -1788,20 +2029,7 @@ export default function MovieGrid() {
               <Button
                 variant="outlined"
                 sx={styles.filterButtonActive}
-                onClick={() => {
-                  // Reset all filter states
-                  setDrawerSelectedRights("");
-                  setDrawerSelectedTerritory([]);
-                  setDrawerSelectedUsageRights([]);
-                  setDrawerSelectedContentCategories([]);
-                  setDrawerSelectedLanguages([]);
-                  setDrawerSelectedGenres([]);
-                  setDrawerSelectedYears([]);
-                  setSelectedExcludingTerritory([]);
-                  setFiltersApplied(false); // Reset filters applied state
-                  setProjectData([...originalProjectData]);
-                  navigate(location.pathname, { state: null });
-                }}
+                onClick={clearSelectedFilters}
               >
                 Clear Filters
               </Button>
@@ -1830,14 +2058,14 @@ export default function MovieGrid() {
                 )}
               </Box>
             )}
-          </Box>}
+          </Box>
 
           <Drawer anchor="right"
             open={advancedFiltersOpen}
             onClose={(event, reason) => {
               if (reason === "backdropClick" || reason === "escapeKeyDown") return;
               setAdvancedFiltersOpen(false);
-              setSelectedItems([]);
+              // setSelectedItems([]);
             }}
             ModalProps={{
               keepMounted: true, // Keep the drawer mounted for performance
@@ -1855,359 +2083,81 @@ export default function MovieGrid() {
                   </IconButton>
                   <IconButton onClick={() => {
                     setAdvancedFiltersOpen(false);
-                    setSelectedItems([]);
+                    // setSelectedItems([]);
                     setSelectAll(false);
                   }} sx={{ color: "#FF0000" }}>
                     <CloseIcon />
                   </IconButton>
                 </div>
               </Box>
-              <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {/* Rights (Mandatory) */}
-                <Autocomplete
-                  size="small"
-                  value={drawerSelectedRights}
-                  onChange={(event, newValue) => {
-                    // Store only a single right
-                    setDrawerSelectedRights(newValue);
-                  }}
-                  options={rightsOptions.map((option) => option.name)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={
-                        <Typography>
-                          Rights <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      placeholder="Select Rights"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Rights:
+                  </Typography>
+                  <Typography variant="body1">{dealDetails?.rights || "N/A"}</Typography>
+                </Box>
 
-                {/* Territory (Mandatory) */}
-                <Autocomplete
-                  multiple // Enable multiple selection
-                  value={drawerSelectedTerritory} // Bind selected values to state
-                  onChange={(e, newValue) => setDrawerSelectedTerritory(newValue)} // Update state on selection
-                  options={[...new Set(territoryGroupedOptions.map((option) => option.region))]} // Unique regions
-                  renderTags={(value, getTagProps) =>
-                    value?.map((option, index) => (
-                      <Chip
-                        key={option}
-                        size="small"
-                        label={option} // Display selected option
-                        {...getTagProps({ index })} // Add props for chip behavior
-                        sx={{
-                          backgroundColor: "#7ab5e7",
-                          color: "#000",
-                          fontWeight: "bold",
-                          "& .MuiChip-deleteIcon": {
-                            color: "#fff",
-                            "&:hover": {
-                              color: "#000",
-                            },
-                          },
-                        }}
-                      />
-                    ))
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={
-                        <Typography>
-                          Territories (Including Region) <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      placeholder="Select Region"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Including Regions:
+                  </Typography>
+                  <Typography variant="body1">
+                    {dealDetails?.includingRegions?.join(", ") || "N/A"}
+                  </Typography>
+                </Box>
 
-                {/* Excluding Territory (Optional) */}
-                <Autocomplete
-                  multiple // Enable multiple selection
-                  value={selectedExcludingTerritory} // Bind selected values to state
-                  onChange={(e, newValue) => setSelectedExcludingTerritory(newValue)} // Update state on selection
-                  options={filteredExcludingCountries} // Use filtered countries based on selected regions
-                  renderTags={(value, getTagProps) =>
-                    value?.map((option, index) => (
-                      <Chip
-                        size="small"
-                        key={option}
-                        label={option} // Display selected option
-                        {...getTagProps({ index })} // Add props for chip behavior
-                        sx={{
-                          backgroundColor: "#7ab5e7",
-                          color: "#000",
-                          fontWeight: "bold",
-                          "& .MuiChip-deleteIcon": {
-                            color: "#fff",
-                            "&:hover": {
-                              color: "#000",
-                            },
-                          },
-                        }}
-                      />
-                    ))
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Territories (Excluding Countries)"
-                      placeholder="Select Excluding Countries"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Excluding Countries:
+                  </Typography>
+                  <Typography variant="body1">
+                    {dealDetails?.excludingCountries?.join(", ") || "N/A"}
+                  </Typography>
+                </Box>
 
-                {/* Usage Rights (Mandatory) */}
-                <Autocomplete
-                  value={drawerSelectedUsageRights}
-                  onChange={(e, newValue) => setDrawerSelectedUsageRights(newValue)}
-                  options={usageRightsOptions.map((option) => option.name)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={
-                        <Typography>
-                          Usage Rights <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      placeholder="Select Usage Rights"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Usage Rights:
+                  </Typography>
+                  <Typography variant="body1">{dealDetails?.usageRights || "N/A"}</Typography>
+                </Box>
 
-                {/* Content Category (Mandatory) */}
-                <Autocomplete
-                  value={drawerSelectedContentCategories}
-                  onChange={(e, newValue) => {
-                    // Ensure the value is always an array
-                    setDrawerSelectedContentCategories(Array.isArray(newValue) ? newValue : [newValue]);
-                  }}
-                  options={contentCategoryOptions.map((option) => option.name)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={
-                        <Typography>
-                          Content Category <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      placeholder="Select Content Category"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Content Categories:
+                  </Typography>
+                  <Typography variant="body1">
+                    {dealDetails?.contentCategory?.join(", ") || "N/A"}
+                  </Typography>
+                </Box>
 
-                {/* Language (Mandatory) */}
-                <Autocomplete
-                  value={drawerSelectedLanguages}
-                  onChange={(e, newValue) => setDrawerSelectedLanguages(newValue)}
-                  options={languageList}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={
-                        <Typography>
-                          Language <span style={{ color: "red" }}>*</span>
-                        </Typography>
-                      }
-                      placeholder="Select Language"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Languages:
+                  </Typography>
+                  <Typography variant="body1">
+                    {dealDetails?.languages?.join(", ") || "N/A"}
+                  </Typography>
+                </Box>
 
-                {/* Genre (Optional) */}
-                <Autocomplete
-                  value={drawerSelectedGenres}
-                  onChange={(e, newValue) => setDrawerSelectedGenres(newValue)}
-                  options={genresOptions.map((option) => option.name)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Genre"
-                      placeholder="Select Genre"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Genres:
+                  </Typography>
+                  <Typography variant="body1">
+                    {dealDetails?.genre?.join(", ") || "N/A"}
+                  </Typography>
+                </Box>
 
-                {/* Year of Release (Optional) */}
-                <Autocomplete
-                  value={drawerSelectedYears}
-                  onChange={(e, newValue) => setDrawerSelectedYears(newValue)}
-                  options={allYears}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Year of Release"
-                      placeholder="Select Year"
-                      type="normal"
-                      size="small"
-                      InputLabelProps={{ sx: { color: "gray" } }}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          color: "#fff",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#27272a",
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#e1780c",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                />
-
-                {/* Filter Button */}
-                {/* <Button
-                  variant="contained"
-                  sx={{
-                    bgcolor: "#e1780c",
-                    color: "#fff",
-                    "&:hover": { bgcolor: "#c26509" },
-                    marginTop: "16px",
-                  }}
-                  onClick={() => {
-                    filterMovies(); // Apply filters
-                    setFiltersApplied(true); // Mark filters as applied
-                    setAdvancedFiltersOpen(false); // Close the drawer
-                  }}
-                >
-                  Filter Movies
-                </Button> */}
-
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                    Year of Release:
+                  </Typography>
+                  <Typography variant="body1">
+                    {dealDetails?.yearOfRelease?.join(", ") || "N/A"}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           </Drawer>
@@ -2480,37 +2430,6 @@ export default function MovieGrid() {
 
         </Box>
       )}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '20px',
-          paddingX: '16px',
-        }}
-      >
-        {/* Showing Count */}
-        <Typography sx={{ color: '#fff' }}>
-          Showing {`2`} - {`10`} of {`100`} items
-        </Typography>
-
-        {/* Pagination Controls */}
-        <Pagination
-          // count={totalPages}
-          // page={currentPage}
-          // onChange={(event, value) => setCurrentPage(value)}
-          color="primary"
-          sx={{
-            '& .MuiPaginationItem-root': {
-              color: '#fff',
-            },
-            '& .Mui-selected': {
-              backgroundColor: '#e1780c !important',
-              color: '#000',
-            },
-          }}
-        />
-      </Box>
 
       <Modal
         open={isWarningModalOpen}
@@ -2587,35 +2506,144 @@ export default function MovieGrid() {
           </Typography>
         </Box>
       </Modal>
+
+      <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" sx={{ marginTop: "10px", marginBottom: "10px" }}>
+        {/* Left Arrow */}
+        <IconButton
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          sx={{
+            backgroundColor: currentPage === 1 ? "rgba(255, 165, 0, 0.5)" : "#FFA500", // Lighter orange when disabled
+            color: "#fff",
+            borderRadius: "50%",
+            width: "40px",
+            height: "40px",
+            "&:hover": {
+              backgroundColor: currentPage === 1 ? "rgba(255, 165, 0, 0.5)" : "#FF8C00", // Darker orange on hover
+            },
+          }}
+        >
+          <ChevronLeft />
+        </IconButton>
+
+        {/* Page Numbers */}
+        {getPageNumbers().map((page, index) => (
+          <Typography
+            key={index}
+            onClick={() => typeof page === "number" && handlePageChange(page)}
+            sx={{
+              cursor: typeof page === "number" ? "pointer" : "default",
+              padding: "8px",
+              fontWeight: page === currentPage ? "bold" : "normal",
+              color: page === currentPage ? "#1976d2" : "#fff",
+            }}
+          >
+            {page}
+          </Typography>
+        ))}
+
+        {/* Right Arrow */}
+        <IconButton
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          sx={{
+            backgroundColor: currentPage === totalPages ? "rgba(255, 165, 0, 0.5)" : "#FFA500", // Lighter orange when disabled
+            color: "#fff",
+            borderRadius: "50%",
+            width: "40px",
+            height: "40px",
+            "&:hover": {
+              backgroundColor: currentPage === totalPages ? "rgba(255, 165, 0, 0.5)" : "#FF8C00", // Darker orange on hover
+            },
+          }}
+        >
+          <ChevronRight />
+        </IconButton>
+      </Stack>
     </>
   )
 }
 
 const rightsOptions = [
-  { name: 'SVOD (Subscription Video on Demand)', id: 1 },
-  { name: 'TVOD (Transactional Video on Demand)', id: 2 },
-  { name: 'AVOD (Advertising Video on Demand)', id: 3 },
-  { name: 'Broadcast', id: 4 },
-  { name: 'Cable', id: 5 },
-  { name: 'Television Broadcast Rights', id: 6 },
-  { name: 'Theatrical Rights', id: 7 },
-  { name: 'EST (Electronic Sell-Through) Rights', id: 8 },
-  { name: 'DVD/Blu-ray Distribution Rights', id: 9 },
-  { name: 'Home Video Rights', id: 10 },
-  { name: 'Foreign Distribution Rights', id: 11 },
-  { name: 'Airline/Ship Rights', id: 12 },
-  { name: 'Merchandising Rights', id: 13 },
-  { name: 'Music Rights', id: 14 },
-  { name: 'Product Placement Rights', id: 15 },
-  { name: 'Franchise/Sequel Rights', id: 16 },
-  { name: 'Mobile Rights', id: 17 },
-  { name: 'Interactive and Gaming Rights', id: 18 },
-  { name: 'Script/Adaptation Rights', id: 19 },
-  { name: 'Public Performance Rights', id: 20 },
-  { name: 'Specialty and Festival Rights', id: 21 },
-  { name: 'Censorship Rights', id: 22 },
-  { name: 'Outright Sale', id: 23 },
+  { name: 'All Rights', id: 1 },
+  { name: 'SVOD (Subscription Video on Demand)', id: 2 },
+  { name: 'TVOD (Transactional Video on Demand)', id: 3 },
+  { name: 'AVOD (Advertising Video on Demand)', id: 4 },
+  { name: 'Broadcast Rights', id: 5 },
+  { name: 'Cable Rights', id: 6 },
+  { name: 'Television Broadcast Rights', id: 7 },
+  { name: 'Theatrical Rights', id: 8 },
+  { name: 'EST (Electronic Sell-Through) Rights', id: 9 },
+  { name: 'DVD/Blu-ray Distribution Rights', id: 10 },
+  { name: 'Home Video Rights', id: 11 },
+  { name: 'Foreign Distribution Rights', id: 12 },
+  { name: 'Airline/Ship Rights', id: 13 },
+  { name: 'Merchandising Rights', id: 14 },
+  { name: 'Music Rights', id: 15 },
+  { name: 'Product Placement Rights', id: 16 },
+  { name: 'Franchise/Sequel Rights', id: 17 },
+  { name: 'Mobile Rights', id: 18 },
+  { name: 'Interactive and Gaming Rights', id: 19 },
+  { name: 'Script/Adaptation Rights', id: 20 },
+  { name: 'Public Performance Rights', id: 21 },
+  { name: 'Specialty and Festival Rights', id: 22 },
+  { name: 'Censorship Rights', id: 23 },
+  { name: 'Outright Sale', id: 24 },
+  { name: 'Digital Distribution', id: 25 },
+  { name: 'Streaming Rights', id: 26 },
+  { name: 'Video on Demand', id: 27 },
+  { name: 'Free-to-Air Broadcast', id: 28 },
+  { name: 'Pay Television', id: 29 },
+  { name: 'Satellite Television', id: 30 },
+  { name: 'IPTV Rights', id: 31 },
+  { name: 'Mobile Distribution', id: 32 },
+  { name: 'In-Flight Entertainment', id: 33 },
+  { name: 'Hotel Distribution', id: 34 },
+  { name: 'Educational Distribution', id: 35 },
+  { name: 'Non-Theatrical Rights', id: 36 },
+  { name: 'Digital Download', id: 37 },
+  { name: 'Digital Rental', id: 38 },
+  { name: 'Physical Rental', id: 39 },
+  { name: 'Library Rights', id: 40 },
+  { name: 'Archive Rights', id: 41 },
+  { name: 'Festival Rights', id: 42 },
+  { name: 'Awards Consideration', id: 43 },
+  { name: 'Press Screening Rights', id: 44 },
+  { name: 'Promotional Rights', id: 45 },
+  { name: 'Marketing Rights', id: 46 },
+  { name: 'Advertising Rights', id: 47 },
+  { name: 'Soundtrack Rights', id: 48 },
+  { name: 'Music Publishing', id: 49 },
+  { name: 'Synchronization Rights', id: 50 },
+  { name: 'Master Recording Rights', id: 51 },
+  { name: 'Remake Rights', id: 52 },
+  { name: 'Sequel Rights', id: 53 },
+  { name: 'Prequel Rights', id: 54 },
+  { name: 'Spin-off Rights', id: 55 },
+  { name: 'Format Rights', id: 56 },
+  { name: 'Adaptation Rights', id: 57 },
+  { name: 'Translation Rights', id: 58 },
+  { name: 'Dubbing Rights', id: 59 },
+  { name: 'Subtitling Rights', id: 60 },
+  { name: 'Closed Captioning Rights', id: 61 },
+  { name: 'Audio Description Rights', id: 62 },
+  { name: 'Social Media Rights', id: 63 },
+  { name: 'YouTube Rights', id: 64 },
+  { name: 'Facebook Rights', id: 65 },
+  { name: 'Instagram Rights', id: 66 },
+  { name: 'TikTok Rights', id: 67 },
+  { name: 'Twitter Rights', id: 68 },
+  { name: 'Podcast Rights', id: 69 },
+  { name: 'Radio Rights', id: 70 },
+  { name: 'Internet Radio Rights', id: 71 },
+  { name: 'Gaming Rights', id: 72 },
+  { name: 'Virtual Reality Rights', id: 73 },
+  { name: 'Augmented Reality Rights', id: 74 },
+  { name: 'NFT Rights', id: 75 },
+  { name: 'Blockchain Rights', id: 76 },
+  { name: 'Metaverse Rights', id: 77 }
 ];
+
 
 const usageRightsOptions = [
   { name: "Exclusive", id: 1 },
@@ -2652,6 +2680,176 @@ const languageList = [
   "Tagalog", "Tajik", "Tamil", "Tatar", "Telugu", "Thai", "Turkish", "Turkmen", "Ukrainian",
   "Urdu", "Uyghur", "Uzbek", "Vietnamese", "Welsh", "Xhosa", "Yiddish", "Yoruba", "Zulu"
 ];
+
+const regionCountryMapping = {
+  Worldwide: [],
+  "North America": [
+    "United States",
+    "Canada",
+    "Mexico",
+    "Guatemala",
+    "Belize",
+    "El Salvador",
+    "Honduras",
+    "Nicaragua",
+    "Costa Rica",
+    "Panama",
+  ],
+  "South America": [
+    "Brazil",
+    "Argentina",
+    "Chile",
+    "Peru",
+    "Colombia",
+    "Venezuela",
+    "Ecuador",
+    "Bolivia",
+    "Paraguay",
+    "Uruguay",
+    "Guyana",
+    "Suriname",
+    "French Guiana",
+  ],
+  Europe: [
+    "United Kingdom",
+    "Germany",
+    "France",
+    "Italy",
+    "Spain",
+    "Netherlands",
+    "Belgium",
+    "Switzerland",
+    "Austria",
+    "Sweden",
+    "Norway",
+    "Denmark",
+    "Finland",
+    "Poland",
+    "Czech Republic",
+    "Hungary",
+    "Romania",
+    "Bulgaria",
+    "Greece",
+    "Portugal",
+    "Ireland",
+    "Croatia",
+    "Slovenia",
+    "Slovakia",
+    "Estonia",
+    "Latvia",
+    "Lithuania",
+    "Luxembourg",
+    "Malta",
+    "Cyprus",
+  ],
+  "Asia Pacific": [
+    "China",
+    "Japan",
+    "South Korea",
+    "India",
+    "Australia",
+    "New Zealand",
+    "Singapore",
+    "Malaysia",
+    "Thailand",
+    "Indonesia",
+    "Philippines",
+    "Vietnam",
+    "Taiwan",
+    "Hong Kong",
+    "Macau",
+    "Cambodia",
+    "Laos",
+    "Myanmar",
+    "Brunei",
+    "Papua New Guinea",
+    "Fiji",
+    "Solomon Islands",
+  ],
+  "Middle East": [
+    "Saudi Arabia",
+    "United Arab Emirates",
+    "Qatar",
+    "Kuwait",
+    "Bahrain",
+    "Oman",
+    "Israel",
+    "Turkey",
+    "Iran",
+    "Iraq",
+    "Jordan",
+    "Lebanon",
+    "Syria",
+    "Yemen",
+    "Egypt",
+  ],
+  Africa: [
+    "South Africa",
+    "Nigeria",
+    "Kenya",
+    "Ghana",
+    "Morocco",
+    "Egypt",
+    "Algeria",
+    "Tunisia",
+    "Ethiopia",
+    "Tanzania",
+    "Uganda",
+    "Zimbabwe",
+    "Botswana",
+    "Namibia",
+    "Zambia",
+    "Malawi",
+    "Mozambique",
+    "Madagascar",
+    "Mauritius",
+    "Seychelles",
+  ],
+  "Latin America": [
+    "Mexico",
+    "Brazil",
+    "Argentina",
+    "Chile",
+    "Peru",
+    "Colombia",
+    "Venezuela",
+    "Ecuador",
+    "Bolivia",
+    "Paraguay",
+    "Uruguay",
+    "Guatemala",
+    "Honduras",
+    "El Salvador",
+    "Nicaragua",
+    "Costa Rica",
+    "Panama",
+    "Dominican Republic",
+    "Cuba",
+    "Jamaica",
+    "Haiti",
+    "Trinidad and Tobago",
+  ],
+  "Eastern Europe": [
+    "Russia",
+    "Ukraine",
+    "Belarus",
+    "Moldova",
+    "Georgia",
+    "Armenia",
+    "Azerbaijan",
+    "Kazakhstan",
+    "Uzbekistan",
+    "Turkmenistan",
+    "Kyrgyzstan",
+    "Tajikistan",
+  ],
+  Scandinavia: ["Sweden", "Norway", "Denmark", "Finland", "Iceland"],
+  Benelux: ["Netherlands", "Belgium", "Luxembourg"],
+  DACH: ["Germany", "Austria", "Switzerland"],
+  "UK & Ireland": ["United Kingdom", "Ireland"],
+  Iberia: ["Spain", "Portugal"],
+  Balkans: ["Serbia", "Montenegro", "Bosnia and Herzegovina", "North Macedonia", "Albania", "Kosovo"],
+}
 
 
 const territoryGroupedOptions = [
@@ -2741,4 +2939,6 @@ const allYears = [
   1973, 1972, 1971, 1970, 1969, 1968, 1967, 1966, 1965, 1964,
   1963, 1962, 1961, 1960
 ];
+
+
 

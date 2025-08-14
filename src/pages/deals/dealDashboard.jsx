@@ -827,7 +827,7 @@ export default function DealDashboard() {
                             </Menu>
                         </>
                     ) : (
-                        <>{user.role === 'Admin' && (deal.status === "submitted_by_buyer" || deal.status === "pending") && (
+                        <>{(user.role === 'Admin' || user.role === 'Buyer') && (deal.status === "submitted_by_buyer" || deal.status === "pending") && (
                             <Tooltip title="Filter Matching Content" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
                                 <IconButton
                                     size="small"
