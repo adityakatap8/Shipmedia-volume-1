@@ -1991,17 +1991,41 @@ export default function MovieGrid() {
                 </Popover>
               </>}
 
-            {/* Advanced Filters Button */}
+            {/* Filter Action Buttons */}
             {dealDetails ? (
-              // Add a toggle button to reopen the drawer
-              <Button
-                variant="contained"
-                onClick={() => setAdvancedFiltersOpen(true)} // Reopen the drawer
-                sx={styles.advancedFilterButton}
-              >
-                Open Filters
-              </Button>
-            ) : (dealDetails || activeFiltersCount > 0) ? (
+              // If dealDetails is present, show both "Open Filters" and "Clear Filters"
+              <>
+                <Button
+                  variant="contained"
+                  onClick={() => setAdvancedFiltersOpen(true)}
+                  sx={styles.advancedFilterButton}
+                >
+                  Open Filters
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={clearSelectedFilters}
+                  sx={{
+                    backgroundColor: activeFiltersCount > 0 ? "rgba(123, 181, 231, 0.2)" : "rgba(255, 255, 255, 0.08)",
+                    color: activeFiltersCount > 0 ? "#7ab5e7" : "#fff",
+                    fontSize: "13px",
+                    padding: "4px 12px",
+                    borderRadius: "16px",
+                    textTransform: "none",
+                    border: activeFiltersCount > 0 ? "1px solid #7ab5e7" : "1px solid rgba(255, 255, 255, 0.1)",
+                   
+                    gap: "4px",
+                    height: "32px",
+                    "&:hover": {
+                      backgroundColor: "rgba(123, 181, 231, 0.2)",
+                    },
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </>
+            ) : activeFiltersCount > 0 ? (
+              // If any filter is applied, show only "Clear Filters"
               <Button
                 variant="outlined"
                 sx={styles.advancedFilterButton}
@@ -2009,15 +2033,18 @@ export default function MovieGrid() {
               >
                 Clear Filters
               </Button>
-            ) : (<Button
-              sx={styles.advancedFilterButton}
-              onClick={() => {
-                navigate("/create-requirement");
-              }}
-              startIcon={<TuneIcon fontSize="small" />}
-            >
-              Create Requirement
-            </Button>)}
+            ) : (
+              // If no filter is applied, show only "Create Requirement"
+              <Button
+                sx={styles.advancedFilterButton}
+                onClick={() => {
+                  navigate("/create-requirement");
+                }}
+                startIcon={<TuneIcon fontSize="small" />}
+              >
+                Create Requirement
+              </Button>
+            )}
 
             {/* Selected Filters */}
             {allSelectedFilters.length > 0 && (
