@@ -143,7 +143,7 @@ export default function UserOrgManagementMUI() {
     })
 
     const fetchOrganizations = async () => {
-        const response = await axios.get("http://localhost:3000/api/organization/get-org");
+        const response = await axios.get("https://www.mediashippers.com/api/organization/get-org");
         console.log("Fetched organizations:", response.data);
         if (response.status === 200) {
             setOrgList(response.data?.organizations || []);
@@ -281,7 +281,7 @@ export default function UserOrgManagementMUI() {
             }
 
             const response = await axios.post(
-                "http://localhost:3000/api/organization/register",
+                "https://www.mediashippers.com/api/organization/register",
                 formData,
             );
             // Redirect to /users-list on success
