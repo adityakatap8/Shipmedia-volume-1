@@ -1058,10 +1058,10 @@ export default function MovieGrid() {
   };
 
   const allCountries = Object.values(regionCountryMapping).flat();
-const availableExcludingCountries =
-  selectedTerritories.includes("Worldwide")
-    ? allCountries
-    : selectedTerritories.flatMap(region => regionCountryMapping[region] || []);
+  const availableExcludingCountries =
+    selectedTerritories.includes("Worldwide")
+      ? allCountries
+      : selectedTerritories.flatMap(region => regionCountryMapping[region] || []);
 
   // New filtering function
   const filterMovies = () => {
@@ -2001,39 +2001,23 @@ const availableExcludingCountries =
               >
                 Open Filters
               </Button>
-            ) :
-              <Button
-                sx={styles.advancedFilterButton}
-                onClick={() => {
-                  navigate("/create-requirement");
-                }}
-                startIcon={<TuneIcon fontSize="small" />}
-              >
-                Create Requirement
-                {activeFiltersCount > 0 && (
-                  <Badge
-                    badgeContent={activeFiltersCount}
-                    color="primary"
-                    sx={{
-                      marginLeft: "4px",
-                      "& .MuiBadge-badge": {
-                        backgroundColor: "#7ab5e7",
-                        color: "#000",
-                        fontWeight: "bold",
-                      },
-                    }}
-                  />
-                )}
-              </Button>}
-            {filtersApplied && (
+            ) : (dealDetails || activeFiltersCount > 0) ? (
               <Button
                 variant="outlined"
-                sx={styles.filterButtonActive}
+                sx={styles.advancedFilterButton}
                 onClick={clearSelectedFilters}
               >
                 Clear Filters
               </Button>
-            )}
+            ) : (<Button
+              sx={styles.advancedFilterButton}
+              onClick={() => {
+                navigate("/create-requirement");
+              }}
+              startIcon={<TuneIcon fontSize="small" />}
+            >
+              Create Requirement
+            </Button>)}
 
             {/* Selected Filters */}
             {allSelectedFilters.length > 0 && (
