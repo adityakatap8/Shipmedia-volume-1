@@ -75,7 +75,15 @@ const SpecificationsInfo = ({
         { name: 'Noir', id: 29 },
         { name: 'Psychological', id: 30 },
         { name: 'Fiction', id: 31 },
+        { name: 'Travel', id: 32 },
+        { name: 'Revenge', id: 33 },
+        { name: 'Lifestyle', id: 34 },
+        { name: 'Educational', id: 35 },
+        { name: 'Inspirational', id: 36 },
+        { name: 'Youth', id: 37 },
+        { name: 'Kids Content', id: 38 },
     ];
+    
 
     const languageList = [
         "Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Azerbaijani", "Basque", "Belarusian",

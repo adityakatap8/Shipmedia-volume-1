@@ -10,6 +10,20 @@
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
+           margin: 0 auto;
+    max-width: 1000px;
+ 
+}
+
+.form-section{
+  background-color: rgba(59, 130, 246, .1);
+    border: 2px solid #3b82f6;
+    border-radius: 20px;
+    color: #fff;
+    display: flex
+;
+    margin: 20px 0 15px 10px;
+    padding: 20px;
 }
 
 .header-numbered span{

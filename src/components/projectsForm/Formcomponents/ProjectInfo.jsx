@@ -577,10 +577,11 @@ const handleTrailerUrlChange = (url) => {
 
   return (
     <div className="section-One text-left">
-      <h1 className="header-numbered">
+      <div> <h1 className="header-numbered">
         <span>1</span> Title Information
       </h1>
-
+</div>
+     
 
 
       {/* Project Title */}

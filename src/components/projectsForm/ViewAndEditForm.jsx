@@ -39,9 +39,16 @@ function ViewAndEditForm() {
 
   const [editableCreditsInfo, setEditableCreditsInfo] = useState({});
   const [editableSpecificationsInfo, setEditableSpecificationsInfo] = useState({});
-  const [editableRightsInfo, setEditableRightsInfo] = useState({});
-  const [editingRightsGroup, setEditingRightsGroup] = useState(null);
+  // const [editableRightsInfo, setEditableRightsInfo] = useState({});
+  const [editableRightsInfo, setEditableRightsInfo] = useState({
+  _id: '',           // This should hold your rightsInfo document ID (rightsInfoId)
+  rightsGroups: [],  // Array of rights groups
+});
+
   const [editableSrtInfo, setEditableSrtInfo] = useState({});
+
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingRightsGroup, setEditingRightsGroup] = useState(null);
 
   const [srtInfo, setSrtInfo] = useState(null);
 
@@ -68,9 +75,6 @@ function ViewAndEditForm() {
   const [videoLoadFailed, setVideoLoadFailed] = useState(false);
 
 
-
-
-  const [editingIndex, setEditingIndex] = useState(null);
 
 
 
@@ -159,12 +163,12 @@ function ViewAndEditForm() {
   console.log("project name:", projectData?.projectInfo?.projectName);
 
 
+
   const handleDeleteProject = async () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this project?");
     if (!confirmDelete) return;
 
     try {
-      // Step 1: Delete from backend DB
       const response = await axios.delete(
         `https://www.mediashippers.com/api/project-form/delete/${projectId}`,
         {
@@ -173,52 +177,23 @@ function ViewAndEditForm() {
             'Content-Type': 'application/json',
           },
           data: {
-            orgName: orgName,
-            projectName: projectData?.projectInfo?.projectName,
+            orgName: orgName,  // from logged-in user
+            projectName: projectData?.projectInfo?.projectName, // from fetched project
           },
         }
       );
 
       if (response.status === 200) {
-        console.log("✅ Backend project deletion successful");
-
-        // ✅ Show success message only after backend deletion
-        alert("✅ Project deleted successfully.");
-
-        // Step 2: Delete S3 folder silently
-        try {
-          const folderPath = `${orgName}/${projectData?.projectInfo?.projectName}/`;
-
-          await axios.delete(`https://www.mediashippers.com/api/delete-folder`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            data: { folderPath },
-          });
-
-          console.log("✅ S3 folder deletion attempted.");
-        } catch (s3Err) {
-          console.warn("⚠️ S3 folder deletion failed:", s3Err.message);
-          // No alert shown
-        }
-
-        // Redirect
+        alert("✅ Project deleted successfully!");
         window.location.href = "/projects";
-
       } else {
         alert(`❌ Failed to delete project. Status code: ${response.status}`);
       }
-
     } catch (err) {
-      console.error("❌ Error deleting project from backend:", err);
+      console.error("Error deleting project:", err);
       alert("❌ An error occurred while deleting the project.");
     }
   };
-
-
-
-
 
 
   const handleEditProjectInfo = () => {
@@ -282,217 +257,226 @@ function ViewAndEditForm() {
 
   const [updatedProjectInfo, setUpdatedProjectInfo] = useState({});
 
-  // const handleSaveProjectInfo = async () => {
-  //   setSavingProject(true); // ✅ Show loader
-  //   try {
-  //     const formData = new FormData();
 
-  //     // Step 1: Upload Poster, Banner, Trailer
-  //     if (posterFile) formData.append('projectPoster', posterFile);
-  //     if (bannerFile) formData.append('projectBanner', bannerFile);
-  //     if (trailerFile) formData.append('projectTrailer', trailerFile);
+// const handleSaveProjectInfo = async () => {
+//   setSavingProject(true); // ✅ Show loader
+//   try {
+//     const formData = new FormData();
 
-  //     formData.append('projectName', editableProjectInfo.projectName);
-  //     formData.append('orgName', orgName);
-  //     formData.append('userId', userId);
+//     // Step 1: Upload Poster, Banner, Trailer
+//     if (posterFile) formData.append('projectPoster', posterFile);
+//     if (bannerFile) formData.append('projectBanner', bannerFile);
+//     if (trailerFile) formData.append('projectTrailer', trailerFile);
 
-  //     const uploadResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
-  //       method: 'POST',
-  //       body: formData,
-  //       headers: { Authorization: `Bearer ${token}` },
-  //       credentials: 'include',
-  //     });
+//     formData.append('projectName', editableProjectInfo.projectName);
+//     formData.append('orgName', orgName);
+//     formData.append('userId', userId);
 
-  //     if (!uploadResponse.ok) throw new Error('File upload failed');
-  //     const uploadedUrls = await uploadResponse.json();
+//     const uploadResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+//       method: 'POST',
+//       body: formData,
+//       headers: { Authorization: `Bearer ${token}` },
+//       credentials: 'include',
+//     });
 
-  //     // Step 2: Upload Dubbed + SRT + Info Docs
-  //     const dtForm = new FormData();
-  //     let hasFiles = false;
-  //     const updatedDubbedFiles = [...editableProjectInfo.dubbedFileData];
+//     if (!uploadResponse.ok) throw new Error('File upload failed');
+//     const uploadedUrls = await uploadResponse.json();
 
-  //     editableProjectInfo.dubbedFileData.forEach((file, index) => {
-  //       const lang = file.language || `lang-${index}`;
-  //       if (file.trailerType === 'upload' && file.trailerFile instanceof File) {
-  //         dtForm.append(`dubbedTrailer_${index}`, file.trailerFile);
-  //         dtForm.append(`dubbedTrailerLang_${index}`, lang);
-  //         hasFiles = true;
-  //       }
+//     // Step 2: Upload Dubbed + SRT + Info Docs
+//     const dtForm = new FormData();
+//     let hasFiles = false;
+//     const updatedDubbedFiles = [...editableProjectInfo.dubbedFileData];
 
-  //       if (file.dubbedSubtitleFileObject instanceof File) {
-  //         dtForm.append(`dubbedSubtitle_${index}`, file.dubbedSubtitleFileObject);
-  //         dtForm.append(`dubbedSubtitleLang_${index}`, lang);
-  //         hasFiles = true;
-  //       }
-  //     });
+//     editableProjectInfo.dubbedFileData.forEach((file, index) => {
+//       const lang = file.language || `lang-${index}`;
+//       if (file.trailerType === 'upload' && file.trailerFile instanceof File) {
+//         dtForm.append(`dubbedTrailer_${index}`, file.trailerFile);
+//         dtForm.append(`dubbedTrailerLang_${index}`, lang);
+//         hasFiles = true;
+//       }
 
-  //     editableSrtInfo.srtFiles?.forEach((file, index) => {
-  //       if (file.fileObject instanceof File) {
-  //         dtForm.append(`srtFile_${index}`, file.fileObject);
-  //         hasFiles = true;
-  //       }
-  //     });
+//       if (file.dubbedSubtitleFileObject instanceof File) {
+//         dtForm.append(`dubbedSubtitle_${index}`, file.dubbedSubtitleFileObject);
+//         dtForm.append(`dubbedSubtitleLang_${index}`, lang);
+//         hasFiles = true;
+//       }
+//     });
 
-  //     editableSrtInfo.infoDocuments?.forEach((file, index) => {
-  //       if (file.fileObject instanceof File) {
-  //         dtForm.append(`infoDocFile_${index}`, file.fileObject);
-  //         hasFiles = true;
-  //       }
-  //     });
+//     editableSrtInfo.srtFiles?.forEach((file, index) => {
+//       if (file.fileObject instanceof File) {
+//         dtForm.append(`srtFile_${index}`, file.fileObject);
+//         hasFiles = true;
+//       }
+//     });
 
-  //     let srtInfoUpdate = {};
-  //     if (hasFiles) {
-  //       dtForm.append('projectName', editableProjectInfo.projectName);
-  //       dtForm.append('orgName', orgName);
-  //       dtForm.append('userId', userId);
+//     editableSrtInfo.infoDocuments?.forEach((file, index) => {
+//       if (file.fileObject instanceof File) {
+//         dtForm.append(`infoDocFile_${index}`, file.fileObject);
+//         hasFiles = true;
+//       }
+//     });
 
-  //       const dtResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
-  //         method: 'POST',
-  //         body: dtForm,
-  //         headers: { Authorization: `Bearer ${token}` },
-  //         credentials: 'include',
-  //       });
+//     let srtInfoUpdate = {};
+//     if (hasFiles) {
+//       dtForm.append('projectName', editableProjectInfo.projectName);
+//       dtForm.append('orgName', orgName);
+//       dtForm.append('userId', userId);
 
-  //       if (!dtResponse.ok) throw new Error('Dubbed/SRT/InfoDoc upload failed');
-  //       const dtData = await dtResponse.json();
+//       const dtResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+//         method: 'POST',
+//         body: dtForm,
+//         headers: { Authorization: `Bearer ${token}` },
+//         credentials: 'include',
+//       });
 
-  //       dtData.dubbedFiles?.forEach((df) => {
-  //         const index = updatedDubbedFiles.findIndex((d) => d.language === df.language);
-  //         if (index !== -1) {
-  //           if (df.dubbedTrailer) {
-  //             updatedDubbedFiles[index].dubbedTrailerUrl = df.dubbedTrailer.fileUrl || '';
-  //             updatedDubbedFiles[index].dubbedTrailerFileName = df.dubbedTrailer.fileName || '';
-  //           }
-  //           if (df.dubbedSubtitle) {
-  //             updatedDubbedFiles[index].dubbedSubtitleUrl = df.dubbedSubtitle.fileUrl || '';
-  //             updatedDubbedFiles[index].dubbedSubtitleFileName = df.dubbedSubtitle.fileName || '';
-  //           }
-  //         }
-  //       });
+//       if (!dtResponse.ok) throw new Error('Dubbed/SRT/InfoDoc upload failed');
+//       const dtData = await dtResponse.json();
 
-  //       if (dtData.srtInfo) {
-  //         const srtFiles = dtData.srtInfo.srtFiles || [];
-  //         const infoDocuments = dtData.srtInfo.infoDocuments || [];
+//       dtData.dubbedFiles?.forEach((df) => {
+//         const index = updatedDubbedFiles.findIndex((d) => d.language === df.language);
+//         if (index !== -1) {
+//           if (df.dubbedTrailer) {
+//             updatedDubbedFiles[index].dubbedTrailerUrl = df.dubbedTrailer.fileUrl || '';
+//             updatedDubbedFiles[index].dubbedTrailerFileName = df.dubbedTrailer.fileName || '';
+//           }
+//           if (df.dubbedSubtitle) {
+//             updatedDubbedFiles[index].dubbedSubtitleUrl = df.dubbedSubtitle.fileUrl || '';
+//             updatedDubbedFiles[index].dubbedSubtitleFileName = df.dubbedSubtitle.fileName || '';
+//           }
+//         }
+//       });
 
-  //         setEditableSrtInfo({ srtFiles, infoDocuments });
+//       if (dtData.srtInfo) {
+//         const srtFiles = dtData.srtInfo.srtFiles || [];
+//         const infoDocuments = dtData.srtInfo.infoDocuments || [];
 
-  //         if (srtFiles.length > 0) srtInfoUpdate.srtFiles = srtFiles;
-  //         if (infoDocuments.length > 0) srtInfoUpdate.infoDocuments = infoDocuments;
-  //       }
-  //     }
+//         setEditableSrtInfo({ srtFiles, infoDocuments });
 
-  //     // Step 3: Prepare updated project data
-  //     const updatedProjectData = {
-  //       ...(uploadedUrls.projectPosterUrl && {
-  //         projectPosterS3Url: uploadedUrls.projectPosterUrl,
-  //         posterFileName: posterFile?.name,
-  //       }),
-  //       ...(uploadedUrls.projectBannerUrl && {
-  //         projectBannerS3Url: uploadedUrls.projectBannerUrl,
-  //         bannerFileName: bannerFile?.name,
-  //       }),
-  //       ...(uploadedUrls.projectTrailerUrl && {
-  //         projectTrailerS3Url: uploadedUrls.projectTrailerUrl,
-  //         trailerFileName: trailerFile?.name,
-  //       }),
-  //       projectTitle: editableProjectInfo.projectTitle || '',
-  //       projectName: editableProjectInfo.projectName || '',
-  //       briefSynopsis: editableProjectInfo.briefSynopsis || '',
-  //       isPublic: editableProjectInfo.isPublic ?? false,
-  //       movieFileName: editableProjectInfo.movieFileName || '',
-  //       dubbedFileData: updatedDubbedFiles,
-  //     };
+//         if (srtFiles.length > 0) srtInfoUpdate.srtFiles = srtFiles;
+//         if (infoDocuments.length > 0) srtInfoUpdate.infoDocuments = infoDocuments;
+//       }
+//     }
 
-  //     // Final patch payload
-  //     const patchPayload = {
-  //       projectInfo: updatedProjectData,
-  //       ...(Object.keys(srtInfoUpdate).length > 0 && { srtInfo: srtInfoUpdate }),
-  //       ...(editableCreditsInfo && Object.keys(editableCreditsInfo).length > 0 && {
-  //         creditsInfo: editableCreditsInfo,
-  //       }),
-  //       ...(editableSpecificationsInfo && Object.keys(editableSpecificationsInfo).length > 0 && {
-  //         specificationsInfo: editableSpecificationsInfo,
-  //       }),
-  //       ...(editableRightsInfo && Object.keys(editableRightsInfo).length > 0 && {
-  //         rightsInfo: editableRightsInfo,
-  //       }),
-  //     };
+//     // ✅ Step 3: Construct runtime string and update specifications
+//     if (editableSpecificationsInfo) {
+//       const hh = String(editableSpecificationsInfo.runtimeHours || 0).padStart(2, '0');
+//       const mm = String(editableSpecificationsInfo.runtimeMinutes || 0).padStart(2, '0');
+//       const ss = String(editableSpecificationsInfo.runtimeSeconds || 0).padStart(2, '0');
+//       editableSpecificationsInfo.runtime = `${hh}:${mm}:${ss}`;
+//     }
 
-  //     const patchUrl = `https://www.mediashippers.com/api/project-form/update/${projectId}`;
-  //     const patchResponse = await fetch(patchUrl, {
-  //       method: 'PATCH',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify(patchPayload),
-  //     });
+//     // ✅ Step 4: Prepare updated project data
+//     const updatedProjectData = {
+//       ...(uploadedUrls.projectPosterUrl && {
+//         projectPosterS3Url: uploadedUrls.projectPosterUrl,
+//         posterFileName: posterFile?.name,
+//       }),
+//       ...(uploadedUrls.projectBannerUrl && {
+//         projectBannerS3Url: uploadedUrls.projectBannerUrl,
+//         bannerFileName: bannerFile?.name,
+//       }),
+//       ...(uploadedUrls.projectTrailerUrl && {
+//         projectTrailerS3Url: uploadedUrls.projectTrailerUrl,
+//         trailerFileName: trailerFile?.name,
+//       }),
+//       projectTitle: editableProjectInfo.projectTitle || '',
+//       projectName: editableProjectInfo.projectName || '',
+//       briefSynopsis: editableProjectInfo.briefSynopsis || '',
+//       isPublic: editableProjectInfo.isPublic ?? false,
+//       movieFileName: editableProjectInfo.movieFileName || '',
+//       dubbedFileData: updatedDubbedFiles,
+//     };
 
-  //     if (!patchResponse.ok) throw new Error('Failed to update MongoDB');
+//     // ✅ Step 5: Apply any unsaved rights group edit
+//     if (isEditingRights && editingIndex !== null && editingRightsGroup) {
+//       const updatedRightsGroups = [...editableRightsInfo];
+//       updatedRightsGroups[editingIndex] = {
+//         ...editingRightsGroup,
+//         rights: editingRightsGroup.rights ? [editingRightsGroup.rights] : [],
+//       };
+//       setEditableRightsInfo(updatedRightsGroups);
+//     }
 
-  //     // ✅ Update local state
-  //     setEditableProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
-  //     setUpdatedProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+//     // ✅ Step 6: Final PATCH payload
+//     const patchPayload = {
+//       projectInfo: updatedProjectData,
+//       ...(Object.keys(srtInfoUpdate).length > 0 && { srtInfo: srtInfoUpdate }),
+//       ...(editableCreditsInfo && Object.keys(editableCreditsInfo).length > 0 && {
+//         creditsInfo: editableCreditsInfo,
+//       }),
+//       ...(editableSpecificationsInfo && Object.keys(editableSpecificationsInfo).length > 0 && {
+//         specificationsInfo: editableSpecificationsInfo,
+//       }),
+//       ...(editableRightsInfo && Object.keys(editableRightsInfo).length > 0 && {
+//         rightsInfo: editableRightsInfo,
+//       }),
+//     };
 
-  //     alert('✅ Project info updated successfully!');
+//     console.log('🛠 PATCH Payload:', patchPayload); // ✅ Confirm final data sent to backend
 
-  //     // ✅ Refresh page after short delay
-  //     setTimeout(() => {
-  //       window.location.reload();
-  //     }, 500);
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert('❌ Error saving project data');
-  //   } finally {
-  //     setSavingProject(false); // ✅ Hide loader
-  //   }
-  // };
+//     const patchUrl = `https://www.mediashippers.com/api/project-form/update/${projectId}`;
+//     const patchResponse = await fetch(patchUrl, {
+//       method: 'PATCH',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${token}`,
+//       },
+//       body: JSON.stringify(patchPayload),
+//     });
+
+//     if (!patchResponse.ok) throw new Error('Failed to update MongoDB');
+
+//     // ✅ Update local state
+//     setEditableProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+//     setUpdatedProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+
+//     alert('✅ Project info updated successfully!');
+
+//     // Optional: Clear editing state after save
+//     setIsEditingRights(false);
+//     setEditingIndex(null);
+//     setEditingRightsGroup(null);
+
+//     setTimeout(() => {
+//       // window.location.reload();
+//     }, 500);
+//   } catch (err) {
+//     console.error(err);
+//     alert('❌ Error saving project data');
+//   } finally {
+//     setSavingProject(false); // ✅ Hide loader
+//   }
+// };
 
 const handleSaveProjectInfo = async () => {
   setSavingProject(true);
-
-  const removeIdDeep = (value) => {
-    if (Array.isArray(value)) {
-      return value.map(removeIdDeep);
-    } else if (value && typeof value === "object") {
-      return Object.entries(value).reduce((acc, [key, val]) => {
-        if (key !== "_id") {
-          acc[key] = removeIdDeep(val);
-        }
-        return acc;
-      }, {});
-    }
-    return value;
-  };
-
   try {
-    // Upload media files
+    // -- Step 1: Upload Poster, Banner, Trailer --
     const formData = new FormData();
-    if (posterFile) formData.append("projectPoster", posterFile);
-    if (bannerFile) formData.append("projectBanner", bannerFile);
-    if (trailerFile) formData.append("projectTrailer", trailerFile);
-    formData.append("projectName", editableProjectInfo.projectName);
-    formData.append("orgName", orgName);
-    formData.append("userId", userId);
+    if (posterFile) formData.append('projectPoster', posterFile);
+    if (bannerFile) formData.append('projectBanner', bannerFile);
+    if (trailerFile) formData.append('projectTrailer', trailerFile);
+    formData.append('projectName', editableProjectInfo.projectName);
+    formData.append('orgName', orgName);
+    formData.append('userId', userId);
 
-    const uploadResponse = await fetch("https://www.mediashippers.com/api/files/upload-file", {
-      method: "POST",
+    const uploadResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+      method: 'POST',
       body: formData,
       headers: { Authorization: `Bearer ${token}` },
-      credentials: "include",
+      credentials: 'include',
     });
-
-    if (!uploadResponse.ok) throw new Error("File upload failed");
+    if (!uploadResponse.ok) throw new Error('File upload failed');
     const uploadedUrls = await uploadResponse.json();
 
-    // Handle dubbed/SRT/info uploads
+    // -- Step 2: Upload Dubbed + SRT + Info Docs --
     const dtForm = new FormData();
     let hasFiles = false;
     const updatedDubbedFiles = [...editableProjectInfo.dubbedFileData];
 
     editableProjectInfo.dubbedFileData.forEach((file, index) => {
       const lang = file.language || `lang-${index}`;
-      if (file.trailerType === "upload" && file.trailerFile instanceof File) {
+      if (file.trailerType === 'upload' && file.trailerFile instanceof File) {
         dtForm.append(`dubbedTrailer_${index}`, file.trailerFile);
         dtForm.append(`dubbedTrailerLang_${index}`, lang);
         hasFiles = true;
@@ -518,31 +502,31 @@ const handleSaveProjectInfo = async () => {
       }
     });
 
-    const srtInfoUpdate = {};
+    let srtInfoUpdate = {};
     if (hasFiles) {
-      dtForm.append("projectName", editableProjectInfo.projectName);
-      dtForm.append("orgName", orgName);
-      dtForm.append("userId", userId);
+      dtForm.append('projectName', editableProjectInfo.projectName);
+      dtForm.append('orgName', orgName);
+      dtForm.append('userId', userId);
 
-      const dtResponse = await fetch("https://www.mediashippers.com/api/files/upload-file", {
-        method: "POST",
+      const dtResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+        method: 'POST',
         body: dtForm,
         headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
+        credentials: 'include',
       });
-      if (!dtResponse.ok) throw new Error("Dubbed/SRT/InfoDoc upload failed");
+      if (!dtResponse.ok) throw new Error('Dubbed/SRT/InfoDoc upload failed');
       const dtData = await dtResponse.json();
 
       dtData.dubbedFiles?.forEach((df) => {
         const index = updatedDubbedFiles.findIndex((d) => d.language === df.language);
         if (index !== -1) {
           if (df.dubbedTrailer) {
-            updatedDubbedFiles[index].dubbedTrailerUrl = df.dubbedTrailer.fileUrl || "";
-            updatedDubbedFiles[index].dubbedTrailerFileName = df.dubbedTrailer.fileName || "";
+            updatedDubbedFiles[index].dubbedTrailerUrl = df.dubbedTrailer.fileUrl || '';
+            updatedDubbedFiles[index].dubbedTrailerFileName = df.dubbedTrailer.fileName || '';
           }
           if (df.dubbedSubtitle) {
-            updatedDubbedFiles[index].dubbedSubtitleUrl = df.dubbedSubtitle.fileUrl || "";
-            updatedDubbedFiles[index].dubbedSubtitleFileName = df.dubbedSubtitle.fileName || "";
+            updatedDubbedFiles[index].dubbedSubtitleUrl = df.dubbedSubtitle.fileUrl || '';
+            updatedDubbedFiles[index].dubbedSubtitleFileName = df.dubbedSubtitle.fileName || '';
           }
         }
       });
@@ -550,79 +534,23 @@ const handleSaveProjectInfo = async () => {
       if (dtData.srtInfo) {
         const srtFiles = dtData.srtInfo.srtFiles || [];
         const infoDocuments = dtData.srtInfo.infoDocuments || [];
+
         setEditableSrtInfo({ srtFiles, infoDocuments });
+
         if (srtFiles.length > 0) srtInfoUpdate.srtFiles = srtFiles;
         if (infoDocuments.length > 0) srtInfoUpdate.infoDocuments = infoDocuments;
       }
     }
 
-    // Normalize runtime
+    // -- Step 3: Update specifications runtime string --
     if (editableSpecificationsInfo) {
-      const hh = String(editableSpecificationsInfo.runtimeHours || 0).padStart(2, "0");
-      const mm = String(editableSpecificationsInfo.runtimeMinutes || 0).padStart(2, "0");
-      const ss = String(editableSpecificationsInfo.runtimeSeconds || 0).padStart(2, "0");
+      const hh = String(editableSpecificationsInfo.runtimeHours || 0).padStart(2, '0');
+      const mm = String(editableSpecificationsInfo.runtimeMinutes || 0).padStart(2, '0');
+      const ss = String(editableSpecificationsInfo.runtimeSeconds || 0).padStart(2, '0');
       editableSpecificationsInfo.runtime = `${hh}:${mm}:${ss}`;
     }
 
-    // ✅ Merge any ongoing Rights Info edits
-    if (isEditingRights && editingIndex !== null && editingRightsGroup) {
-      const updatedRightsGroups = [...editableRightsInfo.rightsGroups];
-      const normalizedEditingGroup = {
-        ...editingRightsGroup,
-        rights: editingRightsGroup.rights
-          ? Array.isArray(editingRightsGroup.rights)
-            ? editingRightsGroup.rights
-            : [editingRightsGroup.rights]
-          : [],
-      };
-      updatedRightsGroups[editingIndex] = normalizedEditingGroup;
-
-      editableRightsInfo.rightsGroups = updatedRightsGroups;
-
-      // Optional reset
-      setIsEditingRights(false);
-      setEditingIndex(null);
-      setEditingRightsGroup(null);
-    }
-
-    // Normalize rights groups
-    let normalizedRightsInfo = { rightsGroups: [] };
-    if (editableRightsInfo && Array.isArray(editableRightsInfo.rightsGroups)) {
-      const normalizeArray = (arr) =>
-        Array.isArray(arr)
-          ? arr.map((item) =>
-              typeof item === "string"
-                ? { name: item, id: 0 }
-                : {
-                    ...item,
-                    id: typeof item.id === "string" ? parseInt(item.id, 10) || 0 : item.id,
-                  }
-            )
-          : [];
-
-      const normalizeRightsGroup = (group) => ({
-        rights: normalizeArray(group.rights),
-        usageRights: normalizeArray(group.usageRights),
-        paymentTerms: normalizeArray(group.paymentTerms),
-        licenseTerm: normalizeArray(group.licenseTerm),
-        platformType: normalizeArray(group.platformType),
-        listPrice: typeof group.listPrice === "number" ? group.listPrice : 0,
-        territories: {
-          includedRegions: normalizeArray(group.territories?.includedRegions),
-          excludeCountries: Array.isArray(group.territories?.excludeCountries)
-            ? group.territories.excludeCountries.map((item) =>
-                typeof item === "string"
-                  ? { name: item, id: item.toString(), selected: false, region: "" }
-                  : { ...item, id: item.id?.toString() || "" }
-              )
-            : [],
-        },
-      });
-
-      normalizedRightsInfo.rightsGroups = editableRightsInfo.rightsGroups.map(normalizeRightsGroup);
-    }
-
-    // Build patch payload
+    // -- Step 4: Prepare updated project data --
     const updatedProjectData = {
       ...(uploadedUrls.projectPosterUrl && {
         projectPosterS3Url: uploadedUrls.projectPosterUrl,
@@ -636,14 +564,31 @@ const handleSaveProjectInfo = async () => {
         projectTrailerS3Url: uploadedUrls.projectTrailerUrl,
         trailerFileName: trailerFile?.name,
       }),
-      projectTitle: editableProjectInfo.projectTitle || "",
-      projectName: editableProjectInfo.projectName || "",
-      briefSynopsis: editableProjectInfo.briefSynopsis || "",
+      projectTitle: editableProjectInfo.projectTitle || '',
+      projectName: editableProjectInfo.projectName || '',
+      briefSynopsis: editableProjectInfo.briefSynopsis || '',
       isPublic: editableProjectInfo.isPublic ?? false,
-      movieFileName: editableProjectInfo.movieFileName || "",
+      movieFileName: editableProjectInfo.movieFileName || '',
       dubbedFileData: updatedDubbedFiles,
     };
 
+    // -- Step 5: Update unsaved rights group edits BEFORE sending patch --
+    let updatedRightsInfo = editableRightsInfo;
+
+    if (isEditingRights && editingIndex !== null && editingRightsGroup) {
+      const updatedRightsGroups = [...editableRightsInfo.rightsGroups];
+      updatedRightsGroups[editingIndex] = {
+        ...editingRightsGroup,
+        rights: editingRightsGroup.rights ? [editingRightsGroup.rights] : [],
+      };
+      updatedRightsInfo = {
+        ...editableRightsInfo,
+        rightsGroups: updatedRightsGroups,
+      };
+      setEditableRightsInfo(updatedRightsInfo);
+    }
+
+    // -- Step 6: Final PATCH payload --
     const patchPayload = {
       projectInfo: updatedProjectData,
       ...(Object.keys(srtInfoUpdate).length > 0 && { srtInfo: srtInfoUpdate }),
@@ -653,52 +598,46 @@ const handleSaveProjectInfo = async () => {
       ...(editableSpecificationsInfo && Object.keys(editableSpecificationsInfo).length > 0 && {
         specificationsInfo: editableSpecificationsInfo,
       }),
-      rightsInfo: normalizedRightsInfo,
+      ...(updatedRightsInfo && updatedRightsInfo._id && Object.keys(updatedRightsInfo).length > 0 && {
+        rightsInfo: updatedRightsInfo,
+      }),
     };
 
-    const cleanedPatchPayload = removeIdDeep(patchPayload);
-
-    console.log("🧾 Raw patch payload:", patchPayload);
-    console.log("🧹 Cleaned patch payload:", cleanedPatchPayload);
-    console.log("➡️ Rights Info payload:", JSON.stringify(patchPayload.rightsInfo, null, 2));
+    console.log('🛠 PATCH Payload:', patchPayload);
 
     const patchUrl = `https://www.mediashippers.com/api/project-form/update/${projectId}`;
     const patchResponse = await fetch(patchUrl, {
-      method: "PATCH",
+      method: 'PATCH',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(cleanedPatchPayload),
+      body: JSON.stringify(patchPayload),
     });
 
-    if (!patchResponse.ok) {
-      const errorText = await patchResponse.text();
-      console.error("🆘 Patch failed:", errorText);
-      throw new Error("Failed to update MongoDB");
-    }
+    if (!patchResponse.ok) throw new Error('Failed to update MongoDB');
 
-    const patchResult = await patchResponse.json();
-    console.log("✅ Patch response:", patchResult);
-
+    // -- Step 7: Update local states --
     setEditableProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
     setUpdatedProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
 
-    alert("✅ Project info updated successfully!");
-   setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (err) {
-      console.error(err);
-      alert('❌ Error saving project data');
-    } finally {
-      setSavingProject(false); // ✅ Hide loader
-    }
+    alert('✅ Project info updated successfully!');
+
+    // Clear rights editing state after save
+    setIsEditingRights(false);
+    setEditingIndex(null);
+    setEditingRightsGroup(null);
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  } catch (err) {
+    console.error(err);
+    alert('❌ Error saving project data');
+  } finally {
+    setSavingProject(false);
+  }
 };
-
-
-
-
 
 
 
@@ -979,13 +918,13 @@ const handleSaveProjectInfo = async () => {
 
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="info-row">
-              <strong>Title:</strong>
+          <div className="flex gap-6">
+            <div className="info-row text-black flex-1">
+              <strong className="label">Title:</strong>
               {isEditingProject ? (
                 <input
-                  className="text-black w-full mt-1"
                   type="text"
+                  className="custom-input"
                   value={editableProjectInfo.projectTitle || ''}
                   onChange={(e) =>
                     setEditableProjectInfo({
@@ -995,29 +934,64 @@ const handleSaveProjectInfo = async () => {
                   }
                 />
               ) : (
-                <p>{projectInfo?.projectTitle || 'N/A'}</p>
+                <p className="readonly-text">{projectInfo?.projectTitle || 'N/A'}</p>
               )}
             </div>
 
-            <div className="info-row">
+            <div className="info-row flex-1">
               <strong>Name:</strong>
               {isEditingProject ? (
                 <input
-                  className="text-black w-full mt-1"
+                  className="text-black"
                   type="text"
                   value={editableProjectInfo.projectName || ''}
                   onChange={(e) =>
-                    setEditableProjectInfo({
-                      ...editableProjectInfo,
-                      projectName: e.target.value,
-                    })
+                    setEditableProjectInfo({ ...editableProjectInfo, projectName: e.target.value })
                   }
                 />
               ) : (
                 <p>{projectInfo?.projectName || 'N/A'}</p>
               )}
             </div>
+          </div><div className="flex gap-6">
+            <div className="info-row flex-1">
+              <strong>Movie File:</strong>
+              {isEditingProject ? (
+                <input
+                  className="text-black"
+                  type="text"
+                  value={editableProjectInfo.movieFileName || ''}
+                  onChange={(e) =>
+                    setEditableProjectInfo({ ...editableProjectInfo, movieFileName: e.target.value })
+                  }
+                />
+              ) : (
+                <p>{projectInfo?.movieFileName || 'N/A'}</p>
+              )}
+            </div>
+
+            <div className="info-row flex-1">
+              <strong>Visibility:</strong>
+              {isEditingProject ? (
+                <select
+                  className="text-black"
+                  value={editableProjectInfo.isPublic || "private"}
+                  onChange={(e) =>
+                    setEditableProjectInfo({
+                      ...editableProjectInfo,
+                      isPublic: e.target.value, // store as "public" or "private"
+                    })
+                  }
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              ) : (
+                <p>{projectInfo?.isPublic === "public" ? "Public" : "Private"}</p>
+              )}
+            </div>
           </div>
+
 
           <div className="info-row">
             <strong>Synopsis:</strong>
@@ -1034,28 +1008,7 @@ const handleSaveProjectInfo = async () => {
               <p>{projectInfo?.briefSynopsis || 'N/A'}</p>
             )}
           </div>
-          <div className="info-row">
-            <strong>Visibility:</strong>
-            {isEditingProject ? (
-              <select
-                className="text-black"
-                value={editableProjectInfo.isPublic || "private"}
-                onChange={(e) =>
-                  setEditableProjectInfo({
-                    ...editableProjectInfo,
-                    isPublic: e.target.value // store as "public" or "private"
-                  })
-                }
-              >
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-            ) : (
-              <p>
-                {projectInfo?.isPublic === "public" ? "Public" : "Private"}
-              </p>
-            )}
-          </div>
+
 
 
           {/* Poster */}
@@ -1234,7 +1187,7 @@ const handleSaveProjectInfo = async () => {
             <strong>Banner:</strong>
 
             {isEditingProject ? (
-              <div className="form-field text-black">
+              <div className="form-field text-white">
                 <div className="d-flex mb-2">
                   <label className="me-3">
                     <input
@@ -1277,7 +1230,7 @@ const handleSaveProjectInfo = async () => {
                     <img
                       src={editableProjectInfo.projectBannerS3Url}
                       alt="Banner Preview"
-                      style={{ maxWidth: '100%', maxHeight: '200px' }}
+                      style={{ width: '800px', height: 'auto', objectFit: 'contain' }}
                       onError={() => setBannerLoadFailed(true)}
                     />
                   </div>
@@ -1389,13 +1342,14 @@ const handleSaveProjectInfo = async () => {
               <img
                 src={editableProjectInfo.projectBannerS3Url}
                 alt="Banner"
-                style={{ width: '100%', maxWidth: '500px' }}
+                style={{ width: '800px', height: 'auto', objectFit: 'contain' }}
                 onError={() => setBannerLoadFailed(true)}
               />
             ) : (
               <p className="text-white fst-italic">No banner available. Click Edit to upload.</p>
             )}
           </div>
+
 
 
 
@@ -1443,7 +1397,7 @@ const handleSaveProjectInfo = async () => {
                 {editableProjectInfo.projectTrailerS3Url && (
                   <div className="mb-2">
                     <ShakaPlayer
-                      width={480}
+                      width={880}
                       height={270}
                       autoPlay={false}
                       url={editableProjectInfo.projectTrailerS3Url} // ✅ FIXED
@@ -1546,7 +1500,7 @@ const handleSaveProjectInfo = async () => {
               // ✅ FIXED: Use `url` instead of `src` here!
               <div className="mb-2">
                 <ShakaPlayer
-                  width={480}
+                  width={880}
                   height={270}
                   autoPlay={false}
                   url={projectInfo.projectTrailerS3Url}
@@ -1562,21 +1516,7 @@ const handleSaveProjectInfo = async () => {
 
 
 
-          {/* Movie + SRT */}
-          <div className="info-row">
-            <strong>Movie File:</strong>
-            {isEditingProject ? (
-              <input className="text-black"
-                type="text"
-                value={editableProjectInfo.movieFileName || ''}
-                onChange={(e) =>
-                  setEditableProjectInfo({ ...editableProjectInfo, movieFileName: e.target.value })
-                }
-              />
-            ) : (
-              <p>{projectInfo?.movieFileName || 'N/A'}</p>
-            )}
-          </div>
+
 
           {/* --- SRT Files Upload & Preview --- */}
           {/* --- SRT Files Upload & Preview --- */}
@@ -2141,7 +2081,7 @@ const handleSaveProjectInfo = async () => {
         <section className="section">
           <div className="section-header flex justify-between items-center">
             <h1 className="header-numbered">
-              <span>2</span> Credits
+              <span>3</span> Credits
             </h1>
             <button
               onClick={() => {
@@ -2293,7 +2233,7 @@ const handleSaveProjectInfo = async () => {
         <section className="section">
           <div className="section-header flex justify-between items-center">
             <h1 className="header-numbered">
-              <span>3</span> Specifications
+              <span>4</span> Specifications
             </h1>
             <button
               onClick={() => {
@@ -2596,7 +2536,6 @@ const handleSaveProjectInfo = async () => {
 
 
         {/* 5. Rights Info */}
-
         <section className="section">
           <div className="section-header flex justify-between items-center">
             <h1 className="header-numbered">
@@ -2606,30 +2545,30 @@ const handleSaveProjectInfo = async () => {
 
           {normalizedRightsGroups.map((group, index) => (
             <div key={index} className="border border-gray-700 rounded p-4 mt-4 space-y-4">
+
               {/* Header Row */}
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-lg font-semibold text-white">Rights Group {index + 1}</h2>
                 <button
-                 onClick={() => {
-  if (isEditingRights && editingIndex === index) {
-    // Cancel edit
-    setIsEditingRights(false);
-    setEditingIndex(null);
-    setEditingRightsGroup(null);
-  } else {
-    // Start edit
-    const groupToEdit = normalizedRightsGroups[index];
-
-    setEditingRightsGroup({ ...groupToEdit });
-    setIsEditingRights(true);
-    setEditingIndex(index);
-  }
-}}
-
+                  onClick={() => {
+                    if (isEditingRights && editingIndex === index) {
+                      setIsEditingRights(false);
+                      setEditingIndex(null);
+                      setEditingRightsGroup(null);
+                    } else {
+                      const selectedRight = group?.rights?.[0] || null; // take first if array
+                      setEditingRightsGroup({
+                        ...group,
+                        rights: selectedRight, // <-- fix: single object for editing
+                      });
+                      setIsEditingRights(true);
+                      setEditingIndex(index);
+                    }
+                  }}
 
                   className={`text-sm ${isEditingRights && editingIndex === index
-                      ? 'bg-gray-500 hover:bg-gray-600'
-                      : 'bg-blue-500 hover:bg-blue-600'
+                    ? 'bg-gray-500 hover:bg-gray-600'
+                    : 'bg-blue-500 hover:bg-blue-600'
                     } text-white px-3 py-1 rounded`}
                 >
                   {isEditingRights && editingIndex === index ? '❌ Cancel' : '✏️ Edit'}
@@ -2715,6 +2654,11 @@ const handleSaveProjectInfo = async () => {
                         showCheckbox
                         closeIcon="cancel"
                       />
+                      {editingRightsGroup.territories?.includedRegions?.some((r) => r.id === 'worldwide') && (
+                        <p className="text-sm text-gray-400 mt-1">
+                          Other regions are hidden when "Worldwide" is selected.
+                        </p>
+                      )}
                     </div>
 
                     {/* Excluded Countries */}

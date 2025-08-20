@@ -7,7 +7,8 @@ import shaka from 'shaka-player';
 const ShakaPlayer = ({
   width = '100%',
   height = '100%',
-  url
+  url,
+  autoPlay = false
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -97,7 +98,7 @@ const ShakaPlayer = ({
 
   return (
     <div
-      className="relative"
+      className="relative w-full h-full"
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -109,15 +110,16 @@ const ShakaPlayer = ({
         <ArrowLeft className="h-6 w-6" />
       </Button> */}
       <div className="flex items-center">
-        <div className="w-auto h-auto">
-          <div className="relative w-1/2 aspect-video mx-auto video-player" style={{ zIndex: 1 }}>
+        <div className="w-full h-full">
+          <div className="relative w-full h-full video-player" style={{ zIndex: 1 }}>
             <video
               ref={videoRef}
               className="w-full h-full object-contain"
               controls
-              autoPlay
+              autoPlay={autoPlay}
             />
           </div>
+
 
           {showControls && !isEnded && (
             <div
