@@ -666,7 +666,7 @@ export default function DealDashboard() {
                 bgcolor: isSubDeal ? "#1e1e2e" : "transparent", // Slightly different background for sub-deals
             }}
         >
-            {tabValue !== 0 && (
+            {tabValue === 0 && (
                 <TableCell sx={{ color: "inherit" }}>
                     {!isSubDeal && (
                         <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -688,7 +688,7 @@ export default function DealDashboard() {
                                     <KeyboardArrowRight fontSize="small" />
                                 )}
                             </IconButton>
-                            {deal.senderDetails?.name}
+                            {`${deal.senderDetails?.name} (${deal.senderDetails?.role})`}
                         </Box>
                     )}
                     {isSubDeal && (
@@ -701,7 +701,7 @@ export default function DealDashboard() {
                     )}
                 </TableCell>
             )}
-            {tabValue !== 1 && <TableCell sx={{ color: "inherit" }}>{deal.assignedToDetails?.name}</TableCell>}
+            {tabValue === 1 && <TableCell sx={{ color: "inherit" }}>{`${deal.assignedToDetails?.email} (${deal.assignedToDetails?.role})`}</TableCell>}
             <TableCell sx={{ color: "inherit" }}>
                 {new Date(deal.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -1416,8 +1416,8 @@ export default function DealDashboard() {
                                         },
                                     }}
                                 >
-                                    {tabValue !== 0 && <TableCell sx={{ color: "inherit" }}>Sender</TableCell>}
-                                    {tabValue !== 1 && <TableCell sx={{ color: "inherit" }}>Receiver</TableCell>}
+                                    {tabValue === 0 && <TableCell sx={{ color: "inherit" }}>Sender</TableCell>}
+                                    {tabValue === 1 && <TableCell sx={{ color: "inherit" }}>Receiver</TableCell>}
                                     <TableCell sx={{ color: "inherit" }}>Created Date</TableCell>
                                     <TableCell sx={{ color: "inherit" }}>Updated Date</TableCell>
                                     <TableCell sx={{ color: "inherit" }}>Amount</TableCell>
