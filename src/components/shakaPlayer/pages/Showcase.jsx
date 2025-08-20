@@ -226,6 +226,7 @@ export default function MovieGrid() {
         excludingCountries: dealDetails?.excludingCountries || [],
         usageRights: dealDetails?.usageRights || [],
         contentCategory: dealDetails?.contentCategory || [],
+        languages: dealDetails?.languages || [],
         genre: dealDetails?.genre || [],
         yearOfRelease: dealDetails?.yearOfRelease || [],
       }
@@ -520,7 +521,7 @@ export default function MovieGrid() {
       const updatedLanguages = prevLanguages.includes(language)
         ? prevLanguages.filter((l) => l !== language)
         : [...prevLanguages, language];
-      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedContentCategories, selectedGenres, selectedYears, updatedLanguages);
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, updatedLanguages, selectedContentCategories);
       setLanguageAnchorEl(null)
       return updatedLanguages;
     });
