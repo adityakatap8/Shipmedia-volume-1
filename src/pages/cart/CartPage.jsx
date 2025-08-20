@@ -60,9 +60,9 @@ const CartPage = () => {
   // Form states
   const [selectedRights, setSelectedRights] = useState([])
   const [selectedTerritory, setSelectedTerritory] = useState([])
-  const [selectedLicenseTerm, setSelectedLicenseTerm] = useState([])
+  const [selectedLicenseTerm, setSelectedLicenseTerm] = useState("")
   const [selectedUsageRights, setSelectedUsageRights] = useState([])
-  const [selectedPaymentTerms, setSelectedPaymentTerms] = useState([])
+  const [selectedPaymentTerms, setSelectedPaymentTerms] = useState("")
   const [message, setMessage] = useState("")
   const [remarks, setRemarks] = useState("")
   const [buyers, setBuyers] = useState([]);
@@ -234,7 +234,7 @@ const CartPage = () => {
       console.log("Payload to be sent:", payload);
 
       // Call the API
-      const response = await axios.put(`https://www.mediashippers.com/api/deal/update/${selectedDeal._id}/cart/${user._id}`, payload);
+      const response = await axios.put(`http://localhost:3000/api/deal/update/${selectedDeal._id}/cart/${user._id}`, payload);
 
       if (response.status === 200) {
         const { remainingDeals } = response.data || [];
