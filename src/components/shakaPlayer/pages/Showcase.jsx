@@ -490,6 +490,7 @@ export default function MovieGrid() {
         ? prevGenres.filter((g) => g !== genre)
         : [...prevGenres, genre];
       fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedContentCategories, selectedYears, updatedGenres, selectedLanguages);
+      setGenreAnchorEl(null)
       return updatedGenres;
     });
   };
@@ -509,6 +510,7 @@ export default function MovieGrid() {
         selectedLanguages,
         selectedContentCategories
       );
+      setYearAnchorEl(null); 
       return updatedYears;
     });
   };
@@ -519,6 +521,7 @@ export default function MovieGrid() {
         ? prevLanguages.filter((l) => l !== language)
         : [...prevLanguages, language];
       fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedContentCategories, selectedGenres, selectedYears, updatedLanguages);
+      setLanguageAnchorEl(null)
       return updatedLanguages;
     });
   };
@@ -529,6 +532,7 @@ export default function MovieGrid() {
         ? prevCategories.filter((c) => c !== category)
         : [...prevCategories, category];
       fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, updatedCategories);
+      setContentCategoryAnchorEl(null)
       return updatedCategories;
     });
   };
@@ -1314,7 +1318,7 @@ export default function MovieGrid() {
     setSelectedExcludingTerritory([]);
     setFiltersApplied(false);
     navigate(location.pathname, { state: { dealDetails: null } });
-    fetchAllProjectData(1, false); // Reset to page 1 and fetch unfiltered data
+    fetchAllProjectData(1, false, [], [], [], [], [], [], []); 
   };
 
   useEffect(() => {
@@ -1982,7 +1986,7 @@ export default function MovieGrid() {
                         <Chip
                           key={category.id}
                           label={category.name}
-                          onClick={() => handleContentCategoryFilter(category.name)} // Toggle content category selection
+                          onClick={() => handleContentCategoryFilter(category.id)} // Toggle content category selection
                           sx={selectedContentCategories.includes(category.name) ? styles.popoverChipActive : styles.popoverChip}
                         />
                       ))}
@@ -2663,16 +2667,48 @@ const usageRightsOptions = [
 ]
 
 const contentCategoryOptions = [
-  { name: 'Feature Film', id: 1 },
-  { name: 'TV Show', id: 2 },
-  { name: 'Docu Series', id: 3 },
-  { name: 'Web Series', id: 4 },
-  { name: 'Kids Content', id: 5 },
-  { name: 'Vertical Drama', id: 6 },
-  { name: 'Micro Drama', id: 7 },
-  { name: 'Documentary', id: 8 },
-  { name: 'Short Film', id: 9 },
-  { name: 'Animation', id: 10 },
+    { id: "feature_film", name: "Feature Film" },
+    { id: "short_film", name: "Short Films" },
+    { id: "documentary_feature", name: "Documentary Feature" },
+    { id: "documentary_short", name: "Documentary Short" },
+    { id: "tv_series", name: "TV Series" },
+    { id: "limited_series", name: "Limited Series" },
+    { id: "mini_series", name: "Mini Series" },
+    { id: "tv_movie", name: "TV Movie" },
+    { id: "tv_special", name: "TV Special" },
+    { id: "reality_tv", name: "Reality TV" },
+    { id: "talk_show", name: "Talk Show" },
+    { id: "game_show", name: "Game Show" },
+    { id: "news_program", name: "News Program" },
+    { id: "sports_program", name: "Sports Program" },
+    { id: "children_program", name: "Children's Program" },
+    { id: "animation_feature", name: "Animation Feature" },
+    { id: "animation_series", name: "Animation Series" },
+    { id: "animation_short", name: "Animation Short" },
+    { id: "music_video", name: "Music Video" },
+    { id: "concert_film", name: "Concert Film" },
+    { id: "stand_up_comedy", name: "Stand-up Comedy" },
+    { id: "variety_show", name: "Variety Show" },
+    { id: "award_show", name: "Award Show" },
+    { id: "commercial", name: "Commercial" },
+    { id: "corporate_video", name: "Corporate Video" },
+    { id: "training_video", name: "Training Video" },
+    { id: "instructional_video", name: "Instructional Video" },
+    { id: "web_series", name: "Web Series" },
+    { id: "podcast", name: "Podcast" },
+    { id: "audio_drama", name: "Audio Drama" },
+    { id: "radio_show", name: "Radio Show" },
+    { id: "live_stream", name: "Live Stream" },
+    { id: "virtual_event", name: "Virtual Event" },
+    { id: "interactive_content", name: "Interactive Content" },
+    { id: "360_video", name: "360° Video" },
+    { id: "vr_content", name: "VR Content" },
+    { id: "ar_content", name: "AR Content" },
+    { id: "gaming_content", name: "Gaming Content" },
+    { id: "ugc", name: "User Generated Content" },
+    { id: "social_media_content", name: "Social Media Content" },
+    { id: "branded_content", name: "Branded Content" },
+    { id: "sponsored_content", name: "Sponsored Content" },
 ];
 
 
