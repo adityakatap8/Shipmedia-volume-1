@@ -38,12 +38,14 @@
 .info-row {
   display: flex;
   margin-bottom: 12px;
-  padding: 5px 0;
-  margin: 20px 0px 15px 10px;
-  border-bottom: 1px solid #1E3E62;
-  padding: 9px 0px 20px 0px;
+  padding: 20px;
+  margin: 20px 0 15px 10px;
+  border: 2px solid #3B82F6; /* Tailwind's blue-500 */
+  border-radius: 20px;
+  background-color: rgba(59, 130, 246, 0.1); /* Light blue with 10% opacity */
   color: white;
 }
+
 
 .info-row strong {
   width: 100px;
@@ -97,3 +99,5 @@
   font-weight: 300;
   margin-bottom: 15px;
 }
+
+
