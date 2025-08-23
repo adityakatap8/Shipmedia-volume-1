@@ -34,9 +34,9 @@ import CloseIcon from "@mui/icons-material/Close"; // Import CloseIcon
 import { Link as RouterLink } from "react-router-dom";
 import logo from "../../assets/mediaShippers.png";
 import backgroundImage from "../../assets/earth-city-bg.jpeg";
-import buyer from "../../assets/Buyer2.png";
-import seller from "../../assets/Seller.png";
-import shippers from "../../assets/Shippers.png";
+import buyer from "../../assets/Buyer.jpg";
+import seller from "../../assets/Seller.jpg";
+import shippers from "../../assets/Services.jpg";
 
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -236,7 +236,7 @@ function Home() {
   };
 
   // Form state
-  
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -401,7 +401,7 @@ function Home() {
                   <Box sx={{ display: "flex", alignItems: "center" }}>
                     <Button
                       variant="contained"
-                      onClick={handleDrawerOpen} 
+                      onClick={handleDrawerOpen}
                       sx={{
                         ml: 3,
                         backgroundColor: "#FF6B00",
@@ -512,8 +512,8 @@ function Home() {
                 variant="h1"
                 sx={{
                   fontSize: { xs: "3rem", sm: "4rem", md: "6rem" },
-                  fontWeight: 700,
-                  color: "white",
+                  fontWeight: 600,
+                  color: "#ffffff",
                   lineHeight: 1.1,
                   mb: 2,
                   textAlign: "left",
@@ -527,12 +527,23 @@ function Home() {
                 variant="h6"
                 sx={{
                   color: "white",
-                  mb: 6,
-                  maxWidth: "600px",
-                  fontWeight: 400,
+                  maxWidth: "700px",
+                  fontWeight: 600,
+                  textAlign: "left",
                 }}
               >
-                Spread your interesting stories from every corner to every screen
+                Spreading stories from every corner to every screen
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "white",
+                  maxWidth: "700px",
+                  fontWeight: 600,
+                  textAlign: "left",
+                }}
+              >
+                Buying. Selling. Delivering Content
               </Typography>
             </Box>
           </Container>
@@ -577,7 +588,7 @@ function Home() {
             {/* Right side - Content */}
             <Box sx={{ flex: 1 }}>
               <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
                   color: "#FF6B00",
                   mb: 3,
@@ -586,41 +597,65 @@ function Home() {
                   textAlign: "left", // ✅ Align text to left
                 }}
               >
-                ABOUT BUYER
+                Buyers - “Your Gateway to Global Content Deals”
               </Typography>
               <Typography
-                variant="h6"
+                variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 4,
-                  fontWeight: 400,
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
                   lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                Discover, Deal, and Deliver Smarter At Media Shippers, we make finding great stories easy — and closing
-                deals even easier...
+                Thousands of titles ready for licensing — films, series & documentaries
               </Typography>
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 3,
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                Search Smarter — Instantly filter by genre, territory, availability, and delivery readiness...
+                Flat-fee & revenue-share options to match your business model
               </Typography>
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                Deal with Confidence — Request titles, negotiate terms, and finalize tri-party agreements...
+                Rights-cleared, secure, and trusted content sourcing
+              </Typography><Typography
+                variant="body1"
+                sx={{
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Diverse global library with stories for every audience
+              </Typography><Typography
+                variant="body1"
+                sx={{
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Streamlined deal-making — negotiate, close, and deliver on one platform
               </Typography>
             </Box>
           </Box>
@@ -665,50 +700,89 @@ function Home() {
 
             <Box sx={{ flex: 1 }}>
               <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
                   color: "#FF6B00",
                   mb: 3,
                   fontWeight: 600,
-                  letterSpacing: "1px",
-                  textAlign: "left",
+                  textAlign: "left", // ✅ Align text to left
                 }}
               >
-                ABOUT SELLER
+                Sellers - “Turn Your Content into Revenue, Everywhere”
               </Typography>
               <Typography
-                variant="h6"
+                variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 4,
-                  fontWeight: 400,
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
                   lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                Unlock New Opportunities with Media Shippers. At Media Shippers, we believe your creative energy should fuel stories — not paperwork. We're your trusted partner in getting your content to the right screens, faster and smarter...
+                Monetize your library across FAST, AVOD, SVOD & Theatrical
               </Typography>
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 3,
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                Upload and manage your content availability, rights, territories, and delivery details in one sleek dashboard.
+                Global buyer network looking for diverse, rights-cleared content
               </Typography>
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                Get discovered by a growing network of global Buyers actively seeking premium content for their platforms.
+                Localization made easy — dubbing, subtitling & closed captions to reach wider audiences
               </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Flexible deal models — flat fee, minimum guarantee, or revenue share
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Transparent analytics & reporting to build trust and maximize returns
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                End-to-end support — from packaging to delivery and deal management
+              </Typography>
+
             </Box>
 
             {/* Right side - Content */}
@@ -785,76 +859,87 @@ function Home() {
             {/* Right side - Content */}
             <Box sx={{ flex: 1 }}>
               <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
                   color: "#FF6B00",
                   mb: 3,
                   fontWeight: 600,
-                  letterSpacing: "1px",
                   textAlign: "left",
                 }}
               >
-                ABOUT SHIPPERS
+                Services - "Your End-to-End Media Distribution Partner"
               </Typography>
-
               <Typography
-                variant="h6"
+                variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 4,
-                  fontWeight: 400,
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
                   lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                we’re a full-service platform designed to simplify and supercharge the entire content licensing journey.
+                Content Packaging & Delivery – Deliver HLS, MPEG-DASH, ProRes, and DRM-protected masters.
               </Typography>
-
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 3,
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                🌎 <strong>Discover</strong> — Explore a curated catalog of films, series, and documentaries from trusted global Sellers. Instantly filter by rights, regions, and delivery status — all updated in real-time.
+                Global Distribution – Access FAST, AVOD, SVOD, and Broadcast buyers worldwide.
               </Typography>
-
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 3,
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                🤝 <strong>Deal-Making</strong> — Ensuring transparent, secure, and efficient negotiations, backed by platform moderation and audit trails.
+                Localization Services – Dubbing, subtitling, and closed captions in 50+ languages (AI + Human).
               </Typography>
-
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
-                  mb: 3,
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                📄 <strong>Legal Management</strong> — From drafting to signing, we facilitate tri-party agreements between Seller, Buyer, and Media Shippers — ensuring clarity, compliance, and speed at every step.
+                Analytics & Transparency – Monitor performance, revenue share, and deal outcomes.
               </Typography>
-
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#9ba9b4",
+                  color: "#ffffff",
+                  mb: 1,
                   fontWeight: 300,
+                  lineHeight: 1.4,
                   textAlign: "left",
                 }}
               >
-                💰 <strong>Financial Services</strong> — We manage revenue processing, monthly title-wise statements, invoicing, and payment collections.
+                Deal Facilitation – Streamlined contracts with anti-circumvention protections.
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#ffffff",
+                  mb: 1,
+                  fontWeight: 300,
+                  lineHeight: 1.4,
+                  textAlign: "left",
+                }}
+              >
+                Secure Hosting & Access – Safe, controlled content sharing and delivery.
               </Typography>
             </Box>
           </Box>
@@ -889,27 +974,24 @@ function Home() {
           {/* Services Header */}
           <Box sx={{ marginBottom: "30px" }}>
             <Typography
-              variant="subtitle1"
-              sx={{
-                color: "#ff6b35",
-                fontWeight: "bold",
-                fontSize: "14px",
-                letterSpacing: "1px",
-                marginBottom: "5px",
-              }}
+              variant="h6"
+                sx={{
+                  color: "#FF6B00",
+                  mb: 3,
+                  fontWeight: 600,
+                }}
             >
-              SERVICES
+              Content Operations
             </Typography>
             <Typography
-              variant="h4"
-              component="h1"
-              sx={{
-                color: "white",
-                fontWeight: "bold",
-                fontSize: "32px",
-              }}
+              variant="h6"
+                sx={{
+                  color: "#FF6B00",
+                  mb: 3,
+                  fontWeight: 600,
+                }}
             >
-              My Services
+              "Effortless packaging. Seamless delivery"
             </Typography>
           </Box>
 
@@ -1560,7 +1642,7 @@ function Home() {
         open={snackbarOpen}
         autoHideDuration={3000} // Snackbar will auto-hide after 3 seconds
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }} 
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: "100%" }}>
           Registration successful! Redirecting to login...

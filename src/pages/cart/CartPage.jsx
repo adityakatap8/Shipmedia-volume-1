@@ -234,7 +234,7 @@ const CartPage = () => {
       console.log("Payload to be sent:", payload);
 
       // Call the API
-      const response = await axios.put(`http://localhost:3000/api/deal/update/${selectedDeal._id}/cart/${user._id}`, payload);
+      const response = await axios.put(`https://www.mediashippers.com/api/deal/update/${selectedDeal._id}/cart/${user._id}`, payload);
 
       if (response.status === 200) {
         const { remainingDeals } = response.data || [];
