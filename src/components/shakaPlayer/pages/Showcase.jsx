@@ -52,6 +52,7 @@ export default function MovieGrid() {
   const { toast } = useToast();
   const dispatch = useDispatch();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [orgList, setOrgList] = useState([]);
   const [projectData, setProjectData] = useState([]);
   const [specificationsData, setSpecificationsData] = useState([]);
   const [isTrailerPlaying, setIsTrailerPlaying] = useState(false);
@@ -94,6 +95,8 @@ export default function MovieGrid() {
   const [ratingFilter, setRatingFilter] = useState(0)
   const [activeFiltersCount, setActiveFiltersCount] = useState(0)
   const [sortOption, setSortOption] = useState("featured")
+  const [selectedOrganization, setSelectedOrganization] = useState([]);
+  console.log("selectedOrganization:", selectedOrganization); // Ensure it's an array
 
   // UI states
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
@@ -105,6 +108,7 @@ export default function MovieGrid() {
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [rightsAnchorEl, setRightsAnchorEl] = useState(null); // Add state for rights popover
   const [contentCategoryAnchorEl, setContentCategoryAnchorEl] = useState(null);
+  const [organizationAnchorEl, setOrganizationAnchorEl] = useState(null); // Add state for organization popover
   const [loading, setLoading] = useState(true);
   const [snackbarOpen, setSnackbarOpen] = useState(false); // State to control Snackbar visibility
   const [snackbarMessage, setSnackbarMessage] = useState(""); // State to store the message
@@ -210,7 +214,8 @@ export default function MovieGrid() {
     years = selectedYears,
     genres = selectedGenres,
     languages = selectedLanguages,
-    contentCategories = selectedContentCategories
+    contentCategories = selectedContentCategories,
+    organizationIds = selectedOrganization
   ) => {
     setLoading(true);
     console.log("Fetching all project data with page:",);
@@ -242,6 +247,7 @@ export default function MovieGrid() {
         genre: genres,
         yearOfRelease: years,
         languages,
+        organizationIds,
       };
 
     console.log("Query Params for fetching all data:", queryParams);
@@ -335,7 +341,7 @@ export default function MovieGrid() {
 
 
   const areDrawerFieldsFilled = () => {
-    return (
+    const baseFields = (
       drawerSelectedRights ||
       drawerSelectedTerritory ||
       drawerSelectedUsageRights &&
@@ -390,6 +396,7 @@ export default function MovieGrid() {
     setSelectedTerritories([]);
     setSelectedContentCategories([]);
     setSelectedRights([]);
+    setSelectedOrganization([]); // Reset organization filter
     setRatingFilter(0);
 
     // Reset the filtered data to the original project data
@@ -437,7 +444,7 @@ export default function MovieGrid() {
   const handlePageChange = (page) => {
     console.log("Changing to page:", page);
     if (page >= 1 && page <= totalPages) {
-      fetchAllProjectData(page);
+      fetchAllProjectData(page, true, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, selectedOrganization);
     }
     setCurrentPage(page);
   };
@@ -468,7 +475,7 @@ export default function MovieGrid() {
       const updatedRights = prevRights.includes(right)
         ? prevRights.filter((r) => r !== right)
         : [...prevRights, right];
-      fetchAllProjectData(1, false, updatedRights);
+      fetchAllProjectData(1, false, updatedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, selectedOrganization);
       setRightsAnchorEl(null); // Close the popover immediately
       return updatedRights;
     });
@@ -479,7 +486,7 @@ export default function MovieGrid() {
       const updatedTerritories = prevTerritories.includes(region)
         ? prevTerritories.filter((t) => t !== region)
         : [...prevTerritories, region];
-      fetchAllProjectData(1, false, selectedRights, updatedTerritories);
+      fetchAllProjectData(1, false, selectedRights, updatedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, selectedOrganization);
       setTerritoryAnchorEl(null); // Close the popover immediately
       return updatedTerritories;
     });
@@ -490,7 +497,7 @@ export default function MovieGrid() {
       const updatedGenres = prevGenres.includes(genre)
         ? prevGenres.filter((g) => g !== genre)
         : [...prevGenres, genre];
-      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedContentCategories, selectedYears, updatedGenres, selectedLanguages);
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, updatedGenres, selectedLanguages, selectedContentCategories, selectedOrganization);
       setGenreAnchorEl(null)
       return updatedGenres;
     });
@@ -506,12 +513,14 @@ export default function MovieGrid() {
         false,
         selectedRights,
         selectedTerritories,
-        selectedGenres,
+        selectedExcludingTerritory,
         updatedYears,
+        selectedGenres,
         selectedLanguages,
-        selectedContentCategories
+        selectedContentCategories,
+        selectedOrganization
       );
-      setYearAnchorEl(null); 
+      setYearAnchorEl(null);
       return updatedYears;
     });
   };
@@ -521,7 +530,7 @@ export default function MovieGrid() {
       const updatedLanguages = prevLanguages.includes(language)
         ? prevLanguages.filter((l) => l !== language)
         : [...prevLanguages, language];
-      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, updatedLanguages, selectedContentCategories);
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, updatedLanguages, selectedContentCategories, selectedOrganization);
       setLanguageAnchorEl(null)
       return updatedLanguages;
     });
@@ -532,10 +541,48 @@ export default function MovieGrid() {
       const updatedCategories = prevCategories.includes(category)
         ? prevCategories.filter((c) => c !== category)
         : [...prevCategories, category];
-      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, updatedCategories);
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, updatedCategories, selectedOrganization);
       setContentCategoryAnchorEl(null)
       return updatedCategories;
     });
+  };
+
+  const handleOrganizationFilter = (organizationId) => {
+    console.log("Selected organization ID:", organizationId);
+    setSelectedOrganization(prev => {
+      const isSelected = prev.includes(organizationId);
+      if (isSelected) {
+        // Remove if already selected
+        const newSelection = prev.filter(id => id !== organizationId);
+        fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, newSelection);
+        return newSelection;
+      } else {
+        // Add if not selected
+        const newSelection = [...prev, organizationId];
+        fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, newSelection);
+        return newSelection;
+      }
+    });
+  };
+
+  const removeFilter = (filter) => {
+    switch (filter.type) {
+      case "genre":
+        setSelectedGenres(selectedGenres.filter((g) => g !== filter.value));
+        break;
+      case "year":
+        setSelectedYears(selectedYears.filter((y) => y.toString() !== filter.value));
+        break;
+      case "rating":
+        setRatingFilter(0);
+        break;
+      case "organization":
+        setSelectedOrganization([]);
+        fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, []);
+        break;
+      default:
+        break;
+    }
   };
 
 
@@ -605,8 +652,7 @@ export default function MovieGrid() {
       width: "100%",
     },
     movieItem: {
-      width: "16.666%" // Exactly 6 items per row
-      ,
+      width: "16.666%",
       padding: "0 4px",
       boxSizing: "border-box",
     },
@@ -625,27 +671,24 @@ export default function MovieGrid() {
         padding: "5px",
 
       },
+      border: "1px solid rgba(255, 255, 255, 0.1)",
     },
     cardMedia: {
       height: 0,
-      paddingTop: "120%" // 2:3 aspect ratio for movie posters
+      paddingTop: "100%" // 2:3 aspect ratio for movie posters
     },
     cardContent: {
       flexGrow: 1,
-      padding: "16px 0",
     },
     movieTitle: {
       fontWeight: "bold",
-      marginBottom: "8px",
-      fontSize: "16px",
-      margin: "15px 0px"
+      fontSize: "16px"
     },
     genreYearContainer: {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: "15px",
-      marginLeft: '10px'
     },
     genreChip: {
       backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -686,13 +729,13 @@ export default function MovieGrid() {
       display: "flex",
       alignItems: "center",
       borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-      marginBottom: "30px",
-      paddingBottom: "30px"
+      marginBottom: "10px",
+      paddingBottom: "10px"
     },
     filterButton: {
       backgroundColor: "rgba(255, 255, 255, 0.08)",
       color: "#fff",
-      fontSize: "13px",
+      fontSize: "11px",
       padding: "4px 12px",
       borderRadius: "16px",
       textTransform: "none",
@@ -944,7 +987,7 @@ export default function MovieGrid() {
         lg: "16.666%", // 6 per row on large screens
       },
       padding: "0 4px",
-      marginBottom: "8px",
+      marginBottom: "4px",
       boxSizing: "border-box",
     },
   }
@@ -954,6 +997,10 @@ export default function MovieGrid() {
     ...selectedGenres.map((genre) => ({ type: "genre", value: genre })),
     ...selectedYears.map((year) => ({ type: "year", value: year.toString() })),
     ...(ratingFilter > 0 ? [{ type: "rating", value: `${ratingFilter}+ Stars` }] : []),
+    ...selectedOrganization.map(orgId => ({
+      type: "organization",
+      value: (orgList.find((o) => o._id === orgId)?.orgName) || "Organization"
+    })),
   ];
 
 
@@ -1033,11 +1080,6 @@ export default function MovieGrid() {
       // Select all items
       const allIds = projectData.map((project) => project._id);
       setSelectedItems(allIds);
-
-      // Open the drawer only if any drawer field is empty
-      if (!areDrawerFieldsFilled()) {
-        setAdvancedFiltersOpen(true);
-      }
     } else {
       // Deselect all items
       setSelectedItems([]);
@@ -1068,189 +1110,15 @@ export default function MovieGrid() {
       ? allCountries
       : selectedTerritories.flatMap(region => regionCountryMapping[region] || []);
 
-  // New filtering function
-  const filterMovies = () => {
-    let filteredData = [...originalProjectData]; // Start with the original data
-    console.log("Filtering movies with current selections...", filteredData);
-    console.log("Selected Genres:", drawerSelectedRights);
-    console.log("Selected Years:", drawerSelectedTerritory);
 
-    // Filter by Rights
-    if (drawerSelectedRights.length > 0) {
-      console.log("Filtering by Rights:", drawerSelectedRights.toLowerCase());
-      if (drawerSelectedRights.toLowerCase() === "all rights") {
-        // Show only content that has "All Rights"
-        console.log("Filtering by All Rights");
-        filteredData = filteredData.filter((project) =>
-          project?.formData?.rightsInfo?.some((rightInfo) =>
-            rightInfo?.rights?.some((right) =>
-              right?.name?.toLowerCase() === "all rights"
-            )
-          )
-        );
-      } else {
-        // Show content that has the selected right OR has "All Rights"
-        filteredData = filteredData.filter((project) =>
-          project?.formData?.rightsInfo?.some((rightInfo) =>
-            rightInfo?.rights?.some((right) =>
-              right?.name?.toLowerCase() === drawerSelectedRights.toLowerCase() ||
-              right?.name?.toLowerCase() === "all rights"
-            )
-          )
-        );
-      }
-
-      console.log("Filtered by Rights:", filteredData);
-    }
-
-
-    // Filter by Territory
-    if (drawerSelectedTerritory.length > 0) {
-      // Check if "Worldwide" is selected exclusively
-      const isWorldwideSelected = drawerSelectedTerritory.length === 1 && drawerSelectedTerritory[0].toLowerCase() === 'worldwide';
-
-      if (isWorldwideSelected) {
-        // Show only Worldwide content
-        filteredData = filteredData.filter((project) =>
-          project?.formData.rightsInfo?.some((rightInfo) => {
-            if (Array.isArray(rightInfo.territories)) {
-              return rightInfo.territories.some((territory) =>
-                territory.id?.toLowerCase() === 'worldwide'
-              );
-            } else if (rightInfo.territories?.includedRegions) {
-              return rightInfo.territories.includedRegions.some((region) =>
-                region.name?.toLowerCase() === 'worldwide'
-              );
-            }
-            return false;
-          })
-        );
-      } else {
-        // For other regions, include matching region + Worldwide content
-        filteredData = filteredData.filter((project) =>
-          project?.formData.rightsInfo?.some((rightInfo) => {
-            if (Array.isArray(rightInfo.territories)) {
-              return rightInfo.territories.some((territory) =>
-                drawerSelectedTerritory.some((selectedTerritory) =>
-                  territory.id?.toLowerCase() === selectedTerritory.toLowerCase() ||
-                  territory.id?.toLowerCase() === 'worldwide'
-                )
-              );
-            } else if (rightInfo.territories?.includedRegions) {
-              return rightInfo.territories.includedRegions.some((region) =>
-                drawerSelectedTerritory.some((selectedTerritory) =>
-                  region.name?.toLowerCase() === selectedTerritory.toLowerCase() ||
-                  region.name?.toLowerCase() === 'worldwide'
-                )
-              );
-            }
-            return false;
-          })
-        );
-      }
-      console.log("Filtered by Territory:", filteredData);
-    }
-
-
-
-    // Filter by Excluding Territory
-    if (selectedExcludingTerritory.length > 0) {
-      filteredData = filteredData.filter((project) =>
-        project?.formData?.rightsInfo?.some((rightInfo) => {
-          if (Array.isArray(rightInfo.territories)) {
-            // Handle array format
-            return rightInfo.territories.some((territory) =>
-              selectedExcludingTerritory.some((selectedTerritory) =>
-                territory.country?.toLowerCase() === selectedTerritory.toLowerCase()
-              )
-            );
-          } else if (rightInfo.territories?.excludeCountries) {
-            // Handle object format
-            return rightInfo.territories.excludeCountries.some((country) =>
-              selectedExcludingTerritory.some((selectedTerritory) =>
-                country.name?.toLowerCase() === selectedTerritory.toLowerCase()
-              )
-            );
-          }
-          return false;
-        })
-      );
-      console.log("Filtered by Excluding Territory:", filteredData);
-    }
-
-    // Filter by Usage Rights
-    if (drawerSelectedUsageRights.length > 0) {
-      filteredData = filteredData.filter((project) =>
-        project?.formData?.rightsInfo?.some((rightInfo) =>
-          rightInfo.usageRights?.some((usageRight) =>
-            drawerSelectedUsageRights.some((selectedUsageRight) =>
-              usageRight.name.toLowerCase() === selectedUsageRight.toLowerCase()
-            )
-          )
-        )
-      );
-      console.log("Filtered by Usage Rights:", filteredData);
-    }
-
-    // Filter by Content Category
-    if (drawerSelectedContentCategories.length > 0) {
-      filteredData = filteredData.filter((project) => {
-        const projectType = project?.formData?.specificationsInfo?.projectType?.toLowerCase();
-        return drawerSelectedContentCategories.some(
-          (selectedCategory) => selectedCategory.toLowerCase() === projectType
-        );
-      });
-      console.log("Filtered by Content Category:", filteredData);
-    }
-
-    // Filter by Language
-    if (drawerSelectedLanguages.length > 0) {
-      filteredData = filteredData.filter((project) =>
-        drawerSelectedLanguages.some((selectedLanguage) =>
-          project?.formData?.specificationsInfo?.language?.toLowerCase() === selectedLanguage.toLowerCase()
-        )
-      );
-      console.log("Filtered by Language:", filteredData);
-    }
-
-    // Filter by Genre
-    if (drawerSelectedGenres.length > 0) {
-      filteredData = filteredData.filter((project) => {
-        const rawGenres = project?.formData?.specificationsInfo?.genres;
-
-        let projectGenres = [];
-        if (Array.isArray(rawGenres)) {
-          projectGenres = rawGenres.flatMap((genreString) =>
-            genreString.split(',').map((g) => g.trim().toLowerCase())
-          );
-        } else if (typeof rawGenres === 'string') {
-          projectGenres = rawGenres.split(',').map((g) => g.trim().toLowerCase());
-        }
-
-        return drawerSelectedGenres.some((selectedGenre) =>
-          projectGenres.includes(selectedGenre.toLowerCase())
-        );
-      });
-      console.log("Filtered by Genres:", filteredData);
-    }
-
-
-    // Filter by Year of Release
-    if (drawerSelectedYears.length > 0) {
-      filteredData = filteredData.filter((project) => {
-        const completionDate = project?.formData?.specificationsInfo?.completionDate;
-        const projectYear = completionDate ? new Date(completionDate).getFullYear() : null;
-
-        return drawerSelectedYears.some((selectedYear) => projectYear === parseInt(selectedYear));
-      });
-      console.log("Filtered by Year of Release:", filteredData);
-    }
-
-    // Update the filtered data
-    setHasFilteredOnce(true);
-    setProjectData(filteredData);
-    setFiltersApplied(true);
+  const fetchOrganizations = async () => {
+    const response = await axios.get("https://www.mediashippers.com/api/organization/get-org");
+    console.log("Fetched organizations:", response.data);
+    if (response.status === 200) {
+      setOrgList(response.data?.organizations || []);
+    };
   };
+
 
   const handleCommonFilterChange = (filterType, value) => {
     let updated;
@@ -1291,12 +1159,22 @@ export default function MovieGrid() {
           : [...selectedRights, value];
         setSelectedRights(updated);
         break;
+      case "organization":
+        setSelectedOrganization(prev => {
+          const isSelected = prev.includes(value);
+          if (isSelected) {
+            return prev.filter(id => id !== value);
+          } else {
+            return [...prev, value];
+          }
+        });
+        break;
       default:
         break;
     }
     // Fetch API only if dealDetails is not present
     if (!dealDetails) {
-      fetchAllProjectData(1, false);
+      fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, selectedOrganization);
     }
   };
 
@@ -1308,6 +1186,7 @@ export default function MovieGrid() {
     setSelectedTerritories([]);
     setSelectedContentCategories([]);
     setSelectedRights([]);
+    setSelectedOrganization([]); // Reset organization filter
     setRatingFilter(0);
     setDrawerSelectedRights("");
     setDrawerSelectedTerritory([]);
@@ -1319,7 +1198,7 @@ export default function MovieGrid() {
     setSelectedExcludingTerritory([]);
     setFiltersApplied(false);
     navigate(location.pathname, { state: { dealDetails: null } });
-    fetchAllProjectData(1, false, [], [], [], [], [], [], []); 
+    fetchAllProjectData(1, false, [], [], [], [], [], [], [], []);
   };
 
   useEffect(() => {
@@ -1332,6 +1211,7 @@ export default function MovieGrid() {
       setDrawerSelectedGenres(dealDetails.genre || []);
       setDrawerSelectedYears(dealDetails.yearOfRelease || []);
       setSelectedExcludingTerritory(dealDetails.excludingCountries || []);
+      setSelectedOrganization(dealDetails.organization ? [dealDetails.organization] : []); // Set organization filter from dealDetails
 
       // setAdvancedFiltersOpen(true);
       // filterMovies();
@@ -1389,6 +1269,7 @@ export default function MovieGrid() {
     if (selectedLanguages.length > 0) count += selectedLanguages.length;
     if (selectedContentCategories.length > 0) count += selectedContentCategories.length;
     if (selectedRights.length > 0) count += selectedRights.length;
+    if (selectedOrganization.length > 0) count += selectedOrganization.length; // Count organization filter
 
     setActiveFiltersCount(count);
   }, [
@@ -1398,6 +1279,7 @@ export default function MovieGrid() {
     selectedLanguages,
     selectedContentCategories,
     selectedRights,
+    selectedOrganization,
   ]);
 
 
@@ -1424,7 +1306,7 @@ export default function MovieGrid() {
 
     if (!userId || !role || !token) return;
 
-    fetchAllProjectData();
+    fetchAllProjectData(1, true, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, selectedOrganization);
   }, [userId, role, token, toast]);
 
 
@@ -1448,6 +1330,11 @@ export default function MovieGrid() {
   }, [searchTerm, originalProjectData, dealDetails]);
 
 
+  useEffect(() => {
+    fetchOrganizations();
+  }, [])
+
+
   return (
     <>
       <Snackbar
@@ -1464,63 +1351,7 @@ export default function MovieGrid() {
         <Loader />  // Show loader when loading is true
       ) : (
         <Box sx={styles.root}>
-          {!dealDetails &&
-            <Box sx={styles.search}>
-              <Box sx={styles.searchIcon}>
-                <SearchIcon />
-              </Box>
-              <InputBase
-                placeholder="Search movies..."
-                sx={{
-                  ...styles.inputRoot,
-                  "& .MuiInputBase-input": styles.inputInput,
-                }}
-                inputProps={{ "aria-label": "search" }}
-                value={searchTerm} // Bind the searchTerm state
-                onChange={(e) => setSearchTerm(e.target.value)} // Update searchTerm on input change
-              />
-            </Box>}
-
-          {/* Compact Filter Bar */}
           <Box sx={styles.compactFilterSection} gap={1}>
-            {/* Sort Button */}
-            {/* <Button sx={styles.filterButton} onClick={handleSortClick} endIcon={<ArrowDownIcon fontSize="small" />}>
-              Sort: {getSortDisplayText()}
-            </Button>
-            <Popover
-              open={Boolean(sortAnchorEl)}
-              anchorEl={sortAnchorEl}
-              onClose={handleSortClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              PaperProps={{
-                style: { backgroundColor: "#111" },
-              }}
-            >
-              <Box sx={styles.popoverContent}>
-                <Typography sx={styles.popoverTitle}>Sort By</Typography>
-                <Box sx={styles.sortContainer}>
-                  <Box
-                    sx={sortOption === "title" ? styles.sortItemActive : styles.sortItem}
-                    onClick={() => handleSortChange("title")} // Sort A-Z
-                  >
-                    Title A-Z
-                  </Box>
-                  <Box
-                    sx={sortOption === "title-desc" ? styles.sortItemActive : styles.sortItem}
-                    onClick={() => handleSortChange("title-desc")} // Sort Z-A
-                  >
-                    Title Z-A
-                  </Box>
-                </Box>
-              </Box>
-            </Popover> */}
             {!dealDetails && user?.user?.role !== "Seller" &&
               <>
                 <Button
@@ -1703,7 +1534,8 @@ export default function MovieGrid() {
                             selectedYears,
                             selectedGenres,
                             selectedLanguages,
-                            selectedContentCategories
+                            selectedContentCategories,
+                            selectedOrganization
                           );
                         }}
                       >
@@ -1730,7 +1562,8 @@ export default function MovieGrid() {
                               selectedYears,
                               selectedGenres,
                               selectedLanguages,
-                              selectedContentCategories
+                              selectedContentCategories,
+                              selectedOrganization
                             );
                             setExcludingCountryAnchorEl(null); // Close popover after selection
                             return updated;
@@ -1996,6 +1829,73 @@ export default function MovieGrid() {
                 </Popover>
               </>}
 
+            {/* Organization Filter - Only visible to Admin */}
+            {!dealDetails && user?.user?.role === "Admin" &&
+              <>
+                <Button
+                  sx={selectedOrganization.length > 0 ? styles.filterButtonActive : styles.filterButton}
+                  onClick={(e) => setOrganizationAnchorEl(e.currentTarget)}
+                  endIcon={<ArrowDownIcon fontSize="small" />}
+                >
+                  Organization
+                  {selectedOrganization.length > 0 && (
+                    <Badge
+                      badgeContent={selectedOrganization.length}
+                      color="primary"
+                      sx={{
+                        marginLeft: "4px",
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#7ab5e7",
+                          color: "#000",
+                          fontWeight: "bold",
+                        },
+                      }}
+                    />
+                  )}
+                </Button>
+                <Popover
+                  open={Boolean(organizationAnchorEl)}
+                  anchorEl={organizationAnchorEl}
+                  onClose={() => setOrganizationAnchorEl(null)}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  PaperProps={{
+                    style: { backgroundColor: "#111" },
+                  }}
+                >
+                  <Box sx={styles.popoverContent}>
+                    <Typography sx={styles.popoverTitle}>
+                      Organization
+                      {selectedOrganization.length > 0 && (
+                        <Button size="small" sx={styles.clearButton} onClick={() => {
+                          setSelectedOrganization([]);
+                          setOrganizationAnchorEl(null);
+                          fetchAllProjectData(1, false, selectedRights, selectedTerritories, selectedExcludingTerritory, selectedYears, selectedGenres, selectedLanguages, selectedContentCategories, []);
+                        }}>
+                          Clear
+                        </Button>
+                      )}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                      {orgList.map((org) => (
+                        <Chip
+                          key={org._id}
+                          label={org.orgName}
+                          onClick={() => handleOrganizationFilter(org._id)}
+                          sx={selectedOrganization.includes(org._id) ? styles.popoverChipActive : styles.popoverChip}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </Popover>
+              </>}
+
             {/* Filter Action Buttons */}
             {dealDetails ? (
               // If dealDetails is present, show both "Open Filters" and "Clear Filters"
@@ -2018,7 +1918,7 @@ export default function MovieGrid() {
                     borderRadius: "16px",
                     textTransform: "none",
                     border: activeFiltersCount > 0 ? "1px solid #7ab5e7" : "1px solid rgba(255, 255, 255, 0.1)",
-                   
+
                     gap: "4px",
                     height: "32px",
                     "&:hover": {
@@ -2050,9 +1950,9 @@ export default function MovieGrid() {
                 Create Requirement
               </Button>
             )}
+          </Box>
 
-            {/* Selected Filters */}
-            {allSelectedFilters.length > 0 && (
+          {allSelectedFilters.length > 0 && (
               <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap", marginLeft: "8px" }}>
                 {allSelectedFilters.slice(0, 3).map((filter, index) => (
                   <Chip
@@ -2074,7 +1974,6 @@ export default function MovieGrid() {
                 )}
               </Box>
             )}
-          </Box>
 
           <Drawer anchor="right"
             open={advancedFiltersOpen}
@@ -2174,11 +2073,23 @@ export default function MovieGrid() {
                     {dealDetails?.yearOfRelease?.join(", ") || "N/A"}
                   </Typography>
                 </Box>
+
+                {/* Organization - Only show for Admin */}
+                {user?.user?.role === "Admin" && (
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="body1" sx={{ fontWeight: "bold", color: "#e1780c" }}>
+                      Organization:
+                    </Typography>
+                    <Typography variant="body1">
+                      {dealDetails?.organization || "N/A"}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
           </Drawer>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            {areDrawerFieldsFilled() && filtersApplied && (
+            {filtersApplied && (
               <FormControlLabel
                 control={
                   <Checkbox
@@ -2195,7 +2106,7 @@ export default function MovieGrid() {
                 label="Select All"
               />
             )}
-            {areDrawerFieldsFilled() && filtersApplied && (
+            {filtersApplied && (
               <Badge
                 badgeContent={selectedItems.length}
                 color="primary"
@@ -2236,8 +2147,8 @@ export default function MovieGrid() {
               console.log("logo image url", logoImageURL)
               console.log("orgname", orgName)
 
-              const genre = project?.formData?.specificationsInfo?.genres || "Unknown Genre";
-              const completionDate = project?.formData?.specificationsInfo?.completionDate;
+              const genre = project?.specificationsInfoData[0]?.genres || "Unknown Genre";
+              const completionDate = project?.specificationsInfoData[0]?.completionDate;
               const year = completionDate ? new Date(completionDate).getFullYear() : "N/A";
               const rating = project?.formData?.specificationsInfo?.rating || 0;
               const isChecked = selectedItems.includes(project._id);
@@ -2271,12 +2182,13 @@ export default function MovieGrid() {
                         </Typography>
                       </Box>
                       {user?.user?.role !== "Seller" && (
-                        <Box sx={{ display: 'flex', gap: 2, mt: 1, ml: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 2, ml: 1 }}>
                           <Button
                             variant="contained"
                             sx={styles.checkoutButton}
                             // onClick={() => navigate(`/movie/${project._id}`)}
                             onClick={() => window.open(`/movie/${project._id}`, "_blank")}
+                            size="small"
                           >
                             View Details
                           </Button>
@@ -2491,7 +2403,7 @@ export default function MovieGrid() {
 
           {/* Message */}
           <Typography id="warning-modal-description" sx={{ mb: 3, color: "#555", lineHeight: 1.6 }}>
-            <strong>Let’s Customize Your Content!</strong><br />
+            <strong>Let's Customize Your Content!</strong><br />
             Please <strong>create a requirement</strong> or <strong>select an existing one</strong> to filter content that matches your needs.
           </Typography>
 
@@ -2668,48 +2580,48 @@ const usageRightsOptions = [
 ]
 
 const contentCategoryOptions = [
-    { id: "feature_film", name: "Feature Film" },
-    { id: "short_film", name: "Short Films" },
-    { id: "documentary_feature", name: "Documentary Feature" },
-    { id: "documentary_short", name: "Documentary Short" },
-    { id: "tv_series", name: "TV Series" },
-    { id: "limited_series", name: "Limited Series" },
-    { id: "mini_series", name: "Mini Series" },
-    { id: "tv_movie", name: "TV Movie" },
-    { id: "tv_special", name: "TV Special" },
-    { id: "reality_tv", name: "Reality TV" },
-    { id: "talk_show", name: "Talk Show" },
-    { id: "game_show", name: "Game Show" },
-    { id: "news_program", name: "News Program" },
-    { id: "sports_program", name: "Sports Program" },
-    { id: "children_program", name: "Children's Program" },
-    { id: "animation_feature", name: "Animation Feature" },
-    { id: "animation_series", name: "Animation Series" },
-    { id: "animation_short", name: "Animation Short" },
-    { id: "music_video", name: "Music Video" },
-    { id: "concert_film", name: "Concert Film" },
-    { id: "stand_up_comedy", name: "Stand-up Comedy" },
-    { id: "variety_show", name: "Variety Show" },
-    { id: "award_show", name: "Award Show" },
-    { id: "commercial", name: "Commercial" },
-    { id: "corporate_video", name: "Corporate Video" },
-    { id: "training_video", name: "Training Video" },
-    { id: "instructional_video", name: "Instructional Video" },
-    { id: "web_series", name: "Web Series" },
-    { id: "podcast", name: "Podcast" },
-    { id: "audio_drama", name: "Audio Drama" },
-    { id: "radio_show", name: "Radio Show" },
-    { id: "live_stream", name: "Live Stream" },
-    { id: "virtual_event", name: "Virtual Event" },
-    { id: "interactive_content", name: "Interactive Content" },
-    { id: "360_video", name: "360° Video" },
-    { id: "vr_content", name: "VR Content" },
-    { id: "ar_content", name: "AR Content" },
-    { id: "gaming_content", name: "Gaming Content" },
-    { id: "ugc", name: "User Generated Content" },
-    { id: "social_media_content", name: "Social Media Content" },
-    { id: "branded_content", name: "Branded Content" },
-    { id: "sponsored_content", name: "Sponsored Content" },
+  { id: "feature_film", name: "Feature Film" },
+  { id: "short_film", name: "Short Films" },
+  { id: "documentary_feature", name: "Documentary Feature" },
+  { id: "documentary_short", name: "Documentary Short" },
+  { id: "tv_series", name: "TV Series" },
+  { id: "limited_series", name: "Limited Series" },
+  { id: "mini_series", name: "Mini Series" },
+  { id: "tv_movie", name: "TV Movie" },
+  { id: "tv_special", name: "TV Special" },
+  { id: "reality_tv", name: "Reality TV" },
+  { id: "talk_show", name: "Talk Show" },
+  { id: "game_show", name: "Game Show" },
+  { id: "news_program", name: "News Program" },
+  { id: "sports_program", name: "Sports Program" },
+  { id: "children_program", name: "Children's Program" },
+  { id: "animation_feature", name: "Animation Feature" },
+  { id: "animation_series", name: "Animation Series" },
+  { id: "animation_short", name: "Animation Short" },
+  { id: "music_video", name: "Music Video" },
+  { id: "concert_film", name: "Concert Film" },
+  { id: "stand_up_comedy", name: "Stand-up Comedy" },
+  { id: "variety_show", name: "Variety Show" },
+  { id: "award_show", name: "Award Show" },
+  { id: "commercial", name: "Commercial" },
+  { id: "corporate_video", name: "Corporate Video" },
+  { id: "training_video", name: "Training Video" },
+  { id: "instructional_video", name: "Instructional Video" },
+  { id: "web_series", name: "Web Series" },
+  { id: "podcast", name: "Podcast" },
+  { id: "audio_drama", name: "Audio Drama" },
+  { id: "radio_show", name: "Radio Show" },
+  { id: "live_stream", name: "Live Stream" },
+  { id: "virtual_event", name: "Virtual Event" },
+  { id: "interactive_content", name: "Interactive Content" },
+  { id: "360_video", name: "360° Video" },
+  { id: "vr_content", name: "VR Content" },
+  { id: "ar_content", name: "AR Content" },
+  { id: "gaming_content", name: "Gaming Content" },
+  { id: "ugc", name: "User Generated Content" },
+  { id: "social_media_content", name: "Social Media Content" },
+  { id: "branded_content", name: "Branded Content" },
+  { id: "sponsored_content", name: "Sponsored Content" },
 ];
 
 
