@@ -284,6 +284,30 @@ const CartPage = () => {
     }
   };
 
+  const handleDeleteDeal = async (dealId) => {
+    try {
+      setLoading(true);
+      const response = await axios.delete(`https://www.mediashippers.com/api/cart/${user._id}/${dealId}`);
+      console.log("response", response);
+      if (response.status === 200) {
+        const updatedDeals = deals.filter((deal) => deal._id !== dealId);
+        console.log("updatedDeals", updatedDeals);
+        setDeals(updatedDeals);
+        dispatch(setCartMovies(updatedDeals));
+        if (selectedDeal?._id === dealId) {
+          setSelectedDeal(null);
+        }
+        console.log("Deal deleted successfully:", dealId);
+      } else {
+        console.error("Failed to delete deal:", response.status);
+      }
+    } catch (error) {
+      console.error("Error deleting deal:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleDealSelection = (dealId) => {
     setDeals((prevDeals) =>
       prevDeals.map((deal) =>
@@ -485,6 +509,13 @@ const CartPage = () => {
                     }
                     sx={{ color: "#e1780c" }}
                   />
+                  <IconButton
+                    aria-label="delete deal"
+                    onClick={() => handleDeleteDeal(deal._id)}
+                    sx={{ color: "#d32f2f" }}
+                  >
+                    <Delete />
+                  </IconButton>
                 </Box>
 
                 {/* Movies Inside the Selected Deal */}
