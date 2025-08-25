@@ -845,24 +845,6 @@ export default function DealDashboard() {
                                 </IconButton>
                             </Tooltip>
                         )}
-                            {user.role === 'Admin' && deal.status === "pending" && (
-                                <Tooltip title="Edit Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => navigate("/create-requirement", { state: { dealDetails: deal } })}
-                                        disabled={deal.status !== "pending"} // Enable only for pending deals
-                                        sx={{
-                                            color: deal.status === "pending" ? "#0bf580" : "#9e9e9e",
-                                            "&:hover": {
-                                                bgcolor: deal.status === "pending" ? "hsla(150, 92.10%, 50.20%, 0.10)" : "transparent",
-                                                transform: deal.status === "pending" ? "scale(1.1)" : "none",
-                                            }
-                                        }}
-                                    >
-                                        <Edit fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            )}
 
                             {user.role === 'Admin' && deal.status === "pending" && (
                                 <Tooltip title="Delete Deal" TransitionComponent={Fade} TransitionProps={{ timeout: 600 }}>

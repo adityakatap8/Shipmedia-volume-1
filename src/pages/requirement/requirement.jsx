@@ -1,4 +1,4 @@
-import { Button } from "@mui/material"
+import { Button, TextField, Autocomplete, Chip } from "@mui/material"
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
@@ -259,47 +259,15 @@ const allUsageRights = ["Exclusive", "Non-Exclusive", "Exclusive & Non-Exclusive
 
 const allContentCategories = [
     { id: "feature_film", name: "Feature Film" },
-    { id: "short_film", name: "Short Films" },
-    { id: "documentary_feature", name: "Documentary Feature" },
-    { id: "documentary_short", name: "Documentary Short" },
-    { id: "tv_series", name: "TV Series" },
-    { id: "limited_series", name: "Limited Series" },
-    { id: "mini_series", name: "Mini Series" },
-    { id: "tv_movie", name: "TV Movie" },
-    { id: "tv_special", name: "TV Special" },
-    { id: "reality_tv", name: "Reality TV" },
-    { id: "talk_show", name: "Talk Show" },
-    { id: "game_show", name: "Game Show" },
-    { id: "news_program", name: "News Program" },
-    { id: "sports_program", name: "Sports Program" },
-    { id: "children_program", name: "Children's Program" },
-    { id: "animation_feature", name: "Animation Feature" },
-    { id: "animation_series", name: "Animation Series" },
-    { id: "animation_short", name: "Animation Short" },
-    { id: "music_video", name: "Music Video" },
-    { id: "concert_film", name: "Concert Film" },
-    { id: "stand_up_comedy", name: "Stand-up Comedy" },
-    { id: "variety_show", name: "Variety Show" },
-    { id: "award_show", name: "Award Show" },
-    { id: "commercial", name: "Commercial" },
-    { id: "corporate_video", name: "Corporate Video" },
-    { id: "training_video", name: "Training Video" },
-    { id: "instructional_video", name: "Instructional Video" },
+    { id: "tv_show", name: "TV Show" },
+    { id: "docu_series", name: "Docu Series" },
     { id: "web_series", name: "Web Series" },
-    { id: "podcast", name: "Podcast" },
-    { id: "audio_drama", name: "Audio Drama" },
-    { id: "radio_show", name: "Radio Show" },
-    { id: "live_stream", name: "Live Stream" },
-    { id: "virtual_event", name: "Virtual Event" },
-    { id: "interactive_content", name: "Interactive Content" },
-    { id: "360_video", name: "360° Video" },
-    { id: "vr_content", name: "VR Content" },
-    { id: "ar_content", name: "AR Content" },
-    { id: "gaming_content", name: "Gaming Content" },
-    { id: "ugc", name: "User Generated Content" },
-    { id: "social_media_content", name: "Social Media Content" },
-    { id: "branded_content", name: "Branded Content" },
-    { id: "sponsored_content", name: "Sponsored Content" },
+    { id: "kids_content", name: "Kids Content" },
+    { id: "vertical_drama", name: "Vertical Drama" },
+    { id: "micro_drama", name: "Micro Drama" },
+    { id: "documentary", name: "Documentary" },
+    { id: "short_film", name: "Short Film" },
+    { id: "animation", name: "Animation" },
 ];
 
 const allLanguages = [
@@ -554,7 +522,7 @@ export default function Requirement() {
                     payload
                 );
                 if (response.status === 200) {
-                    Navigate("/deals")
+                    Navigate("/showcase-projects", { state: { dealDetails: response?.data?.deal } });
                 } else {
                     console.error("Unexpected response status:", response.status);
                 }
@@ -759,26 +727,27 @@ export default function Requirement() {
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Define the type of rights being managed</p>
                             <div>
                                 <label style={{ color: "#d1d5db", display: "block", marginBottom: "8px", textAlign: "left" }}>Rights</label>
-                                <select
-                                    value={formData.rights}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, rights: e.target.value }))}
-                                    style={{
-                                        width: "100%",
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        fontSize: "1rem",
-                                    }}
-                                >
-                                    <option value="">Select rights</option>
-                                    {rightsOptions.map((option) => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Autocomplete
+                                    value={formData.rights || null}
+                                    onChange={(e, newValue) => setFormData((prev) => ({ ...prev, rights: newValue || "" }))}
+                                    options={rightsOptions}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select rights"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" },
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                />
                             </div>
                         </div>
                         {/* {user?.role === "Admin" && (
@@ -907,36 +876,48 @@ export default function Requirement() {
                             </div>
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Regions where rights are applicable</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                <select
-                                    value=""
-                                    onChange={(e) => {
-                                        const selectedRegion = e.target.value;
-                                        if (selectedRegion === "Worldwide") {
+                                <Autocomplete
+                                    multiple
+                                    value={formData.includingRegions}
+                                    onChange={(e, newValue) => {
+                                        if (newValue.includes("Worldwide")) {
                                             handleGlobalRegionSelection();
                                         } else {
-                                            addToArray(formData.includingRegions, selectedRegion, (arr) =>
-                                                setFormData((prev) => ({ ...prev, includingRegions: arr }))
-                                            );
+                                            setFormData((prev) => ({ ...prev, includingRegions: newValue }));
                                         }
                                     }}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="">Select region</option>
-                                    {Object.keys(regionCountryMapping).map((region) => (
-                                        <option key={region} value={region}>
-                                            {region}
-                                        </option>
-                                    ))}
-                                </select>
+                                    options={Object.keys(regionCountryMapping)}
+                                    filterSelectedOptions
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip
+                                                {...getTagProps({ index })}
+                                                label={option}
+                                                size="small"
+                                                sx={{ color: "#9ca3af" }}
+                                            />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select region(s)"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" },
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
                             </div>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                            {/* <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                                 {formData.includingRegions.map((region) => (
                                     <span
                                         key={region}
@@ -980,7 +961,7 @@ export default function Requirement() {
                                         </button>
                                     </span>
                                 ))}
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Excluding Countries */}
@@ -1007,34 +988,44 @@ export default function Requirement() {
                             </div>
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Countries where rights are not applicable</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                <select
-                                    value=""
-                                    onChange={(e) => {
-                                        const selectedCountry = e.target.value;
-                                        addToArray(formData.excludingCountries, selectedCountry, (arr) =>
-                                            setFormData((prev) => ({ ...prev, excludingCountries: arr }))
-                                        );
-                                    }}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        maxHeight: "200px",
-                                        overflowY: "auto",
-                                    }}
-                                >
-                                    <option value="">Select country</option>
-                                    {availableCountries.map((country) => (
-                                        <option key={country} value={country}>
-                                            {country}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Autocomplete
+                                    multiple
+                                    value={formData.excludingCountries}
+                                    onChange={(e, newValue) =>
+                                        setFormData((prev) => ({ ...prev, excludingCountries: newValue }))
+                                    }
+                                    options={availableCountries}
+                                    filterSelectedOptions
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip
+                                                {...getTagProps({ index })}
+                                                label={option}
+                                                size="small"
+                                                sx={{ color: "#9ca3af" }}
+                                            />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select country/countries"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" },
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
                             </div>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                            {/* <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                                 {formData.excludingCountries.map((country) => (
                                     <span
                                         key={country}
@@ -1073,7 +1064,7 @@ export default function Requirement() {
                                         </button>
                                     </span>
                                 ))}
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
@@ -1108,7 +1099,7 @@ export default function Requirement() {
                                         display: "flex",
                                         alignItems: "center",
                                         gap: "12px",
-                                        padding: "16px",
+                                        padding: "6px",
                                         border: "1px solid #4b5563",
                                         borderRadius: "8px",
                                         background: formData.usageRights === right ? "rgba(59, 130, 246, 0.1)" : "transparent",
@@ -1163,32 +1154,46 @@ export default function Requirement() {
                             </h3>
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Select multiple content categories</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                <select
-                                    value=""
-                                    onChange={(e) => {
-                                        const selectedCategory = e.target.value;
-                                        addToArray(formData.contentCategory, selectedCategory, (arr) =>
-                                            setFormData((prev) => ({ ...prev, contentCategory: arr }))
-                                        );
-                                    }}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="">Select category</option>
-                                    {allContentCategories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Autocomplete
+                                    multiple
+                                    value={formData.contentCategory.map((id) => allContentCategories.find((c) => c.id === id)).filter(Boolean)}
+                                    onChange={(e, newValue) =>
+                                        setFormData((prev) => ({ ...prev, contentCategory: newValue.map((c) => c.id) }))
+                                    }
+                                    options={allContentCategories}
+                                    getOptionLabel={(option) => option.name}
+                                    isOptionEqualToValue={(opt, val) => opt.id === val.id}
+                                    filterSelectedOptions
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip
+                                                {...getTagProps({ index })}
+                                                label={option.name}
+                                                size="small"
+                                                sx={{ color: "#9ca3af" }}
+                                            />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select category/categories"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" },
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
                             </div>
-                            <div
+                            {/* <div
                                 style={{
                                     display: "flex",
                                     flexWrap: "wrap",
@@ -1235,7 +1240,7 @@ export default function Requirement() {
                                         </button>
                                     </span>
                                 ))}
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Year of Release */}
@@ -1262,73 +1267,60 @@ export default function Requirement() {
                             </div>
                             <p style={{ color: "#9ca3af", marginBottom: "16px", textAlign: "left" }}>Select multiple years of release</p>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                {/* From Year Dropdown */}
-                                <select
-                                    onChange={(e) => {
-                                        const selectedYear = e.target.value;
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            yearOfRelease: [selectedYear, prev.yearOfRelease[1] || ""],
-                                        }));
-                                    }}
-                                    value={formData.yearOfRelease[0] || ""}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="" disabled>
-                                        From Year
-                                    </option>
-                                    {Array.from({ length: 50 }, (_, i) => {
-                                        const year = new Date().getFullYear() - i;
-                                        return (
-                                            <option key={year} value={year}>
-                                                {year}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-
-                                {/* To Year Dropdown */}
-                                <select
-                                    onChange={(e) => {
-                                        const selectedYear = e.target.value;
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            yearOfRelease: [prev.yearOfRelease[0] || "", selectedYear],
-                                        }));
-                                    }}
-                                    value={formData.yearOfRelease[1] || ""}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="" disabled>
-                                        To Year
-                                    </option>
-                                    {Array.from({ length: 50 }, (_, i) => {
-                                        const year = new Date().getFullYear() - i;
-                                        // Only show years greater than or equal to the selected "From Year"
-                                        if (!formData.yearOfRelease[0] || year >= formData.yearOfRelease[0]) {
-                                            return (
-                                                <option key={year} value={year}>
-                                                    {year}
-                                                </option>
-                                            );
-                                        }
-                                        return null;
-                                    })}
-                                </select>
+                                <Autocomplete
+                                    value={formData.yearOfRelease[0] || null}
+                                    onChange={(e, newValue) =>
+                                        setFormData((prev) => ({ ...prev, yearOfRelease: [newValue || "", prev.yearOfRelease[1] || ""] }))
+                                    }
+                                    options={Array.from({ length: 50 }, (_, i) => String(new Date().getFullYear() - i))}
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip {...getTagProps({ index })} label={option} size="small" sx={{ color: '#fff' }} />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="From Year"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: { color: "#9ca3af", "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" } },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
+                                <Autocomplete
+                                    value={formData.yearOfRelease[1] || null}
+                                    onChange={(e, newValue) =>
+                                        setFormData((prev) => ({ ...prev, yearOfRelease: [prev.yearOfRelease[0] || "", newValue || ""] }))
+                                    }
+                                    options={Array.from({ length: 50 }, (_, i) => String(new Date().getFullYear() - i)).filter((year) =>
+                                        !formData.yearOfRelease[0] || Number(year) >= Number(formData.yearOfRelease[0])
+                                    )}
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip {...getTagProps({ index })} label={option} size="small" sx={{ color: '#fff' }} />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="To Year"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: { color: "#9ca3af", "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" } },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
                             </div>
 
                             {/* Display Selected Year Range */}
@@ -1395,32 +1387,44 @@ export default function Requirement() {
                                 Languages
                             </h3>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                <select
-                                    value=""
-                                    onChange={(e) => {
-                                        const selectedLanguage = e.target.value;
-                                        addToArray(formData.languages, selectedLanguage, (arr) =>
-                                            setFormData((prev) => ({ ...prev, languages: arr }))
-                                        );
-                                    }}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="">Select language</option>
-                                    {allLanguages.map((lang) => (
-                                        <option key={lang} value={lang}>
-                                            {lang}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Autocomplete
+                                    multiple
+                                    value={formData.languages}
+                                    onChange={(e, newValue) =>
+                                        setFormData((prev) => ({ ...prev, languages: newValue }))
+                                    }
+                                    options={allLanguages}
+                                    filterSelectedOptions
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip
+                                                {...getTagProps({ index })}
+                                                label={option}
+                                                size="small"
+                                                sx={{ color: "#9ca3af" }}
+                                            />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select language(s)"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" },
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
                             </div>
-                            <div
+                            {/* <div
                                 style={{
                                     display: "flex",
                                     flexWrap: "wrap",
@@ -1467,7 +1471,7 @@ export default function Requirement() {
                                         </button>
                                     </span>
                                 ))}
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Genres */}
@@ -1482,32 +1486,44 @@ export default function Requirement() {
                         >
                             <h3 style={{ color: "white", fontSize: "1.25rem", fontWeight: "600", margin: "0 0 16px 0", textAlign: "left" }}>Genres</h3>
                             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                                <select
-                                    value=""
-                                    onChange={(e) => {
-                                        const selectedGenre = e.target.value;
-                                        addToArray(formData.genres, selectedGenre, (arr) =>
-                                            setFormData((prev) => ({ ...prev, genres: arr }))
-                                        );
-                                    }}
-                                    style={{
-                                        flex: 1,
-                                        background: "#374151",
-                                        border: "1px solid #4b5563",
-                                        color: "white",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                    }}
-                                >
-                                    <option value="">Select genre</option>
-                                    {allGenres.map((genre) => (
-                                        <option key={genre} value={genre}>
-                                            {genre}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Autocomplete
+                                    multiple
+                                    value={formData.genres}
+                                    onChange={(e, newValue) =>
+                                        setFormData((prev) => ({ ...prev, genres: newValue }))
+                                    }
+                                    options={allGenres}
+                                    filterSelectedOptions
+                                    renderTags={(value, getTagProps) =>
+                                        value.map((option, index) => (
+                                            <Chip
+                                                {...getTagProps({ index })}
+                                                label={option}
+                                                size="small"
+                                                sx={{ color: "#9ca3af" }}
+                                            />
+                                        ))
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Select genre(s)"
+                                            size="small"
+                                            type="autocomplete"
+                                            InputLabelProps={{ sx: { color: "#9ca3af" } }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#4b5563" },
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                    sx={{ flex: 1, '& .MuiAutocomplete-option[aria-selected="true"]': { color: '#fff' } }}
+                                />
                             </div>
-                            <div
+                            {/* <div
                                 style={{
                                     display: "flex",
                                     flexWrap: "wrap",
@@ -1552,7 +1568,7 @@ export default function Requirement() {
                                         </button>
                                     </span>
                                 ))}
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
