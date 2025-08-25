@@ -436,7 +436,8 @@ export default function MovieDetails() {
         {/* Credits Information */}
         <div className="mt-6 flex flex-col md:flex-row gap-8">
           {/* Left Side: Credits */}
-          <div className="md:w-1/3 w-full p-4 bg-opacity-50 rounded-lg">
+          {role !== 'Buyer' && (
+            <div className="md:w-1/3 w-full p-4 bg-opacity-50 rounded-lg">
             <p className="text-xl font-semibold mb-4">Credits</p>
 
             <div className="mb-6">
@@ -444,13 +445,6 @@ export default function MovieDetails() {
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.directors?.length ? creditsInfoData.directors.map((director, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    {role === "Buyer" ? (
-                      // Masked info for buyers
-                      <p>
-                        {`${maskName(director.firstName)} ${maskName(director.lastName)}`}
-                      </p>
-                    ) : (
-                      // Full info for other roles
                       <>
                         <img
                           src={director.photo || getCrewImageURL(director.firstName, director.lastName, title)}
@@ -460,7 +454,6 @@ export default function MovieDetails() {
                         />
                         <p>{director.firstName} {director.lastName}</p>
                       </>
-                    )}
                   </div>
                 )) : <p>No directors available</p>}
               </div>
@@ -470,15 +463,7 @@ export default function MovieDetails() {
               <p><strong>Writers:</strong></p>
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.writers?.length ? creditsInfoData.writers.map((writer, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    {role === "Buyer" ? (
-                      // Masked info for buyers
-                      <p>
-                        {`${writer.firstName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (writer.firstName?.trim()?.length || 0) - 1))} ${writer.lastName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (writer.lastName?.trim()?.length || 0) - 1))}`}
-                      </p>
-                    ) : (
-                      // Full info for other roles
-                      <>
+                  <div key={index} className="flex flex-col items-center"><>
                         <img
                           src={writer.photo || getCrewImageURL(writer.firstName, writer.lastName, title)}
                           alt={writer.firstName}
@@ -487,7 +472,6 @@ export default function MovieDetails() {
                         />
                         <p>{writer.firstName} {writer.lastName}</p>
                       </>
-                    )}
                   </div>
                 )) : <p>No writers available</p>}
               </div>
@@ -498,13 +482,6 @@ export default function MovieDetails() {
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.producers?.length ? creditsInfoData.producers.map((producer, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    {role === "Buyer" ? (
-                      // Masked info for buyers
-                      <p>
-                        {`${producer.firstName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (producer.firstName?.trim()?.length || 0) - 1))} ${producer.lastName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (producer.lastName?.trim()?.length || 0) - 1))}`}
-                      </p>
-                    ) : (
-                      // Full info for other roles
                       <>
                         <img
                           src={producer.photo || getCrewImageURL(producer.firstName, producer.lastName, title)}
@@ -514,7 +491,6 @@ export default function MovieDetails() {
                         />
                         <p>{producer.firstName} {producer.lastName}</p>
                       </>
-                    )}
                   </div>
                 )) : <p>No producers available</p>}
               </div>
@@ -525,13 +501,6 @@ export default function MovieDetails() {
               <div className="flex flex-wrap gap-6 mt-2">
                 {creditsInfoData.actors?.length ? creditsInfoData.actors.map((actor, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    {role === "Buyer" ? (
-                      // Masked info for buyers
-                      <p>
-                        {`${actor.firstName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (actor.firstName?.trim()?.length || 0) - 1))} ${actor.lastName?.trim()?.[0] || ''}${'*'.repeat(Math.max(0, (actor.lastName?.trim()?.length || 0) - 1))}`}
-                      </p>
-                    ) : (
-                      // Full info for other roles
                       <>
                         <img
                           src={actor.photo || getCrewImageURL(actor.firstName, actor.lastName, title)}
@@ -541,12 +510,12 @@ export default function MovieDetails() {
                         />
                         <p>{actor.firstName} {actor.lastName}</p>
                       </>
-                    )}
                   </div>
                 )) : <p>No actors available</p>}
               </div>
             </div>
           </div>
+          )}
 
 
           {/* Right Side: Synopsis */}
