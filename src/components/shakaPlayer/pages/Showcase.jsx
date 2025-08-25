@@ -1953,27 +1953,27 @@ export default function MovieGrid() {
           </Box>
 
           {allSelectedFilters.length > 0 && (
-              <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap", marginLeft: "8px" }}>
-                {allSelectedFilters.slice(0, 3).map((filter, index) => (
-                  <Chip
-                    key={`${filter.type}-${filter.value}`}
-                    label={filter.value}
-                    onDelete={() => removeFilter(filter)}
-                    deleteIcon={<CloseIcon fontSize="small" />}
-                    sx={styles.selectedFilterChip}
-                    size="small"
-                  />
-                ))}
-                {allSelectedFilters.length > 3 && (
-                  <Chip
-                    label={`+${allSelectedFilters.length - 3} more`}
-                    sx={styles.selectedFilterChip}
-                    size="small"
-                    onClick={() => setAdvancedFiltersOpen(true)}
-                  />
-                )}
-              </Box>
-            )}
+            <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap", marginLeft: "8px" }}>
+              {allSelectedFilters.slice(0, 3).map((filter, index) => (
+                <Chip
+                  key={`${filter.type}-${filter.value}`}
+                  label={filter.value}
+                  onDelete={() => removeFilter(filter)}
+                  deleteIcon={<CloseIcon fontSize="small" />}
+                  sx={styles.selectedFilterChip}
+                  size="small"
+                />
+              ))}
+              {allSelectedFilters.length > 3 && (
+                <Chip
+                  label={`+${allSelectedFilters.length - 3} more`}
+                  sx={styles.selectedFilterChip}
+                  size="small"
+                  onClick={() => setAdvancedFiltersOpen(true)}
+                />
+              )}
+            </Box>
+          )}
 
           <Drawer anchor="right"
             open={advancedFiltersOpen}
@@ -2581,47 +2581,15 @@ const usageRightsOptions = [
 
 const contentCategoryOptions = [
   { id: "feature_film", name: "Feature Film" },
-  { id: "short_film", name: "Short Films" },
-  { id: "documentary_feature", name: "Documentary Feature" },
-  { id: "documentary_short", name: "Documentary Short" },
-  { id: "tv_series", name: "TV Series" },
-  { id: "limited_series", name: "Limited Series" },
-  { id: "mini_series", name: "Mini Series" },
-  { id: "tv_movie", name: "TV Movie" },
-  { id: "tv_special", name: "TV Special" },
-  { id: "reality_tv", name: "Reality TV" },
-  { id: "talk_show", name: "Talk Show" },
-  { id: "game_show", name: "Game Show" },
-  { id: "news_program", name: "News Program" },
-  { id: "sports_program", name: "Sports Program" },
-  { id: "children_program", name: "Children's Program" },
-  { id: "animation_feature", name: "Animation Feature" },
-  { id: "animation_series", name: "Animation Series" },
-  { id: "animation_short", name: "Animation Short" },
-  { id: "music_video", name: "Music Video" },
-  { id: "concert_film", name: "Concert Film" },
-  { id: "stand_up_comedy", name: "Stand-up Comedy" },
-  { id: "variety_show", name: "Variety Show" },
-  { id: "award_show", name: "Award Show" },
-  { id: "commercial", name: "Commercial" },
-  { id: "corporate_video", name: "Corporate Video" },
-  { id: "training_video", name: "Training Video" },
-  { id: "instructional_video", name: "Instructional Video" },
+  { id: "tv_show", name: "TV Show" },
+  { id: "docu_series", name: "Docu Series" },
   { id: "web_series", name: "Web Series" },
-  { id: "podcast", name: "Podcast" },
-  { id: "audio_drama", name: "Audio Drama" },
-  { id: "radio_show", name: "Radio Show" },
-  { id: "live_stream", name: "Live Stream" },
-  { id: "virtual_event", name: "Virtual Event" },
-  { id: "interactive_content", name: "Interactive Content" },
-  { id: "360_video", name: "360° Video" },
-  { id: "vr_content", name: "VR Content" },
-  { id: "ar_content", name: "AR Content" },
-  { id: "gaming_content", name: "Gaming Content" },
-  { id: "ugc", name: "User Generated Content" },
-  { id: "social_media_content", name: "Social Media Content" },
-  { id: "branded_content", name: "Branded Content" },
-  { id: "sponsored_content", name: "Sponsored Content" },
+  { id: "kids_content", name: "Kids Content" },
+  { id: "vertical_drama", name: "Vertical Drama" },
+  { id: "micro_drama", name: "Micro Drama" },
+  { id: "documentary", name: "Documentary" },
+  { id: "short_film", name: "Short Film" },
+  { id: "animation", name: "Animation" },
 ];
 
 
