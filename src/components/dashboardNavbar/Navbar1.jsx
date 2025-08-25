@@ -17,6 +17,7 @@ import {
   Avatar,
   Box,
   Container,
+  InputBase,
 } from "@mui/material"
 import {
   Menu as MenuIcon,
@@ -29,6 +30,7 @@ import {
   Videocam as VideocamIcon,
   AccountCircle as AccountCircleIcon,
   ShoppingCart,
+  Search as SearchIcon
 } from "@mui/icons-material"
 import { Link as RouterLink, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux";
@@ -241,14 +243,47 @@ export function Navebar1({
         >
           <MenuIcon />
         </IconButton>
-
         <RouterLink to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
           <Typography variant="h6" noWrap style={logoTextStyle}>
             {/* <span style={orangeSpanStyle}>Media</span>Shippers */}
             <img src={logoIcon} alt="Logo" style={{ maxWidth: "100%", height: "50px" }} />
           </Typography>
         </RouterLink>
-
+        <Box sx={{
+          position: "relative",
+          borderRadius: "5px",
+          backgroundColor: "rgba(255,255,255,0.12)",
+          "&:hover": { backgroundColor: "rgba(255,255,255,0.18)" },
+          width: { xs: "100%", sm: "50%", md: "35%", lg: "30%" },
+          maxWidth: 420,
+          marginLeft: 9
+        }}>
+          <Box sx={{
+            padding: "0 16px",
+            height: "100%",
+            position: "absolute",
+            pointerEvents: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <SearchIcon />
+          </Box>
+          <InputBase
+            type="search"
+            placeholder="Search titles..."
+            inputProps={{ "aria-label": "search" }}
+            sx={{
+              color: "inherit",
+              width: "100%",
+              "& .MuiInputBase-input": {
+                padding: "8px 8px 8px 0",
+                paddingLeft: "48px",
+                width: "100%",
+              }
+            }}
+          />
+        </Box>
         <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, justifyContent: "flex-end", gap: 1 }}>
           {menuItems.map((item) => (
             <Button
@@ -274,7 +309,7 @@ export function Navebar1({
               <NotificationsIcon fontSize="small" />
             </Badge>
           </IconButton>
-            {user?.role !== "Seller" && <CartIcon />}
+          {user?.role !== "Seller" && <CartIcon />}
           <IconButton
             onClick={handleMenuOpen}
             size="small"
