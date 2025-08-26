@@ -1902,10 +1902,10 @@ export default function MovieGrid() {
               <>
                 <Button
                   variant="contained"
-                  onClick={() => setAdvancedFiltersOpen(true)}
+                  onClick={() => navigate("/create-requirement", { state: { dealDetails: dealDetails } })}
                   sx={styles.advancedFilterButton}
                 >
-                  Open Filters
+                  Edit Requirement
                 </Button>
                 <Button
                   variant="outlined"
