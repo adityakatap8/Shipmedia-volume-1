@@ -280,12 +280,12 @@ function RightsInfo({ onRightsChange, errors }) {
                 <div className="dropdown-container text-left">
                   <h3>Territories</h3>
 
-                  <div className="flex gap-4 flex-wrap">
-
+                  <div className="grid grid-cols-2 gap-2">
                     {/* Included Regions */}
-                    <div className="flex-1 min-w-[300px]">
+                    <div className="search-wrapper  ">
                       <h4>Territories (Including Regions)</h4>
                       <Multiselect
+                        
                         options={getFilteredRegionOptions(index)}
                         selectedValues={platform.includeRegions}
                         onSelect={(selectedList, selectedItem) => {
@@ -311,9 +311,10 @@ function RightsInfo({ onRightsChange, errors }) {
                     </div>
 
                     {/* Excluded Countries */}
-                    <div className="flex-1 min-w-[300px]">
+                    <div className="search-wrapper  ">
                       <h4>Territories (Excluding Countries)</h4>
                       <Multiselect
+                        
                         options={getAllCountryOptions(platform.includeRegions)}
                         selectedValues={platform.excludeCountries}
                         onSelect={(list) => handleExcludeCountriesChange(list, index)}
@@ -324,27 +325,27 @@ function RightsInfo({ onRightsChange, errors }) {
                         disable={!platform.includeRegions || platform.includeRegions.length === 0}
                       />
                     </div>
-
                   </div>
                 </div>
+              </div>
 
-                {/* License Term */}
-                <div className="dropdown-container text-left">
-                  <h3>License Term</h3>
-                  <Multiselect
-                    options={licenseTermOptions}
-                    selectedValues={platform.licenseTerm}
-                    onSelect={(list, selectedItem) => {
-                      handleChange(index, 'licenseTerm', [selectedItem]);
-                    }}
-                    onRemove={() => {
-                      handleChange(index, 'licenseTerm', []);
-                    }}
-                    displayValue="name"
-                    showCheckbox
-                    closeIcon="cancel"
-                  />
-                </div>
+
+              {/* License Term */}
+              <div className="dropdown-container text-left">
+                <h3>License Term</h3>
+                <Multiselect
+                  options={licenseTermOptions}
+                  selectedValues={platform.licenseTerm}
+                  onSelect={(list, selectedItem) => {
+                    handleChange(index, 'licenseTerm', [selectedItem]);
+                  }}
+                  onRemove={() => {
+                    handleChange(index, 'licenseTerm', []);
+                  }}
+                  displayValue="name"
+                  showCheckbox
+                  closeIcon="cancel"
+                />
               </div>
 
 

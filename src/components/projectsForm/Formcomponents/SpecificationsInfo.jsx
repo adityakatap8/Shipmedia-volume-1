@@ -83,7 +83,7 @@ const SpecificationsInfo = ({
         { name: 'Youth', id: 37 },
         { name: 'Kids Content', id: 38 },
     ];
-    
+
 
     const languageList = [
         "Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Azerbaijani", "Basque", "Belarusian",
@@ -251,10 +251,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="feature_film"
-                                checked={projectType === "feature_film"}
+                                value="Feature Film"
+                                checked={projectType === "Feature Film"}
                                 id="project_type_feature_film"
-                                onChange={(e) => handleInputChange(e, "feature_film")}
+                                onChange={(e) => handleInputChange(e, "Feature Film")}
                             />
                             <label htmlFor="project_type_feature_film">Feature Film</label>
                         </div>
@@ -263,10 +263,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="tv_show"
-                                checked={projectType === "tv_show"}
+                                value="TV Show"
+                                checked={projectType === "TV Show"}
                                 id="project_type_tv_show"
-                                onChange={(e) => handleInputChange(e, "tv_show")}
+                                onChange={(e) => handleInputChange(e, "TV Show")}
                             />
                             <label htmlFor="project_type_tv_show">TV Show</label>
                         </div>
@@ -275,10 +275,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="docu_series"
-                                checked={projectType === "docu_series"}
+                                value="Docu Series"
+                                checked={projectType === "Docu Series"}
                                 id="project_type_docu_series"
-                                onChange={(e) => handleInputChange(e, "docu_series")}
+                                onChange={(e) => handleInputChange(e, "Docu Series")}
                             />
                             <label htmlFor="project_type_docu_series">Docu Series</label>
                         </div>
@@ -287,10 +287,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="web_series"
-                                checked={projectType === "web_series"}
+                                value="Web Series"
+                                checked={projectType === "Web Series"}
                                 id="project_type_web_series"
-                                onChange={(e) => handleInputChange(e, "web_series")}
+                                onChange={(e) => handleInputChange(e, "Web Series")}
                             />
                             <label htmlFor="project_type_web_series">Web Series</label>
                         </div>
@@ -299,10 +299,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="kids_content"
-                                checked={projectType === "kids_content"}
+                                value="Kids Content"
+                                checked={projectType === "Kids Content"}
                                 id="project_type_kids_content"
-                                onChange={(e) => handleInputChange(e, "kids_content")}
+                                onChange={(e) => handleInputChange(e, "Kids Content")}
                             />
                             <label htmlFor="project_type_kids_content">Kids Content</label>
                         </div>
@@ -314,10 +314,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="vertical_drama"
-                                checked={projectType === "vertical_drama"}
+                                value="Vertical Drama"
+                                checked={projectType === "Vertical Drama"}
                                 id="project_type_vertical_drama"
-                                onChange={(e) => handleInputChange(e, "vertical_drama")}
+                                onChange={(e) => handleInputChange(e, "Vertical Drama")}
                             />
                             <label htmlFor="project_type_vertical_drama">Vertical Drama</label>
                         </div>
@@ -326,10 +326,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="micro_drama"
-                                checked={projectType === "micro_drama"}
+                                value="Micro Drama"
+                                checked={projectType === "Micro Drama"}
                                 id="project_type_micro_drama"
-                                onChange={(e) => handleInputChange(e, "micro_drama")}
+                                onChange={(e) => handleInputChange(e, "Micro Drama")}
                             />
                             <label htmlFor="project_type_micro_drama">Micro Drama</label>
                         </div>
@@ -338,10 +338,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="documentary"
-                                checked={projectType === "documentary"}
+                                value="Documentary"
+                                checked={projectType === "Documentary"}
                                 id="project_type_documentary"
-                                onChange={(e) => handleInputChange(e, "documentary")}
+                                onChange={(e) => handleInputChange(e, "Documentary")}
                             />
                             <label htmlFor="project_type_documentary">Documentary</label>
                         </div>
@@ -350,10 +350,10 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="short_film"
-                                checked={projectType === "short_film"}
+                                value="Short Film"
+                                checked={projectType === "Short Film"}
                                 id="project_type_short_film"
-                                onChange={(e) => handleInputChange(e, "short_film")}
+                                onChange={(e) => handleInputChange(e, "Short Film")}
                             />
                             <label htmlFor="project_type_short_film">Short Film</label>
                         </div>
@@ -362,17 +362,16 @@ const SpecificationsInfo = ({
                             <input
                                 type="radio"
                                 name="project_type"
-                                value="animation"
-                                checked={projectType === "animation"}
+                                value="Animation"
+                                checked={projectType === "Animation"}
                                 id="project_type_animation"
-                                onChange={(e) => handleInputChange(e, "animation")}
+                                onChange={(e) => handleInputChange(e, "Animation")}
                             />
                             <label htmlFor="project_type_animation">Animation</label>
                         </div>
-
-
                     </div>
                 </div>
+
 
                 <div className="form-sectionTwo">
 
@@ -406,30 +405,29 @@ const SpecificationsInfo = ({
                     </div>
 
 
+<div className="form-section">
+    <div className="form-label grid-3 span-12-phone">
+        Language
+    </div>
+    <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone" style={{ width: "10px" }}>
+        <div className="input optional form-field-input">
+            <select
+                id="language"
+                value={language}
+                onChange={handleInputChange}
+                style={{ width: "220px", padding: '10px', borderRadius: "10px", color: 'black', backgroundColor: 'white' }}
+            >
+                <option value="">Select a language</option>
+                {languageList.map((lang) => (
+                    <option key={lang} value={lang}>
+                        {lang}
+                    </option>
+                ))}
+            </select>
+        </div>
+    </div>
+</div>
 
-                    <div className="form-section">
-                        <div className="form-label grid-3 span-12-phone">
-                            Language
-                        </div>
-                        <div className="form-field radio-buttons span-6 span-8-tablet span-12-phone">
-                            <div className="input optional form-field-input">
-                                <select
-                                    id="language"
-                                    value={language}
-                                    onChange={handleInputChange}
-                                    className="language-dropdown text-black"
-                                >
-                                    <option value="">Select a language</option>
-                                    {languageList.map((lang) => (
-                                        <option key={lang} value={lang}>
-                                            {lang}
-                                        </option>
-                                    ))}
-                                </select>
-
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="section-One text-left text-white">
                         <div className="form-section">
@@ -548,7 +546,7 @@ const SpecificationsInfo = ({
                     </div>
 
 
-                    {!["feature_film", "short_film", "documentary"].includes(projectType) && (
+                    {!["Feature Film", "Short Film", "Documentary"].includes(projectType) && (
                         <>
 
                             {/* Number of Seasons */}

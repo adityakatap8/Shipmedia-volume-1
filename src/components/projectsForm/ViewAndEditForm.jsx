@@ -148,6 +148,37 @@ function ViewAndEditForm() {
     fetchUserDetails();
   }, [projectData]);
 
+
+  // Add this useEffect hook inside your component (ViewAndEditForm)
+useEffect(() => {
+  if (editingRightsGroup?.territories) {
+    setEditingRightsGroup((prev) => {
+      if (!prev || !prev.territories) return prev;
+
+      const included = prev.territories.includedRegions;
+      const excluded = prev.territories.excludeCountries;
+
+      return {
+        ...prev,
+        territories: {
+          includedRegions: Array.isArray(included)
+            ? included
+            : included
+            ? [included]
+            : [],
+          excludeCountries: Array.isArray(excluded)
+            ? excluded
+            : excluded
+            ? [excluded]
+            : [],
+        },
+      };
+    });
+  }
+}, [editingRightsGroup?.territories]);
+
+
+
   const constructS3Url = (subfolder, fileName) => {
     if (!orgName || !projectData?.projectInfo?.projectName || !fileName) return null;
 
@@ -448,10 +479,201 @@ function ViewAndEditForm() {
 //   }
 // };
 
+// const handleSaveProjectInfo = async () => {
+//   setSavingProject(true);
+//   try {
+//     // -- Step 1: Upload Poster, Banner, Trailer --
+//     const formData = new FormData();
+//     if (posterFile) formData.append('projectPoster', posterFile);
+//     if (bannerFile) formData.append('projectBanner', bannerFile);
+//     if (trailerFile) formData.append('projectTrailer', trailerFile);
+//     formData.append('projectName', editableProjectInfo.projectName);
+//     formData.append('orgName', orgName);
+//     formData.append('userId', userId);
+
+//     const uploadResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+//       method: 'POST',
+//       body: formData,
+//       headers: { Authorization: `Bearer ${token}` },
+//       credentials: 'include',
+//     });
+//     if (!uploadResponse.ok) throw new Error('File upload failed');
+//     const uploadedUrls = await uploadResponse.json();
+
+//     // -- Step 2: Upload Dubbed + SRT + Info Docs --
+//     const dtForm = new FormData();
+//     let hasFiles = false;
+//     const updatedDubbedFiles = [...editableProjectInfo.dubbedFileData];
+
+//     editableProjectInfo.dubbedFileData.forEach((file, index) => {
+//       const lang = file.language || `lang-${index}`;
+//       if (file.trailerType === 'upload' && file.trailerFile instanceof File) {
+//         dtForm.append(`dubbedTrailer_${index}`, file.trailerFile);
+//         dtForm.append(`dubbedTrailerLang_${index}`, lang);
+//         hasFiles = true;
+//       }
+//       if (file.dubbedSubtitleFileObject instanceof File) {
+//         dtForm.append(`dubbedSubtitle_${index}`, file.dubbedSubtitleFileObject);
+//         dtForm.append(`dubbedSubtitleLang_${index}`, lang);
+//         hasFiles = true;
+//       }
+//     });
+
+//     editableSrtInfo.srtFiles?.forEach((file, index) => {
+//       if (file.fileObject instanceof File) {
+//         dtForm.append(`srtFile_${index}`, file.fileObject);
+//         hasFiles = true;
+//       }
+//     });
+
+//     editableSrtInfo.infoDocuments?.forEach((file, index) => {
+//       if (file.fileObject instanceof File) {
+//         dtForm.append(`infoDocFile_${index}`, file.fileObject);
+//         hasFiles = true;
+//       }
+//     });
+
+//     let srtInfoUpdate = {};
+//     if (hasFiles) {
+//       dtForm.append('projectName', editableProjectInfo.projectName);
+//       dtForm.append('orgName', orgName);
+//       dtForm.append('userId', userId);
+
+//       const dtResponse = await fetch('https://www.mediashippers.com/api/files/upload-file', {
+//         method: 'POST',
+//         body: dtForm,
+//         headers: { Authorization: `Bearer ${token}` },
+//         credentials: 'include',
+//       });
+//       if (!dtResponse.ok) throw new Error('Dubbed/SRT/InfoDoc upload failed');
+//       const dtData = await dtResponse.json();
+
+//       dtData.dubbedFiles?.forEach((df) => {
+//         const index = updatedDubbedFiles.findIndex((d) => d.language === df.language);
+//         if (index !== -1) {
+//           if (df.dubbedTrailer) {
+//             updatedDubbedFiles[index].dubbedTrailerUrl = df.dubbedTrailer.fileUrl || '';
+//             updatedDubbedFiles[index].dubbedTrailerFileName = df.dubbedTrailer.fileName || '';
+//           }
+//           if (df.dubbedSubtitle) {
+//             updatedDubbedFiles[index].dubbedSubtitleUrl = df.dubbedSubtitle.fileUrl || '';
+//             updatedDubbedFiles[index].dubbedSubtitleFileName = df.dubbedSubtitle.fileName || '';
+//           }
+//         }
+//       });
+
+//       if (dtData.srtInfo) {
+//         const srtFiles = dtData.srtInfo.srtFiles || [];
+//         const infoDocuments = dtData.srtInfo.infoDocuments || [];
+
+//         setEditableSrtInfo({ srtFiles, infoDocuments });
+
+//         if (srtFiles.length > 0) srtInfoUpdate.srtFiles = srtFiles;
+//         if (infoDocuments.length > 0) srtInfoUpdate.infoDocuments = infoDocuments;
+//       }
+//     }
+
+//     // -- Step 3: Update specifications runtime string --
+//     if (editableSpecificationsInfo) {
+//       const hh = String(editableSpecificationsInfo.runtimeHours || 0).padStart(2, '0');
+//       const mm = String(editableSpecificationsInfo.runtimeMinutes || 0).padStart(2, '0');
+//       const ss = String(editableSpecificationsInfo.runtimeSeconds || 0).padStart(2, '0');
+//       editableSpecificationsInfo.runtime = `${hh}:${mm}:${ss}`;
+//     }
+
+//     // -- Step 4: Prepare updated project data --
+//     const updatedProjectData = {
+//       ...(uploadedUrls.projectPosterUrl && {
+//         projectPosterS3Url: uploadedUrls.projectPosterUrl,
+//         posterFileName: posterFile?.name,
+//       }),
+//       ...(uploadedUrls.projectBannerUrl && {
+//         projectBannerS3Url: uploadedUrls.projectBannerUrl,
+//         bannerFileName: bannerFile?.name,
+//       }),
+//       ...(uploadedUrls.projectTrailerUrl && {
+//         projectTrailerS3Url: uploadedUrls.projectTrailerUrl,
+//         trailerFileName: trailerFile?.name,
+//       }),
+//       projectTitle: editableProjectInfo.projectTitle || '',
+//       projectName: editableProjectInfo.projectName || '',
+//       briefSynopsis: editableProjectInfo.briefSynopsis || '',
+//       isPublic: editableProjectInfo.isPublic ?? false,
+//       movieFileName: editableProjectInfo.movieFileName || '',
+//       dubbedFileData: updatedDubbedFiles,
+//     };
+
+//     // -- Step 5: Update unsaved rights group edits BEFORE sending patch --
+//     let updatedRightsInfo = editableRightsInfo;
+
+//     if (isEditingRights && editingIndex !== null && editingRightsGroup) {
+//       const updatedRightsGroups = [...editableRightsInfo.rightsGroups];
+//       updatedRightsGroups[editingIndex] = {
+//         ...editingRightsGroup,
+//         rights: editingRightsGroup.rights ? [editingRightsGroup.rights] : [],
+//       };
+//       updatedRightsInfo = {
+//         ...editableRightsInfo,
+//         rightsGroups: updatedRightsGroups,
+//       };
+//       setEditableRightsInfo(updatedRightsInfo);
+//     }
+
+//     // -- Step 6: Final PATCH payload --
+//     const patchPayload = {
+//       projectInfo: updatedProjectData,
+//       ...(Object.keys(srtInfoUpdate).length > 0 && { srtInfo: srtInfoUpdate }),
+//       ...(editableCreditsInfo && Object.keys(editableCreditsInfo).length > 0 && {
+//         creditsInfo: editableCreditsInfo,
+//       }),
+//       ...(editableSpecificationsInfo && Object.keys(editableSpecificationsInfo).length > 0 && {
+//         specificationsInfo: editableSpecificationsInfo,
+//       }),
+//       ...(updatedRightsInfo && updatedRightsInfo._id && Object.keys(updatedRightsInfo).length > 0 && {
+//         rightsInfo: updatedRightsInfo,
+//       }),
+//     };
+
+//     console.log('🛠 PATCH Payload:', patchPayload);
+
+//     const patchUrl = `https://www.mediashippers.com/api/project-form/update/${projectId}`;
+//     const patchResponse = await fetch(patchUrl, {
+//       method: 'PATCH',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${token}`,
+//       },
+//       body: JSON.stringify(patchPayload),
+//     });
+
+//     if (!patchResponse.ok) throw new Error('Failed to update MongoDB');
+
+//     // -- Step 7: Update local states --
+//     setEditableProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+//     setUpdatedProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
+
+//     alert('✅ Project info updated successfully!');
+
+//     // Clear rights editing state after save
+//     setIsEditingRights(false);
+//     setEditingIndex(null);
+//     setEditingRightsGroup(null);
+
+//     setTimeout(() => {
+//       window.location.reload();
+//     }, 500);
+//   } catch (err) {
+//     console.error(err);
+//     alert('❌ Error saving project data');
+//   } finally {
+//     setSavingProject(false);
+//   }
+// };
+
 const handleSaveProjectInfo = async () => {
   setSavingProject(true);
   try {
-    // -- Step 1: Upload Poster, Banner, Trailer --
+    // STEP 1: Upload poster/banner/trailer (unchanged)
     const formData = new FormData();
     if (posterFile) formData.append('projectPoster', posterFile);
     if (bannerFile) formData.append('projectBanner', bannerFile);
@@ -469,7 +691,7 @@ const handleSaveProjectInfo = async () => {
     if (!uploadResponse.ok) throw new Error('File upload failed');
     const uploadedUrls = await uploadResponse.json();
 
-    // -- Step 2: Upload Dubbed + SRT + Info Docs --
+    // STEP 2: Upload dubbed/SRT/info files (unchanged)
     const dtForm = new FormData();
     let hasFiles = false;
     const updatedDubbedFiles = [...editableProjectInfo.dubbedFileData];
@@ -542,7 +764,7 @@ const handleSaveProjectInfo = async () => {
       }
     }
 
-    // -- Step 3: Update specifications runtime string --
+    // STEP 3: Convert runtime to string
     if (editableSpecificationsInfo) {
       const hh = String(editableSpecificationsInfo.runtimeHours || 0).padStart(2, '0');
       const mm = String(editableSpecificationsInfo.runtimeMinutes || 0).padStart(2, '0');
@@ -550,7 +772,7 @@ const handleSaveProjectInfo = async () => {
       editableSpecificationsInfo.runtime = `${hh}:${mm}:${ss}`;
     }
 
-    // -- Step 4: Prepare updated project data --
+    // STEP 4: Build project info object
     const updatedProjectData = {
       ...(uploadedUrls.projectPosterUrl && {
         projectPosterS3Url: uploadedUrls.projectPosterUrl,
@@ -572,23 +794,71 @@ const handleSaveProjectInfo = async () => {
       dubbedFileData: updatedDubbedFiles,
     };
 
-    // -- Step 5: Update unsaved rights group edits BEFORE sending patch --
-    let updatedRightsInfo = editableRightsInfo;
+    // STEP 5: Prepare rights info based on project type
+    const rightsInfoPayload = {};
+    const isBulkProject = editableRightsInfo?.rightsGroups?.length > 0;
+
+    console.log('🔍 Project type:', isBulkProject ? 'Bulk' : 'Single');
+    console.log('🔍 Editing rights:', isEditingRights);
+    console.log('🔍 Editing index:', editingIndex);
+    console.log('🔍 Current editableRightsInfo:', editableRightsInfo);
 
     if (isEditingRights && editingIndex !== null && editingRightsGroup) {
-      const updatedRightsGroups = [...editableRightsInfo.rightsGroups];
-      updatedRightsGroups[editingIndex] = {
-        ...editingRightsGroup,
-        rights: editingRightsGroup.rights ? [editingRightsGroup.rights] : [],
-      };
-      updatedRightsInfo = {
-        ...editableRightsInfo,
-        rightsGroups: updatedRightsGroups,
-      };
-      setEditableRightsInfo(updatedRightsInfo);
+      if (isBulkProject) {
+        // ✅ Bulk: update rightsGroups array
+        const updatedRightsGroups = [...editableRightsInfo.rightsGroups];
+        updatedRightsGroups[editingIndex] = {
+          ...editingRightsGroup,
+          rights: editingRightsGroup.rights || [],
+        };
+        rightsInfoPayload.rightsGroups = updatedRightsGroups;
+        console.log('🔄 Bulk rights payload:', rightsInfoPayload);
+      } else {
+        // ✅ Single: Check if this is a legacy single-upload format
+        const isLegacyFormat = !editableRightsInfo.rightsGroups && editableRightsInfo.rights;
+        
+        if (isLegacyFormat) {
+          console.log('🔄 Legacy single-upload format detected');
+          // For legacy format, send top-level fields directly
+          const fieldsToUpdate = [
+            'rights',
+            'territories',
+            'licenseTerm',
+            'usageRights',
+            'paymentTerms',
+            'platformType',
+            'listPrice'
+          ];
+
+          fieldsToUpdate.forEach((field) => {
+            if (editingRightsGroup?.[field] !== undefined) {
+              rightsInfoPayload[field] = editingRightsGroup[field];
+            }
+          });
+        } else {
+          console.log('🔄 Current schema single format detected');
+          // For current schema single projects, we need to update rightsGroups[0]
+          const updatedRightsGroups = editableRightsInfo.rightsGroups ? [...editableRightsInfo.rightsGroups] : [{}];
+          
+          if (editingIndex >= updatedRightsGroups.length) {
+            // If editing index doesn't exist, create a new group
+            updatedRightsGroups[editingIndex] = { ...editingRightsGroup };
+          } else {
+            // Update existing group
+            updatedRightsGroups[editingIndex] = {
+              ...updatedRightsGroups[editingIndex],
+              ...editingRightsGroup
+            };
+          }
+          
+          rightsInfoPayload.rightsGroups = updatedRightsGroups;
+        }
+
+        console.log('🔄 Single project rights payload:', rightsInfoPayload);
+      }
     }
 
-    // -- Step 6: Final PATCH payload --
+    // STEP 6: Build full PATCH payload
     const patchPayload = {
       projectInfo: updatedProjectData,
       ...(Object.keys(srtInfoUpdate).length > 0 && { srtInfo: srtInfoUpdate }),
@@ -598,13 +868,12 @@ const handleSaveProjectInfo = async () => {
       ...(editableSpecificationsInfo && Object.keys(editableSpecificationsInfo).length > 0 && {
         specificationsInfo: editableSpecificationsInfo,
       }),
-      ...(updatedRightsInfo && updatedRightsInfo._id && Object.keys(updatedRightsInfo).length > 0 && {
-        rightsInfo: updatedRightsInfo,
-      }),
+      ...(Object.keys(rightsInfoPayload).length > 0 && { rightsInfo: rightsInfoPayload }),
     };
 
-    console.log('🛠 PATCH Payload:', patchPayload);
+    console.log('🛠 Final PATCH Payload:', JSON.stringify(patchPayload, null, 2));
 
+    // STEP 7: PATCH request to backend
     const patchUrl = `https://www.mediashippers.com/api/project-form/update/${projectId}`;
     const patchResponse = await fetch(patchUrl, {
       method: 'PATCH',
@@ -615,15 +884,21 @@ const handleSaveProjectInfo = async () => {
       body: JSON.stringify(patchPayload),
     });
 
-    if (!patchResponse.ok) throw new Error('Failed to update MongoDB');
+    if (!patchResponse.ok) {
+      const errorText = await patchResponse.text();
+      console.error('❌ PATCH failed:', errorText);
+      throw new Error(`Failed to update MongoDB: ${errorText}`);
+    }
 
-    // -- Step 7: Update local states --
+    const patchResult = await patchResponse.json();
+    console.log('✅ PATCH success:', patchResult);
+
+    // STEP 8: Local state updates
     setEditableProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
     setUpdatedProjectInfo((prev) => ({ ...prev, ...updatedProjectData }));
 
     alert('✅ Project info updated successfully!');
 
-    // Clear rights editing state after save
     setIsEditingRights(false);
     setEditingIndex(null);
     setEditingRightsGroup(null);
@@ -632,12 +907,13 @@ const handleSaveProjectInfo = async () => {
       window.location.reload();
     }, 500);
   } catch (err) {
-    console.error(err);
-    alert('❌ Error saving project data');
+    console.error('❌ Error in handleSaveProjectInfo:', err);
+    alert('❌ Error saving project data: ' + err.message);
   } finally {
     setSavingProject(false);
   }
 };
+
 
 
 
@@ -854,6 +1130,9 @@ const handleSaveProjectInfo = async () => {
         listPrice: rightsInfo?.listPrice || '',
       },
     ];
+
+
+
 
 
   function capitalizeWords(str) {
@@ -2536,276 +2815,283 @@ const handleSaveProjectInfo = async () => {
 
 
         {/* 5. Rights Info */}
-        <section className="section">
-          <div className="section-header flex justify-between items-center">
-            <h1 className="header-numbered">
-              <span>5</span> Rights Info
-            </h1>
-          </div>
+       {/* 5. Rights Info */}
+<section className="section">
+  <div className="section-header flex justify-between items-center">
+    <h1 className="header-numbered">
+      <span>5</span> Rights Info
+    </h1>
+  </div>
 
-          {normalizedRightsGroups.map((group, index) => (
-            <div key={index} className="border border-gray-700 rounded p-4 mt-4 space-y-4">
+  {normalizedRightsGroups.map((group, index) => (
+    <div key={index} className="border border-gray-700 rounded p-4 mt-4 space-y-4">
+      {/* Header Row */}
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-lg font-semibold text-white">Rights Group {index + 1}</h2>
+        <button
+          onClick={() => {
+            if (isEditingRights && editingIndex === index) {
+              setIsEditingRights(false);
+              setEditingIndex(null);
+              setEditingRightsGroup(null);
+            } else {
+              // Fix: Ensure that rights is always an array if it's expected to be one
+              // Here, the original code assigns rights: selectedRight, which is single object or null
+              // So, wrap selectedRight in an array if group.rights is array
+              const selectedRight = group?.rights?.[0] || null;
+              setEditingRightsGroup({
+                ...group,
+                rights: selectedRight ? [selectedRight] : [], // wrap in array to keep consistent
+              });
+              setIsEditingRights(true);
+              setEditingIndex(index);
+            }
+          }}
+          className={`text-sm ${
+            isEditingRights && editingIndex === index
+              ? 'bg-gray-500 hover:bg-gray-600'
+              : 'bg-blue-500 hover:bg-blue-600'
+          } text-white px-3 py-1 rounded`}
+        >
+          {isEditingRights && editingIndex === index ? '❌ Cancel' : '✏️ Edit'}
+        </button>
+      </div>
 
-              {/* Header Row */}
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold text-white">Rights Group {index + 1}</h2>
-                <button
-                  onClick={() => {
-                    if (isEditingRights && editingIndex === index) {
-                      setIsEditingRights(false);
-                      setEditingIndex(null);
-                      setEditingRightsGroup(null);
-                    } else {
-                      const selectedRight = group?.rights?.[0] || null; // take first if array
-                      setEditingRightsGroup({
-                        ...group,
-                        rights: selectedRight, // <-- fix: single object for editing
-                      });
-                      setIsEditingRights(true);
-                      setEditingIndex(index);
-                    }
-                  }}
+      {/* Rights */}
+      <div className="info-row">
+        <strong>Rights:</strong>
+        {isEditingRights && editingIndex === index ? (
+          <select
+            className="text-white bg-gray-800 px-2 py-1 rounded"
+            // Fix: when editingRightsGroup?.rights is array, use first element's name for value
+            value={editingRightsGroup?.rights?.[0]?.name || ''}
+            onChange={(e) => {
+              const selected = rightsOptions.find((option) => option.name === e.target.value);
+              setEditingRightsGroup({
+                ...editingRightsGroup,
+                rights: selected ? [{ name: selected.name }] : [],
+              });
+            }}
+          >
+            <option value="">Select Rights</option>
+            {rightsOptions.map((option) => (
+              <option key={option.id || option.name} value={option.name}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        ) : group?.rights?.length ? (
+          <p>{group.rights.map((r) => r.name).join(', ')}</p>
+        ) : (
+          <p>N/A</p>
+        )}
+      </div>
 
-                  className={`text-sm ${isEditingRights && editingIndex === index
-                    ? 'bg-gray-500 hover:bg-gray-600'
-                    : 'bg-blue-500 hover:bg-blue-600'
-                    } text-white px-3 py-1 rounded`}
-                >
-                  {isEditingRights && editingIndex === index ? '❌ Cancel' : '✏️ Edit'}
-                </button>
-              </div>
+      {/* Territories */}
+      <div className="info-row">
+        <strong className="text-white">Territories:</strong>
+        {isEditingRights && editingIndex === index ? (
+          <div className="text-white space-y-4 flex flex-wrap gap-4">
+            {/* Included Regions */}
+            <div className="flex-1 min-w-[300px]">
+              <label className="font-semibold text-white">Included Regions:</label>
+              <Multiselect
+                options={[
+                  { name: 'Worldwide', id: 'worldwide' },
+                  ...territoryGroupedOptions.map((group) => ({
+                    name: group.groupName,
+                    id: group.groupId,
+                  })),
+                ]}
+                selectedValues={editingRightsGroup?.territories?.includedRegions || []}
+                onSelect={(selectedList, selectedItem) => {
+                  if (selectedItem.id === 'worldwide') {
+                    setEditingRightsGroup((prev) => ({
+                      ...prev,
+                      territories: {
+                        includedRegions: [{ name: 'Worldwide', id: 'worldwide' }],
+                        excludeCountries: [],
+                      },
+                    }));
+                  } else {
+                    const filtered = selectedList.filter((r) => r.id !== 'worldwide');
+                    setEditingRightsGroup((prev) => ({
+                      ...prev,
+                      territories: {
+                        includedRegions: filtered,
+                        excludeCountries: [],
+                      },
+                    }));
+                  }
+                }}
+                onRemove={(selectedList) =>
+                  setEditingRightsGroup((prev) => ({
+                    ...prev,
+                    territories: {
+                      includedRegions: selectedList,
+                      excludeCountries: [],
+                    },
+                  }))
+                }
+                displayValue="name"
+                showCheckbox
+                closeIcon="cancel"
+              />
+              {Array.isArray(editingRightsGroup?.territories?.includedRegions) &&
+  editingRightsGroup.territories.includedRegions.some((r) => r.id === 'worldwide') && (
+    <p className="text-sm text-gray-400 mt-1">
+      Other regions are hidden when "Worldwide" is selected.
+    </p>
+)}
 
-              {/* Rights */}
-              <div className="info-row">
-                <strong>Rights:</strong>
-                {isEditingRights && editingIndex === index ? (
-                  <select
-                    className="text-white bg-gray-800 px-2 py-1 rounded"
-                    value={editingRightsGroup?.rights?.name || ''}
-                    onChange={(e) => {
-                      const selected = rightsOptions.find((option) => option.name === e.target.value);
-                      setEditingRightsGroup({
-                        ...editingRightsGroup,
-                        rights: selected ? { name: selected.name } : null,
-                      });
-                    }}
-                  >
-                    <option value="">Select Rights</option>
-                    {rightsOptions.map((option) => (
-                      <option key={option.id || option.name} value={option.name}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : group?.rights?.length ? (
-                  <p>{group.rights.map((r) => r.name).join(', ')}</p>
-                ) : (
-                  <p>N/A</p>
-                )}
-              </div>
-
-              {/* Territories */}
-              <div className="info-row">
-                <strong className="text-white">Territories:</strong>
-                {isEditingRights && editingIndex === index ? (
-                  <div className="text-white space-y-4 flex flex-wrap gap-4">
-                    {/* Included Regions */}
-                    <div className="flex-1 min-w-[300px]">
-                      <label className="font-semibold text-white">Included Regions:</label>
-                      <Multiselect
-                        options={[
-                          { name: 'Worldwide', id: 'worldwide' },
-                          ...territoryGroupedOptions.map((group) => ({
-                            name: group.groupName,
-                            id: group.groupId,
-                          })),
-                        ]}
-                        selectedValues={editingRightsGroup?.territories?.includedRegions || []}
-                        onSelect={(selectedList, selectedItem) => {
-                          if (selectedItem.id === 'worldwide') {
-                            setEditingRightsGroup((prev) => ({
-                              ...prev,
-                              territories: {
-                                includedRegions: [{ name: 'Worldwide', id: 'worldwide' }],
-                                excludeCountries: [],
-                              },
-                            }));
-                          } else {
-                            const filtered = selectedList.filter((r) => r.id !== 'worldwide');
-                            setEditingRightsGroup((prev) => ({
-                              ...prev,
-                              territories: {
-                                includedRegions: filtered,
-                                excludeCountries: [],
-                              },
-                            }));
-                          }
-                        }}
-                        onRemove={(selectedList) =>
-                          setEditingRightsGroup((prev) => ({
-                            ...prev,
-                            territories: {
-                              includedRegions: selectedList,
-                              excludeCountries: [],
-                            },
-                          }))
-                        }
-                        displayValue="name"
-                        showCheckbox
-                        closeIcon="cancel"
-                      />
-                      {editingRightsGroup.territories?.includedRegions?.some((r) => r.id === 'worldwide') && (
-                        <p className="text-sm text-gray-400 mt-1">
-                          Other regions are hidden when "Worldwide" is selected.
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Excluded Countries */}
-                    <div className="flex-1 min-w-[300px]">
-                      <label className="font-semibold text-white">Excluded Countries:</label>
-                      <Multiselect
-                        options={getCountryOptionsByRegionIds(editingRightsGroup?.territories?.includedRegions || [])}
-                        selectedValues={editingRightsGroup?.territories?.excludeCountries || []}
-                        onSelect={(selectedList) =>
-                          setEditingRightsGroup((prev) => ({
-                            ...prev,
-                            territories: {
-                              ...prev.territories,
-                              excludeCountries: selectedList,
-                            },
-                          }))
-                        }
-                        onRemove={(selectedList) =>
-                          setEditingRightsGroup((prev) => ({
-                            ...prev,
-                            territories: {
-                              ...prev.territories,
-                              excludeCountries: selectedList,
-                            },
-                          }))
-                        }
-                        displayValue="name"
-                        showCheckbox
-                        closeIcon="cancel"
-                        disable={!editingRightsGroup?.territories?.includedRegions?.length}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-white">
-                    {group?.territories?.includedRegions?.length > 0 && (
-                      <p>
-                        <strong>Included:</strong>{' '}
-                        {group.territories.includedRegions.map((r) => r.name).join(', ')}
-                      </p>
-                    )}
-                    {group?.territories?.excludeCountries?.length > 0 && (
-                      <p>
-                        <strong>Excluded:</strong>{' '}
-                        {group.territories.excludeCountries.map((c) => `${c.name} (${c.region})`).join(', ')}
-                      </p>
-                    )}
-                    {!group?.territories?.includedRegions?.length &&
-                      !group?.territories?.excludeCountries?.length && <p>N/A</p>}
-                  </div>
-                )}
-              </div>
-
-              {/* License Term */}
-              <div className="info-row">
-                <strong className="text-white">License Term:</strong>
-                {isEditingRights && editingIndex === index ? (
-                  <Multiselect
-                    options={licenseTermOptions}
-                    selectedValues={editingRightsGroup?.licenseTerm || []}
-                    onSelect={(selectedList) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, licenseTerm: selectedList }))
-                    }
-                    onRemove={(selectedList) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, licenseTerm: selectedList }))
-                    }
-                    displayValue="name"
-                    showCheckbox
-                    closeIcon="cancel"
-                    selectionLimit={1}
-                  />
-                ) : group?.licenseTerm?.length ? (
-                  <p className="text-white">{group.licenseTerm.map((l) => l.name).join(', ')}</p>
-                ) : (
-                  <p className="text-white">N/A</p>
-                )}
-              </div>
-
-              {/* Usage Rights */}
-              <div className="info-row">
-                <strong className="text-white">Usage Rights:</strong>
-                {isEditingRights && editingIndex === index ? (
-                  <Multiselect
-                    options={usageRightsOptions}
-                    selectedValues={editingRightsGroup?.usageRights || []}
-                    onSelect={(selectedList) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, usageRights: selectedList }))
-                    }
-                    onRemove={(selectedList) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, usageRights: selectedList }))
-                    }
-                    displayValue="name"
-                    showCheckbox
-                    closeIcon="cancel"
-                    selectionLimit={1}
-                  />
-                ) : group?.usageRights?.length ? (
-                  <p className="text-white">{group.usageRights.map((u) => u.name).join(', ')}</p>
-                ) : (
-                  <p className="text-white">N/A</p>
-                )}
-              </div>
-
-              {/* Payment Terms */}
-              <div className="info-row">
-                <strong className="text-white">Payment Terms:</strong>
-                {isEditingRights && editingIndex === index ? (
-                  <Multiselect
-                    options={paymentTermsOptions}
-                    selectedValues={editingRightsGroup?.paymentTerms || []}
-                    onSelect={(selectedList) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, paymentTerms: selectedList }))
-                    }
-                    onRemove={(selectedList) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, paymentTerms: selectedList }))
-                    }
-                    displayValue="name"
-                    showCheckbox
-                    closeIcon="cancel"
-                    selectionLimit={1}
-                  />
-                ) : group?.paymentTerms?.length ? (
-                  <p className="text-white">{group.paymentTerms.map((p) => p.name).join(', ')}</p>
-                ) : (
-                  <p className="text-white">N/A</p>
-                )}
-              </div>
-
-              {/* List Price */}
-              <div className="info-row">
-                <strong>List Price:</strong>
-                {isEditingRights && editingIndex === index ? (
-                  <input
-                    className="text-white bg-gray-800 px-2 py-1 rounded"
-                    type="number"
-                    value={editingRightsGroup?.listPrice || ''}
-                    onChange={(e) =>
-                      setEditingRightsGroup((prev) => ({ ...prev, listPrice: e.target.value }))
-                    }
-                  />
-                ) : (
-                  <p>{group?.listPrice || 'N/A'}</p>
-                )}
-              </div>
             </div>
-          ))}
-        </section>
+
+            {/* Excluded Countries */}
+            <div className="flex-1 min-w-[300px]">
+              <label className="font-semibold text-white">Excluded Countries:</label>
+              <Multiselect
+                options={getCountryOptionsByRegionIds(editingRightsGroup?.territories?.includedRegions || [])}
+                selectedValues={editingRightsGroup?.territories?.excludeCountries || []}
+                onSelect={(selectedList) =>
+                  setEditingRightsGroup((prev) => ({
+                    ...prev,
+                    territories: {
+                      ...prev.territories,
+                      excludeCountries: selectedList,
+                    },
+                  }))
+                }
+                onRemove={(selectedList) =>
+                  setEditingRightsGroup((prev) => ({
+                    ...prev,
+                    territories: {
+                      ...prev.territories,
+                      excludeCountries: selectedList,
+                    },
+                  }))
+                }
+                displayValue="name"
+                showCheckbox
+                closeIcon="cancel"
+                disable={!editingRightsGroup?.territories?.includedRegions?.length}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="text-white">
+            {group?.territories?.includedRegions?.length > 0 && (
+              <p>
+                <strong>Included:</strong> {group.territories.includedRegions.map((r) => r.name).join(', ')}
+              </p>
+            )}
+            {group?.territories?.excludeCountries?.length > 0 && (
+              <p>
+                <strong>Excluded:</strong>{' '}
+                {group.territories.excludeCountries.map((c) => `${c.name} (${c.region})`).join(', ')}
+              </p>
+            )}
+            {!group?.territories?.includedRegions?.length &&
+              !group?.territories?.excludeCountries?.length && <p>N/A</p>}
+          </div>
+        )}
+      </div>
+
+      {/* License Term */}
+      <div className="info-row">
+        <strong className="text-white">License Term:</strong>
+        {isEditingRights && editingIndex === index ? (
+          <Multiselect
+            options={licenseTermOptions}
+            selectedValues={editingRightsGroup?.licenseTerm || []}
+            onSelect={(selectedList) =>
+              setEditingRightsGroup((prev) => ({ ...prev, licenseTerm: selectedList }))
+            }
+            onRemove={(selectedList) =>
+              setEditingRightsGroup((prev) => ({ ...prev, licenseTerm: selectedList }))
+            }
+            displayValue="name"
+            showCheckbox
+            closeIcon="cancel"
+            selectionLimit={1}
+          />
+        ) : group?.licenseTerm?.length ? (
+          <p className="text-white">{group.licenseTerm.map((l) => l.name).join(', ')}</p>
+        ) : (
+          <p className="text-white">N/A</p>
+        )}
+      </div>
+
+      {/* Usage Rights */}
+      <div className="info-row">
+        <strong className="text-white">Usage Rights:</strong>
+        {isEditingRights && editingIndex === index ? (
+          <Multiselect
+            options={usageRightsOptions}
+            selectedValues={editingRightsGroup?.usageRights || []}
+            onSelect={(selectedList) =>
+              setEditingRightsGroup((prev) => ({ ...prev, usageRights: selectedList }))
+            }
+            onRemove={(selectedList) =>
+              setEditingRightsGroup((prev) => ({ ...prev, usageRights: selectedList }))
+            }
+            displayValue="name"
+            showCheckbox
+            closeIcon="cancel"
+            selectionLimit={1}
+          />
+        ) : group?.usageRights?.length ? (
+          <p className="text-white">{group.usageRights.map((u) => u.name).join(', ')}</p>
+        ) : (
+          <p className="text-white">N/A</p>
+        )}
+      </div>
+
+      {/* Payment Terms */}
+      <div className="info-row">
+        <strong className="text-white">Payment Terms:</strong>
+        {isEditingRights && editingIndex === index ? (
+          <Multiselect
+            options={paymentTermsOptions}
+            selectedValues={editingRightsGroup?.paymentTerms || []}
+            onSelect={(selectedList) =>
+              setEditingRightsGroup((prev) => ({ ...prev, paymentTerms: selectedList }))
+            }
+            onRemove={(selectedList) =>
+              setEditingRightsGroup((prev) => ({ ...prev, paymentTerms: selectedList }))
+            }
+            displayValue="name"
+            showCheckbox
+            closeIcon="cancel"
+            selectionLimit={1}
+          />
+        ) : group?.paymentTerms?.length ? (
+          <p className="text-white">{group.paymentTerms.map((p) => p.name).join(', ')}</p>
+        ) : (
+          <p className="text-white">N/A</p>
+        )}
+      </div>
+
+      {/* List Price */}
+      <div className="info-row">
+        <strong>List Price:</strong>
+        {isEditingRights && editingIndex === index ? (
+          <input
+            className="text-white bg-gray-800 px-2 py-1 rounded"
+            type="number"
+            value={editingRightsGroup?.listPrice || ''}
+            onChange={(e) =>
+              setEditingRightsGroup((prev) => ({ ...prev, listPrice: e.target.value }))
+            }
+          />
+        ) : (
+          <p>{group?.listPrice || 'N/A'}</p>
+        )}
+      </div>
+    </div>
+  ))}
+</section>
+
+
 
 
 
